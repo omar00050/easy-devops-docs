@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CmdTable, { type CmdGroup } from "@/components/CmdTable";
 import CodeBlock from "@/components/CodeBlock";
+
+export const metadata: Metadata = {
+  title: "Command Reference",
+  description:
+    "Complete Easy DevOps CLI command reference: main menu options, Nginx manager, SSL manager, domain manager, and Node.js manager sub-commands.",
+  keywords: ["easy-devops commands", "DevOps CLI reference", "Nginx CLI commands", "SSL CLI commands", "domain manager CLI"],
+  alternates: { canonical: "/docs/commands" },
+};
 
 const groups: CmdGroup[] = [
   {

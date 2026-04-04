@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
+
+export const metadata: Metadata = {
+  title: "Features",
+  description:
+    "Explore Easy DevOps features: Nginx management, Let's Encrypt SSL/TLS certificates (HTTP-01 & DNS-01), wildcard certs, domain reverse proxy configs, Node.js version switching, and a real-time web dashboard.",
+  keywords: ["Nginx management", "SSL certificates", "Let's Encrypt", "DNS-01", "HTTP-01", "wildcard SSL", "domain management", "Node.js switching", "reverse proxy", "real-time dashboard"],
+  alternates: { canonical: "/docs/features" },
+};
 
 const features = [
   { icon: "🌐", title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Automatic installation via apt-get (Linux) or winget (Windows)." },

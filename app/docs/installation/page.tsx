@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import InstallTabs from "@/components/InstallTabs";
+
+export const metadata: Metadata = {
+  title: "Installation",
+  description:
+    "Install Easy DevOps on Linux or Windows. One-line installers, bootstrap scripts, and npm global install instructions.",
+  keywords: ["Easy DevOps install", "install DevOps CLI", "npm install easy-devops", "DevOps installer Linux", "DevOps installer Windows"],
+  alternates: { canonical: "/docs/installation" },
+};
 
 export default function InstallationPage() {
   return (

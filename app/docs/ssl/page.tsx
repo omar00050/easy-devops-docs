@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+
+export const metadata: Metadata = {
+  title: "SSL Manager",
+  description:
+    "Issue and manage Let's Encrypt SSL certificates with Easy DevOps. Supports HTTP-01, DNS-01, and wildcard certificates via acme-client — no certbot required.",
+  keywords: ["SSL management", "Let's Encrypt CLI", "acme-client", "HTTP-01", "DNS-01", "wildcard SSL", "free SSL certificates", "SSL certificate automation", "easy SSL"],
+  alternates: { canonical: "/docs/ssl" },
+};
 
 export default function SSLPage() {
   return (

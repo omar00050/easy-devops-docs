@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+
+export const metadata: Metadata = {
+  title: "Dashboard API",
+  description:
+    "Easy DevOps web dashboard REST API reference. Nginx, domains, SSL, and settings endpoints with request/response examples.",
+  keywords: ["Easy DevOps API", "DevOps dashboard API", "REST API documentation", "Nginx API", "domain management API", "SSL API"],
+  alternates: { canonical: "/docs/api" },
+};
 
 const apiGroups = [
   {

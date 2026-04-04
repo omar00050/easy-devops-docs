@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+
+export const metadata: Metadata = {
+  title: "Overview",
+  description:
+    "Learn about Easy DevOps — a unified CLI and web dashboard for managing Nginx, Let's Encrypt SSL certificates (HTTP-01 & DNS-01), and Node.js on Linux and Windows.",
+  keywords: ["Easy DevOps overview", "DevOps CLI overview", "Nginx management tool", "SSL certificate management", "Node.js version manager"],
+  alternates: { canonical: "/docs/overview" },
+};
 
 export default function OverviewPage() {
   return (

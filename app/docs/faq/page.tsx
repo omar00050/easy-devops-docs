@@ -1,44 +1,71 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import Accordion from "@/components/Accordion";
 
+const SITE_URL = "https://easy-devops.devxor.team";
+
+export const metadata: Metadata = {
+  title: "FAQ & Troubleshooting",
+  description:
+    "Frequently asked questions and troubleshooting guide for Easy DevOps CLI — installation issues, password changes, SSL port conflicts, and more.",
+  keywords: ["Easy DevOps FAQ", "Easy DevOps troubleshooting", "DevOps CLI common issues", "SSL port 80 in use", "command not found"],
+  alternates: { canonical: "/docs/faq" },
+};
+
+const faqSchemaData = [
+  {
+    question: '"easy-devops: command not found" after install?',
+    answer: "Open a new terminal so the PATH can update. If it still fails, run npm bin -g and add the output directory to your PATH. For Linux users with permission issues, prefix the install command with sudo.",
+  },
+  {
+    question: "How do I change the dashboard password?",
+    answer: "From the CLI, select Settings from the main menu, then set a new password. This updates dashboardPassword in the SQLite database and takes effect immediately.",
+  },
+  {
+    question: 'SSL issuance fails with a "port 80 in use" error.',
+    answer: "HTTP-01 validation requires exclusive access to port 80. Stop nginx before issuing a certificate (Nginx Manager → Stop), then retry. After issuance, Easy DevOps will restart nginx automatically. Alternatively, use DNS-01 which does not require stopping nginx.",
+  },
+  {
+    question: "What is acmeEmail and why is it required?",
+    answer: "The acmeEmail setting registers your ACME account with Let's Encrypt. It is required for certificate issuance — Let's Encrypt uses it to send expiry notifications and account recovery. Set it in Settings before issuing certificates.",
+  },
+  {
+    question: "Can I use Easy DevOps on macOS?",
+    answer: "Yes — the install.sh script works on macOS. However, the primary tested platforms are Linux and Windows. Community contributions for macOS-specific features are welcome.",
+  },
+  {
+    question: "How do I run the dashboard directly without the CLI menu?",
+    answer: "From the project directory, run npm run dashboard. This starts the Express + Socket.io server directly. Access it at http://localhost:6443 (or your configured port).",
+  },
+  {
+    question: "Wildcard domains — why is DNS-01 the only option?",
+    answer: "Let's Encrypt does not support HTTP-01 for wildcard certificates. DNS-01 is the only validation method that can prove control of *.domain.com. Easy DevOps automatically disables HTTP-01 when you enable the wildcard option on a domain.",
+  },
+  {
+    question: "Where is the data stored?",
+    answer: "All configuration lives in data/easy-devops.sqlite at the project root. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). Nginx config files are generated to nginxDir/sites-available/ and symlinked to sites-enabled/.",
+  },
+];
+
 export default function FAQPage() {
-  const items = [
-    {
-      question: '"easy-devops: command not found" after install?',
-      answer: <>Open a new terminal so the PATH can update. If it still fails, run <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">npm bin -g</code> and add the output directory to your PATH. For Linux users with permission issues, prefix the install command with <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sudo</code>.</>,
-    },
-    {
-      question: "How do I change the dashboard password?",
-      answer: <>From the CLI, select <strong>Settings</strong> from the main menu, then set a new password. This updates <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">dashboardPassword</code> in the SQLite database and takes effect immediately.</>,
-    },
-    {
-      question: 'SSL issuance fails with a "port 80 in use" error.',
-      answer: <>HTTP-01 validation requires exclusive access to port 80. Stop nginx before issuing a certificate (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">Nginx Manager → Stop</code>), then retry. After issuance, Easy DevOps will restart nginx automatically. Alternatively, use DNS-01 which does not require stopping nginx.</>,
-    },
-    {
-      question: "What is acmeEmail and why is it required?",
-      answer: <>The <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">acmeEmail</code> setting registers your ACME account with Let's Encrypt. It is required for certificate issuance — Let's Encrypt uses it to send expiry notifications and account recovery. Set it in <strong>Settings</strong> before issuing certificates.</>,
-    },
-    {
-      question: "Can I use Easy DevOps on macOS?",
-      answer: <>Yes — the <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">install.sh</code> script works on macOS. However, the primary tested platforms are Linux and Windows. Community contributions for macOS-specific features are welcome.</>,
-    },
-    {
-      question: "How do I run the dashboard directly without the CLI menu?",
-      answer: <>From the project directory, run <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">npm run dashboard</code>. This starts the Express + Socket.io server directly. Access it at <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">http://localhost:6443</code> (or your configured port).</>,
-    },
-    {
-      question: "Wildcard domains — why is DNS-01 the only option?",
-      answer: <>Let's Encrypt does not support HTTP-01 for wildcard certificates. DNS-01 is the only validation method that can prove control of <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">*.domain.com</code>. Easy DevOps automatically disables HTTP-01 when you enable the wildcard option on a domain.</>,
-    },
-    {
-      question: "Where is the data stored?",
-      answer: <>All configuration lives in <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">data/easy-devops.sqlite</code> at the project root. SSL certificates are stored under <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sslDir</code> (default: <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">/etc/easy-devops/ssl/</code> on Linux, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">C:\easy-devops\ssl\</code> on Windows). Nginx config files are generated to <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">nginxDir/sites-available/</code> and symlinked to <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sites-enabled/</code>.</>,
-    },
-  ];
+  const items = faqSchemaData;
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqSchemaData.map((item) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: { "@type": "Answer", text: item.answer },
+            })),
+          }),
+        }}
+      />
       <div className="flex items-center gap-2 text-xs text-muted mb-2">
         <span>Docs</span> <span>/</span> <span>Help</span>
       </div>

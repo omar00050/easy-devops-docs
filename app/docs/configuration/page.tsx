@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
+
+export const metadata: Metadata = {
+  title: "Configuration",
+  description:
+    "Easy DevOps configuration reference — dashboard port, password, nginx directory, SSL directory, and ACME email stored in a single SQLite database.",
+  keywords: ["Easy DevOps configuration", "DevOps config", "easy-devops settings", "dashboard password", "acmeEmail"],
+  alternates: { canonical: "/docs/configuration" },
+};
 
 export default function ConfigurationPage() {
   return (

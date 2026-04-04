@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import { Check } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Platform Support",
+  description:
+    "Easy DevOps supports both Linux and Windows servers with full feature parity. See platform-specific details for Nginx, SSL, and Node.js management.",
+  keywords: ["DevOps Linux Windows", "cross-platform DevOps", "Nginx on Windows", "SSL on Linux", "DevOps compatibility"],
+  alternates: { canonical: "/docs/platform" },
+};
 
 const features = [
   "CLI Interface",

@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+
+export const metadata: Metadata = {
+  title: "Quick Start",
+  description:
+    "Get from zero to a working reverse proxy with SSL in five steps. Quick start guide for Easy DevOps CLI.",
+  keywords: ["Easy DevOps quick start", "DevOps tutorial", "get started DevOps", "Nginx setup guide", "SSL setup guide"],
+  alternates: { canonical: "/docs/quickstart" },
+};
 
 const steps = [
   {
