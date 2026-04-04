@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* ── Theme Configuration for Tailwind v4 ── */
+/* Define semantic color names that Tailwind will use */
+@theme {
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-surface: #ffffff;
+  --color-muted: #64748b;
+  --color-primary: #c43d1e;
+}
+
+/* ── Design Tokens (matched from dashboard) ── */
+/* Default to dark theme since that's the default in layout.tsx */
+:root {
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-text: #e8e8e8;
+  --color-muted: #888888;
+  --color-surface: #1e1e1e;
+  --color-bg: #161616;
+  --color-primary: #d64a29;
+  --color-primary-rgb: 214, 74, 41;
+}
+
+/* Light theme overrides */
+html:not(.dark) {
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-surface: #ffffff;
+  --color-bg: #f8fafc;
+  --color-primary: #c43d1e;
+  --color-primary-rgb: 196, 61, 30;
+}
+
+/* ── Globals ── */
+html { scroll-behavior: smooth; }
+
+/* Ensure dark mode is applied */
+html.dark {
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Override Tailwind utilities to use CSS variables for dark mode */
+.bg-background { background-color: var(--color-bg) !important; }
+.text-foreground { color: var(--color-text) !important; }
+.bg-surface { background-color: var(--color-surface) !important; }
+.text-muted { color: var(--color-muted) !important; }
+.border-border { border-color: var(--color-border) !important; }
+.bg-primary { background-color: var(--color-primary) !important; }
+.text-primary { color: var(--color-primary) !important; }
+.border-primary { border-color: var(--color-primary) !important; }
+
+/* Hover state overrides */
+.hover\:bg-primary\/20:hover { background-color: rgba(var(--color-primary-rgb), 0.2) !important; }
+.hover\:bg-primary\/\[0\.04\]:hover { background-color: rgba(var(--color-primary-rgb), 0.04) !important; }
+.hover\:border-primary:hover { border-color: var(--color-primary) !important; }
+.hover\:text-primary:hover { color: var(--color-primary) !important; }
+.hover\:text-foreground:hover { color: var(--color-text) !important; }
+
+.bg-primary\/10 { background-color: rgba(var(--color-primary-rgb), 0.1) !important; }
+.bg-primary\/\[0\.015\] { background-color: rgba(var(--color-primary-rgb), 0.015) !important; }
+.bg-primary\/\[0\.12\] { background-color: rgba(var(--color-primary-rgb), 0.12) !important; }
+.border-primary\/\[0\.15\] { border-color: rgba(var(--color-primary-rgb), 0.15) !important; }
+.border-primary\/30 { border-color: rgba(var(--color-primary-rgb), 0.3) !important; }
+.shadow-primary\/\[0\.08\] { --tw-shadow-color: rgba(var(--color-primary-rgb), 0.08) !important; }
+.shadow-primary\/20 { --tw-shadow-color: rgba(var(--color-primary-rgb), 0.2) !important; }
+
+/* Gradient text support */
+.bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)) !important; }
+.from-primary { --tw-gradient-from: var(--color-primary) var(--tw-gradient-from-position) !important; }
+.to-primary\/70 { --tw-gradient-to: rgba(var(--color-primary-rgb), 0.7) var(--tw-gradient-to-position) !important; }
+.to-primary\/80 { --tw-gradient-to: rgba(var(--color-primary-rgb), 0.8) var(--tw-gradient-to-position) !important; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-primary-rgb), 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+
+/* ── React Syntax Highlighter overrides ── */
+pre[class*="language-"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+pre[class*="language-"] code {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13.5px !important;
+  line-height: 1.7 !important;
+}
+
+/* ── Utility helpers for docs content ── */
+.prose-heading {
+  color: var(--color-text);
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose-heading-3 {
+  color: var(--color-text);
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.prose-text {
+  color: var(--color-muted);
+  line-height: 1.625;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Aurora animation keyframes ── */
+@keyframes aurora1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -20px) scale(1.1); }
+}
+@keyframes aurora2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 30px) scale(0.9); }
+}
+.animate-aurora1 { animation: aurora1 8s ease-in-out infinite; }
+.animate-aurora2 { animation: aurora2 10s ease-in-out infinite; }
+.animate-aurora1-delayed { animation: aurora1 12s ease-in-out infinite 4s; }
