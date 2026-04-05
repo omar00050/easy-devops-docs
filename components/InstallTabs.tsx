@@ -58,9 +58,9 @@ export default function InstallTabs() {
         {active === "linux" && (
           <div className="space-y-6">
             <InstallStep number={1} title="Run the bootstrap installer" desc="Downloads Node.js LTS via nvm, installs Easy DevOps, and launches the CLI.">
-              <CodeBlock lang="bash" filename="bash">curl -fsSL https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh | bash</CodeBlock>
+              <CodeBlock lang="bash" filename="bash">curl -fsSL https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh -o install.sh && bash install.sh</CodeBlock>
               <p className="text-xs text-muted mb-3 mt-2">Or with wget:</p>
-              <CodeBlock lang="bash" filename="bash">wget -qO- https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh | bash</CodeBlock>
+              <CodeBlock lang="bash" filename="bash">wget -qO install.sh https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh && bash install.sh</CodeBlock>
             </InstallStep>
             <InstallStep number={2} title="Follow the interactive prompts" desc="The installer will offer to install or upgrade Node.js. Choose your version or keep the current one." />
             <p className="text-sm text-muted"><strong>Installer flags:</strong> <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--version X</code> to skip the picker, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--keep-node</code> to skip Node.js management.</p>
