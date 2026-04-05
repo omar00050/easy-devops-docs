@@ -27,7 +27,7 @@ export default function OverviewPage() {
       </p>
 
       <h2 id="cli-preview" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Preview</h2>
-      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.0.0
+      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.0.2
   ██╔════╝╚════██╗     ─────────────────────
   █████╗      ██╔╝     CLI & Web Dashboard
   ██╔══╝     ██╔╝      Nginx · SSL · Domains · Node.js
