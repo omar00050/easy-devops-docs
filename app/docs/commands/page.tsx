@@ -20,7 +20,7 @@ const groups: CmdGroup[] = [
       { name: "SSL Manager", description: "List certs, issue new certs (HTTP-01 or DNS-01), renew expiring certs." },
       { name: "Domain Manager", description: "List, add, edit, enable/disable, delete reverse proxy configs." },
       { name: "Open Dashboard", description: "Starts the Express + Vue 3 web dashboard." },
-      { name: "Settings", description: "Configure ports, directories, passwords, and ACME email." },
+      { name: "Settings", description: "Configure ports, directories, passwords, ACME email, and Linux permissions." },
       { name: "Check for Updates", description: "Checks npm registry for a new version of easy-devops." },
       { name: "Exit", description: "Exit the CLI gracefully. Press Ctrl+C at any time." },
     ],
@@ -61,6 +61,17 @@ const groups: CmdGroup[] = [
       { name: "Update npm", description: "Updates npm to the latest version." },
     ],
   },
+  {
+    title: "Settings Sub-commands",
+    commands: [
+      { name: "Dashboard Port", description: "Set the port the web dashboard listens on (default: 6443)." },
+      { name: "Dashboard Password", description: "Change the login password for the web dashboard." },
+      { name: "Nginx Directory", description: "Set the nginx installation path (nginxDir)." },
+      { name: "SSL Directory", description: "Set the SSL certificate storage root (sslDir)." },
+      { name: "ACME Email", description: "Set the email used for Let's Encrypt account registration." },
+      { name: "Setup Linux Permissions", description: "Linux only. Runs sudo -v then writes /etc/sudoers.d/easy-devops with NOPASSWD rules for systemctl and the detected nginx binary. Required for nginx service control from the dashboard. Shows ✅ configured once done." },
+    ],
+  },
 ];
 
 export default function CommandsPage() {
@@ -73,7 +84,7 @@ export default function CommandsPage() {
       <p className="text-muted text-base leading-relaxed mb-10">The Easy DevOps CLI presents a top-level menu. Select an option with arrow keys, then follow the sub-menu prompts.</p>
 
       <h2 id="cli-banner" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Banner</h2>
-      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.0.0
+      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.0.2
   ██╔════╝╚════██╗     ─────────────────────
   █████╗      ██╔╝     CLI & Web Dashboard
   ██╔══╝     ██╔╝      Nginx · SSL · Domains · Node.js

@@ -48,6 +48,8 @@ const apiGroups = [
     title: "Settings",
     endpoints: [
       { path: "/api/settings", methods: ["GET", "POST"], desc: "Get / save dashboard settings" },
+      { path: "/api/settings/permissions", methods: ["GET"], desc: "Check whether Linux NOPASSWD sudoers are configured" },
+      { path: "/api/settings/permissions/setup", methods: ["POST"], desc: "Write /etc/sudoers.d/easy-devops via sudo -S (Linux only). Body: { password: string }" },
     ],
   },
 ];

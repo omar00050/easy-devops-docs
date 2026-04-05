@@ -63,18 +63,29 @@ export default function PlatformPage() {
         </div>
       </div>
 
-      <div className="bg-surface border border-border rounded-xl p-6 text-sm">
+      <div className="bg-surface border border-border rounded-xl p-6 text-sm mb-6">
         <h3 className="font-bold text-foreground mb-3">Service Control Difference</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 bg-primary/[0.04] rounded-lg">
             <code className="font-mono text-xs text-primary font-semibold">Linux</code>
-            <p className="text-muted mt-1">Uses <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">systemctl start/stop/restart nginx</code> for service management.</p>
+            <p className="text-muted mt-1">Uses <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sudo -n systemctl start/stop/restart/reload nginx</code>. Requires one-time NOPASSWD sudoers setup — see Settings → Linux Permissions.</p>
           </div>
           <div className="p-4 bg-primary/[0.04] rounded-lg">
             <code className="font-mono text-xs text-primary font-semibold">Windows</code>
-            <p className="text-muted mt-1">Uses <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">nginx.exe</code> direct execution with process management.</p>
+            <p className="text-muted mt-1">Uses <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">nginx.exe</code> direct execution with process management via <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">tasklist</code> / <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">taskkill</code>.</p>
           </div>
         </div>
+      </div>
+
+      <div className="bg-amber-500/[0.06] border border-amber-500/20 rounded-xl p-6 text-sm">
+        <h3 className="font-bold text-amber-500 mb-2">Linux: First-Time Permissions Setup Required</h3>
+        <p className="text-muted mb-2">The dashboard runs headless (no terminal). <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sudo systemctl</code> commands require NOPASSWD sudoers rules or they will fail immediately.</p>
+        <ul className="space-y-1 text-muted list-disc list-inside">
+          <li>Run <strong>Settings → Setup Linux Permissions</strong> from the CLI once after install.</li>
+          <li>Or open the dashboard, go to <strong>Settings → Linux Permissions</strong>, enter your password, and click Setup.</li>
+          <li>This writes <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">/etc/sudoers.d/easy-devops</code> with rules scoped to nginx and certbot commands only.</li>
+          <li><code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">nginx -t</code> config tests are always run without sudo — they are read-only and never require root.</li>
+        </ul>
       </div>
 
       <DocsPagination
