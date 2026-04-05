@@ -46,6 +46,14 @@ const groups: CmdGroup[] = [
     ],
   },
   {
+    title: "SSL Manager Sub-commands",
+    commands: [
+      { name: "Create new certificate", description: "Issue a new Let's Encrypt certificate via HTTP-01 or DNS-01 challenge." },
+      { name: "Renew a certificate", description: "Select and renew a specific certificate by domain." },
+      { name: "Renew all expiring (< 30 days)", description: "Batch-renew all certificates expiring within 30 days." },
+    ],
+  },
+  {
     title: "Node.js Manager Sub-commands",
     commands: [
       { name: "Switch Node version", description: "List available LTS versions, switch to selected version." },
@@ -74,7 +82,15 @@ export default function CommandsPage() {
 
   nginx: ✅ v1.26.2 | ACME: acme-client | node: v22.21.1
 
-? Select an option:`}</CodeBlock>
+? Select an option:
+❯ 📦 Node.js Manager
+  🌐 Nginx Manager
+  🔒 SSL Manager
+  🔗 Domain Manager
+  🎛️ Open Dashboard
+  ⚙️ Settings
+  🔄 Check for Updates
+  ✖ Exit`}</CodeBlock>
 
       <h2 id="commands" className="prose-heading-3 text-foreground">All Commands</h2>
       <CmdTable groups={groups} />

@@ -36,7 +36,15 @@ export default function OverviewPage() {
 
   nginx: ✅ v1.26.2 | ACME: acme-client | node: v22.21.1
 
-? Select an option:`}</CodeBlock>
+? Select an option:
+❯ 📦 Node.js Manager
+  🌐 Nginx Manager
+  🔒 SSL Manager
+  🔗 Domain Manager
+  🎛️ Open Dashboard
+  ⚙️ Settings
+  🔄 Check for Updates
+  ✖ Exit`}</CodeBlock>
 
       <h2 id="core-capabilities" className="text-xl font-bold mt-10 mb-4 text-foreground">Core Capabilities</h2>
 

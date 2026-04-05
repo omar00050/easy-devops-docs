@@ -40,7 +40,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
       {/* Main */}
       <main className="lg:pl-64 pt-14 min-h-screen">
-        <div className="max-w-[800px] w-full px-6 py-10 lg:py-12 lg:ml-0">
+        <div className="max-w-[800px] w-full px-6 py-10 lg:py-12 lg:pl-12">
           {children}
         </div>
       </main>
