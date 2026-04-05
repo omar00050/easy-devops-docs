@@ -45,7 +45,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2.5 font-bold text-[17px] text-foreground shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/dashboard/public/img/icon.png"
+              src="https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon.png"
               alt="Easy DevOps Logo"
               className="w-8 rounded-lg"
             />
