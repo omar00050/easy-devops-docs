@@ -390,7 +390,7 @@ export default function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
             </span>
-            v1.0.2 — Open Source
+            v1.1.0 — Open Source
           </motion.div>
 
           {/* Headline */}

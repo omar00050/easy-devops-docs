@@ -51,11 +51,11 @@ const faqSchemaData = [
   },
   {
     question: '"nginx config test failed" even though the config looks correct (shows "syntax is ok").',
-    answer: 'When nginx -t is run as a non-root user, it prints "syntax is ok" then tries to write /run/nginx.pid — which requires root — causing it to exit with code 1. The config is actually valid. Easy DevOps v1.0.2+ handles this correctly: it checks the output text for "syntax is ok" rather than relying on the exit code alone. If you see this on an older version, upgrade to v1.0.2.',
+    answer: 'When nginx -t is run as a non-root user, it prints "syntax is ok" then tries to write /run/nginx.pid — which requires root — causing it to exit with code 1. The config is actually valid. Easy DevOps v1.1.0+ handles this correctly: it checks the output text for "syntax is ok" rather than relying on the exit code alone. If you see this on an older version, upgrade to v1.1.0.',
   },
   {
     question: 'Why does Easy DevOps run nginx -t without sudo?',
-    answer: 'nginx -t only reads configuration files, which are world-readable (644 permissions). It never needs root to validate syntax. Running it with sudo was the source of "a terminal is required" errors in the dashboard. Since v1.0.2, sudo has been removed from all nginx -t calls on every platform.',
+    answer: 'nginx -t only reads configuration files, which are world-readable (644 permissions). It never needs root to validate syntax. Running it with sudo was the source of "a terminal is required" errors in the dashboard. Since v1.1.0, sudo has been removed from all nginx -t calls on every platform.',
   },
 ];
 

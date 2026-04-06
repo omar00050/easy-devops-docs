@@ -84,7 +84,7 @@ export default function CommandsPage() {
       <p className="text-muted text-base leading-relaxed mb-10">Launch with <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">easy-devops</code> or the short alias <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">ezz</code> — both are registered as npm bin commands and do the same thing. Select an option with arrow keys, then follow the sub-menu prompts.</p>
 
       <h2 id="cli-banner" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Banner</h2>
-      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.0.2
+      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.1.0
   ██╔════╝╚════██╗     ─────────────────────
   █████╗      ██╔╝     CLI & Web Dashboard
   ██╔══╝     ██╔╝      Nginx · SSL · Domains · Node.js
