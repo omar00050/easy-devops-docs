@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 const faqSchemaData = [
   {
-    question: '"easy-devops: command not found" after install?',
-    answer: "Open a new terminal so the PATH can update. If it still fails, run npm bin -g and add the output directory to your PATH. For Linux users with permission issues, prefix the install command with sudo.",
+    question: '"ezz: command not found" or "easy-devops: command not found" after install?',
+    answer: "Open a new terminal so the PATH can update. If it still fails, run npm bin -g and add the output directory to your PATH. For Linux users with permission issues, prefix the install command with sudo. Both ezz and easy-devops are registered as bin aliases — either one will launch the CLI.",
   },
   {
     question: "How do I change the dashboard password?",
@@ -35,7 +35,7 @@ const faqSchemaData = [
   },
   {
     question: "How do I run the dashboard directly without the CLI menu?",
-    answer: "From the project directory, run npm run dashboard. This starts the Express + Socket.io server directly. Access it at http://localhost:6443 (or your configured port).",
+    answer: "From the project directory, run npm run dashboard. This starts the Express + Socket.io server directly. Access it at http://localhost:6443 (or your configured port). Alternatively, run ezz and select 'Open Dashboard' from the main menu.",
   },
   {
     question: "Wildcard domains — why is DNS-01 the only option?",
@@ -43,7 +43,7 @@ const faqSchemaData = [
   },
   {
     question: "Where is the data stored?",
-    answer: "All configuration lives in data/easy-devops.sqlite at the project root. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). Nginx config files are generated to nginxDir/sites-available/ and symlinked to sites-enabled/.",
+    answer: "Since v1.1.0, the database lives in a persistent user directory that survives npm updates — Linux/macOS: ~/.config/easy-devops/easy-devops.sqlite, Windows: %APPDATA%\\easy-devops\\easy-devops.sqlite. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). If upgrading from v1.0.x, the database is migrated automatically on first run.",
   },
   {
     question: 'Dashboard shows "Linux permissions not configured" on nginx start/stop/reload.',

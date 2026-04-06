@@ -19,7 +19,7 @@ const steps = [
   {
     num: 2,
     title: "Launch the CLI",
-    desc: "Run easy-devops to enter the interactive menu.",
+    desc: "Run `ezz` (the short alias) or `easy-devops` to enter the interactive menu.",
   },
   {
     num: 3,
@@ -35,7 +35,7 @@ const steps = [
     num: 5,
     title: "Start the Dashboard (optional)",
     desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://localhost:6443 (or your configured port). Default password: admin.',
-    code: { lang: "bash", text: "npx easy-devops" },
+    code: { lang: "bash", text: "easy-devops\n# or the short alias:\nezz" },
   },
 ];
 

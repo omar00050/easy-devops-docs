@@ -4,7 +4,7 @@ import DocsPagination from "@/components/DocsPagination";
 export const metadata: Metadata = {
   title: "Configuration",
   description:
-    "Easy DevOps configuration reference — dashboard port, password, nginx directory, SSL directory, and ACME email stored in a single SQLite database.",
+    "Easy DevOps configuration reference — dashboard port, password, nginx directory, SSL directory, and ACME email. Database stored in user home directory, survives npm updates.",
   keywords: ["Easy DevOps configuration", "DevOps config", "easy-devops settings", "dashboard password", "acmeEmail"],
   alternates: { canonical: "/docs/configuration" },
 };
@@ -16,7 +16,15 @@ export default function ConfigurationPage() {
         <span>Docs</span> <span>/</span> <span>Reference</span>
       </div>
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Configuration</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">All configuration is stored in <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">data/easy-devops.sqlite</code> — a single SQLite file. No separate server needed.</p>
+      <p className="text-muted text-base leading-relaxed mb-6">All configuration is stored in a single SQLite file in a persistent user directory — never inside the npm package folder, so it survives updates.</p>
+      <div className="bg-surface border border-border rounded-xl p-5 text-sm mb-10">
+        <p className="font-bold text-foreground mb-2">Database location</p>
+        <ul className="space-y-1 text-muted">
+          <li><span className="text-foreground font-medium">Linux / macOS:</span> <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">~/.config/easy-devops/easy-devops.sqlite</code></li>
+          <li><span className="text-foreground font-medium">Windows:</span> <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">%APPDATA%\easy-devops\easy-devops.sqlite</code></li>
+        </ul>
+        <p className="text-muted mt-3 text-xs">If you are upgrading from v1.0.x, Easy DevOps automatically migrates the old database on first run — no manual action needed.</p>
+      </div>
 
       <h2 id="config-fields" className="text-xl font-bold mt-10 mb-4 text-foreground">Config Fields</h2>
       <table className="w-full text-sm border-collapse mb-10">
