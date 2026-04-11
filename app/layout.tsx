@@ -98,9 +98,9 @@ export const metadata: Metadata = {
   },
   verification: {},
   icons: {
-    icon: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/dashboard/public/img/icon_b.png",
-    shortcut: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/dashboard/public/img/icon_b.png",
-    apple: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/dashboard/public/img/icon_b.png",
+    icon: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
+    shortcut: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
+    apple: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
   },
   category: "Developer Tool",
 };
@@ -146,7 +146,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 name: "Omar Farghaly",
                 url: "https://farghaly.dev",
               },
-              image: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/dashboard/public/img/icon_b.png",
+              image: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
               softwareVersion: "1.0.0",
             }),
           }}

@@ -5,8 +5,8 @@ import CodeBlock from "@/components/CodeBlock";
 export const metadata: Metadata = {
   title: "Dashboard API",
   description:
-    "Easy DevOps web dashboard REST API reference. Nginx, domains, SSL, and settings endpoints with request/response examples.",
-  keywords: ["Easy DevOps API", "DevOps dashboard API", "REST API documentation", "Nginx API", "domain management API", "SSL API"],
+    "Easy DevOps web dashboard REST API reference. Nginx, domains, SSL, settings, and notification channel endpoints with request/response examples.",
+  keywords: ["Easy DevOps API", "DevOps dashboard API", "REST API documentation", "Nginx API", "domain management API", "SSL API", "notification channels API"],
   alternates: { canonical: "/docs/api" },
 };
 
@@ -27,10 +27,11 @@ const apiGroups = [
     id: "domains",
     title: "Domains",
     endpoints: [
-      { path: "/api/domains", methods: ["GET", "POST"], desc: "List / create domains" },
+      { path: "/api/domains", methods: ["GET", "POST"], desc: "List / create domains. Responses include a notifications field with per-domain channel config." },
       { path: "/api/domains/:name", methods: ["PUT", "DELETE"], desc: "Update / delete domain" },
       { path: "/api/domains/:name/toggle", methods: ["PUT"], desc: "Enable or disable domain" },
       { path: "/api/domains/:name/reload", methods: ["POST"], desc: "Reload nginx for domain" },
+      { path: "/api/domains/:name/notifications", methods: ["GET", "PUT"], desc: "Get or update per-domain notification config (enabled flag + channelIds per event type)" },
     ],
   },
   {
@@ -50,6 +51,19 @@ const apiGroups = [
       { path: "/api/settings", methods: ["GET", "POST"], desc: "Get / save dashboard settings" },
       { path: "/api/settings/permissions", methods: ["GET"], desc: "Check whether Linux NOPASSWD sudoers are configured" },
       { path: "/api/settings/permissions/setup", methods: ["POST"], desc: "Write /etc/sudoers.d/easy-devops via sudo -S (Linux only). Body: { password: string }" },
+      { path: "/api/settings/backup", methods: ["GET"], desc: "Download config and domains as a JSON file (password excluded)" },
+      { path: "/api/settings/restore", methods: ["POST"], desc: "Restore config and domains from a backup JSON body" },
+    ],
+  },
+  {
+    id: "channels",
+    title: "Notification Channels",
+    endpoints: [
+      { path: "/api/settings/channels", methods: ["GET"], desc: "List all named notification channels" },
+      { path: "/api/settings/channels", methods: ["POST"], desc: "Create a channel. Body: { name, type: 'discord'|'telegram', webhookUrl?, botToken?, chatId?, message? }" },
+      { path: "/api/settings/channels/:id", methods: ["PUT"], desc: "Update channel name or credentials. Type is immutable after creation." },
+      { path: "/api/settings/channels/:id", methods: ["DELETE"], desc: "Delete a channel" },
+      { path: "/api/settings/channels/:id/test", methods: ["POST"], desc: "Send a live test notification to a single channel" },
     ],
   },
 ];
@@ -63,7 +77,7 @@ export default function APIPage() {
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Dashboard API</h1>
       <p className="text-muted text-base leading-relaxed mb-10">The web dashboard exposes a REST API consumed by the Vue 3 frontend.</p>
 
-      <h2 id="example" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Create a Domain</h2>
+      <h2 id="example-domain" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Create a Domain</h2>
       <CodeBlock lang="bash" filename="Request">{`curl -X POST http://localhost:6443/api/domains \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -77,16 +91,43 @@ export default function APIPage() {
   }'`}</CodeBlock>
 
       <CodeBlock lang="json" filename="Response (201)">{`{
-  "success": true,
-  "data": {
-    "name": "example.com",
-    "port": 3000,
-    "backendHost": "127.0.0.1",
-    "upstreamType": "http",
-    "ssl": { "enabled": true },
-    "enabled": true
+  "name": "example.com",
+  "port": 3000,
+  "backendHost": "127.0.0.1",
+  "upstreamType": "http",
+  "ssl": { "enabled": true },
+  "enabled": true,
+  "notifications": {
+    "domain_health": { "enabled": true, "channelIds": [] },
+    "cert_expiry":   { "enabled": true, "channelIds": [] }
   }
 }`}</CodeBlock>
+
+      <h2 id="example-channel" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Create a Notification Channel</h2>
+      <CodeBlock lang="bash" filename="Request">{`curl -X POST http://localhost:6443/api/settings/channels \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Production Discord",
+    "type": "discord",
+    "webhookUrl": "https://discord.com/api/webhooks/...",
+    "message": "<@&1280907071813976196>"
+  }'`}</CodeBlock>
+
+      <CodeBlock lang="json" filename="Response (201)">{`{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Production Discord",
+  "type": "discord",
+  "webhookUrl": "https://discord.com/api/webhooks/...",
+  "message": "<@&1280907071813976196>"
+}`}</CodeBlock>
+
+      <h2 id="example-notif-config" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Configure Domain Notifications</h2>
+      <CodeBlock lang="bash" filename="Request">{`curl -X PUT http://localhost:6443/api/domains/example.com/notifications \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "domain_health": { "enabled": true,  "channelIds": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"] },
+    "cert_expiry":   { "enabled": false, "channelIds": [] }
+  }'`}</CodeBlock>
 
       <h2 id="endpoints" className="text-xl font-bold mt-10 mb-4 text-foreground">All Endpoints</h2>
 

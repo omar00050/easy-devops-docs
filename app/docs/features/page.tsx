@@ -4,8 +4,8 @@ import DocsPagination from "@/components/DocsPagination";
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "Explore Easy DevOps features: Nginx management, Let's Encrypt SSL/TLS certificates (HTTP-01 & DNS-01), wildcard certs, domain reverse proxy configs, Node.js version switching, and a real-time web dashboard.",
-  keywords: ["Nginx management", "SSL certificates", "Let's Encrypt", "DNS-01", "HTTP-01", "wildcard SSL", "domain management", "Node.js switching", "reverse proxy", "real-time dashboard"],
+    "Explore Easy DevOps features: Nginx management, Let's Encrypt SSL/TLS certificates (HTTP-01 & DNS-01), wildcard certs, domain reverse proxy configs, Node.js version switching, real-time dashboard, and Discord/Telegram notifications.",
+  keywords: ["Nginx management", "SSL certificates", "Let's Encrypt", "DNS-01", "HTTP-01", "wildcard SSL", "domain management", "Node.js switching", "reverse proxy", "real-time dashboard", "Discord notifications", "Telegram notifications"],
   alternates: { canonical: "/docs/features" },
 };
 
@@ -13,11 +13,13 @@ const features = [
   { icon: "🌐", title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Automatic installation via apt-get (Linux) or winget (Windows)." },
   { icon: "🔑", title: "SSL Certificates", desc: "Issue and renew Let's Encrypt certs via acme-client. Supports HTTP-01, DNS-01, wildcard certs, and expiry tracking with color-coded status badges." },
   { icon: "🔗", title: "Domain Management", desc: "Reverse proxy configs with SSL, external URL backends, wildcard domains, WebSocket support, gzip, rate limiting, security headers, and custom timeouts." },
+  { icon: "🔔", title: "Notifications", desc: "Named Discord and Telegram channels configured once and assigned per domain per event type. State-aware dispatch prevents spam — alerts fire only on status changes. Recovery notifications sent when services come back online." },
   { icon: "📦", title: "Node.js Manager", desc: "Switch Node.js versions via nvm or nvm-windows. Install/uninstall global npm packages. Update npm automatically." },
-  { icon: "🔄", title: "Real-time Updates", desc: "Socket.io powered status updates in the web dashboard. Nginx status streams in real time." },
-  { icon: "💾", title: "SQLite Storage", desc: "Persistent configuration stored in a single SQLite database file. No separate database server required." },
+  { icon: "📋", title: "Log Viewer", desc: "Stream nginx error.log and access.log in real time via Socket.io. Toggle between logs, auto-scroll, pause/resume, and colour-coded output." },
+  { icon: "💾", title: "SQLite Storage", desc: "Persistent configuration stored in a single SQLite database file in your home directory. Survives npm updates. No separate database server required." },
   { icon: "🛡️", title: "Bootstrap Installer", desc: "One-line installers for Linux and Windows that auto-detect Node.js, install nvm if needed, and register the global command." },
   { icon: "✨", title: "Themed Dashboard", desc: "Dark and light modes with 5 accent colors (teal, violet, amber, rose, cyan). Settings persist in localStorage." },
+  { icon: "🔄", title: "Real-time Updates", desc: "Socket.io powered live updates: nginx status every 5 s, domain health badges every 60 s, cert expiry on connect and every 12 hours." },
 ];
 
 export default function FeaturesPage() {
@@ -35,6 +37,20 @@ export default function FeaturesPage() {
         ))}
       </div>
 
+      <h2 id="notifications" className="text-xl font-bold mt-10 mb-4 text-foreground">Notifications</h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Easy DevOps can send alerts to Discord and Telegram when something goes wrong — and again when it recovers.
+        Channels are registered once in <strong className="text-foreground">Settings → Notifications</strong> and then assigned to domains per event type.
+      </p>
+      <ul className="list-disc list-inside text-sm text-muted leading-[2] mb-6 space-y-1">
+        <li><strong className="text-foreground">Named channel registry</strong> — each Discord webhook or Telegram bot gets a name and UUID. Edit or delete from the Notifications tab without touching domain configs.</li>
+        <li><strong className="text-foreground">Per-domain assignment</strong> — open a domain and expand the Notifications section. Independently toggle <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">cert_expiry</code> and <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">domain_health</code>, and check which channels receive each event.</li>
+        <li><strong className="text-foreground">Global nginx_down</strong> — not tied to any single domain. Fires when nginx stops running. Routes to the union of all channels configured across all domains.</li>
+        <li><strong className="text-foreground">Deduplication</strong> — the state machine only fires on transitions: <em>up → down</em> sends an alert; <em>still down</em> is silent; <em>down → up</em> sends a recovery notification.</li>
+        <li><strong className="text-foreground">Discord role mentions</strong> — add a message prefix (e.g. <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">&lt;@&amp;RoleId&gt;</code>) to a Discord channel. It is sent as the webhook <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">content</code> field so Discord resolves the mention correctly.</li>
+        <li><strong className="text-foreground">Test button</strong> — send a live test notification from the channel list without waiting for a real event.</li>
+      </ul>
+
       <h2 id="domain-configuration" className="text-xl font-bold mt-10 mb-4 text-foreground">Domain Configuration Options</h2>
       <ul className="list-disc list-inside text-sm text-muted leading-[2] mb-4 space-y-1">
         <li><strong className="text-foreground">Backend:</strong> local host:port (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">127.0.0.1:3000</code>) or full external URL (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">https://app.vercel.app</code>)</li>
@@ -46,6 +62,7 @@ export default function FeaturesPage() {
         <li><strong className="text-foreground">Security headers</strong> (X-Frame-Options, etc.)</li>
         <li><strong className="text-foreground">Custom timeout</strong> and body size limits</li>
         <li><strong className="text-foreground">Domain-specific access logs</strong></li>
+        <li><strong className="text-foreground">Per-domain notification config</strong> — choose which channels receive cert_expiry and domain_health alerts for each domain individually</li>
       </ul>
 
       <DocsPagination
