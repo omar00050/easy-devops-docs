@@ -155,7 +155,7 @@ export default function DocsSidebar({ mobileOpen = false, onClose }: { mobileOpe
       {/* Version */}
       <div className="px-5 py-3 border-t border-border shrink-0">
         <span className="inline-flex items-center px-2.5 py-1 text-[11px] font-mono font-bold bg-primary/10 text-primary rounded-md">
-          v1.2.0
+          v1.2.1
         </span>
       </div>
     </div>

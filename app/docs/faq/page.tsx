@@ -43,7 +43,7 @@ const faqSchemaData = [
   },
   {
     question: "Where is the data stored?",
-    answer: "Since v1.2.0, the database lives in a persistent user directory that survives npm updates — Linux/macOS: ~/.config/easy-devops/easy-devops.sqlite, Windows: %APPDATA%\\easy-devops\\easy-devops.sqlite. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). If upgrading from v1.0.x, the database is migrated automatically on first run.",
+    answer: "Since v1.2.1, the database lives in a persistent user directory that survives npm updates — Linux/macOS: ~/.config/easy-devops/easy-devops.sqlite, Windows: %APPDATA%\\easy-devops\\easy-devops.sqlite. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). If upgrading from v1.0.x, the database is migrated automatically on first run.",
   },
   {
     question: 'Dashboard shows "Linux permissions not configured" on nginx start/stop/reload.',
@@ -51,11 +51,11 @@ const faqSchemaData = [
   },
   {
     question: '"nginx config test failed" even though the config looks correct (shows "syntax is ok").',
-    answer: 'When nginx -t is run as a non-root user, it prints "syntax is ok" then tries to write /run/nginx.pid — which requires root — causing it to exit with code 1. The config is actually valid. Easy DevOps v1.2.0+ handles this correctly: it checks the output text for "syntax is ok" rather than relying on the exit code alone. If you see this on an older version, upgrade to v1.2.0.',
+    answer: 'When nginx -t is run as a non-root user, it prints "syntax is ok" then tries to write /run/nginx.pid — which requires root — causing it to exit with code 1. The config is actually valid. Easy DevOps v1.2.1+ handles this correctly: it checks the output text for "syntax is ok" rather than relying on the exit code alone. If you see this on an older version, upgrade to v1.2.1.',
   },
   {
     question: 'Why does Easy DevOps run nginx -t without sudo?',
-    answer: 'nginx -t only reads configuration files, which are world-readable (644 permissions). It never needs root to validate syntax. Running it with sudo was the source of "a terminal is required" errors in the dashboard. Since v1.2.0, sudo has been removed from all nginx -t calls on every platform.',
+    answer: 'nginx -t only reads configuration files, which are world-readable (644 permissions). It never needs root to validate syntax. Running it with sudo was the source of "a terminal is required" errors in the dashboard. Since v1.2.1, sudo has been removed from all nginx -t calls on every platform.',
   },
 ];
 
