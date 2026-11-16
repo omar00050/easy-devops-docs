@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 
 const features = [
   { icon: "🌐", title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Automatic installation via apt-get (Linux) or winget (Windows)." },
-  { icon: "🔑", title: "SSL Certificates", desc: "Issue and renew Let's Encrypt certs via acme-client. Supports HTTP-01, DNS-01, wildcard certs, and expiry tracking with color-coded status badges." },
+  { icon: "🔑", title: "SSL Certificates", desc: "Issue and renew Let's Encrypt certs via acme-client. Supports HTTP-01, DNS-01, wildcard certs, automatic renewal in the background, and expiry tracking with color-coded status badges." },
+  { icon: "🚀", title: "Deployments", desc: "Put a project from a git repository on the server: fetched, built and started under PM2, with a health check, automatic rollback and earlier releases kept. Trigger it from the dashboard or from GitHub Actions." },
   { icon: "🔗", title: "Domain Management", desc: "Reverse proxy configs with SSL, external URL backends, wildcard domains, WebSocket support, gzip, rate limiting, security headers, and custom timeouts." },
   { icon: "🔔", title: "Notifications", desc: "Named Discord and Telegram channels configured once and assigned per domain per event type. State-aware dispatch prevents spam — alerts fire only on status changes. Recovery notifications sent when services come back online." },
   { icon: "📦", title: "Node.js Manager", desc: "Switch Node.js versions via nvm or nvm-windows. Install/uninstall global npm packages. Update npm automatically." },

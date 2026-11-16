@@ -18,7 +18,7 @@ export default function OverviewPage() {
       </div>
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Overview</h1>
       <p className="text-muted text-base leading-relaxed mb-10">
-        Easy DevOps is a unified DevOps management tool — part CLI, part web dashboard — built for developers who need to manage <strong className="text-foreground">Nginx</strong>, <strong className="text-foreground">SSL certificates</strong>, and <strong className="text-foreground">Node.js</strong> on Linux and Windows servers without juggling dozens of scripts.
+        Easy DevOps is a unified DevOps management tool — part CLI, part web dashboard — built for developers who need to manage <strong className="text-foreground">Nginx</strong>, <strong className="text-foreground">SSL certificates</strong>, and <strong className="text-foreground">Node.js</strong> on Linux and Windows servers without juggling dozens of scripts. It also <strong className="text-foreground">deploys your apps</strong>: give it a git repository and it is fetched, built and kept running, from the dashboard or from GitHub Actions.
       </p>
 
       <h2 id="what-is-it" className="text-xl font-bold mt-10 mb-4 text-foreground">What is it?</h2>
@@ -27,7 +27,7 @@ export default function OverviewPage() {
       </p>
 
       <h2 id="cli-preview" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Preview</h2>
-      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v1.2.1
+      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v2.0.0
   ██╔════╝╚════██╗     ─────────────────────
   █████╗      ██╔╝     CLI & Web Dashboard
   ██╔══╝     ██╔╝      Nginx · SSL · Domains · Node.js

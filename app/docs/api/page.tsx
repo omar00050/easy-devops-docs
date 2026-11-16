@@ -41,7 +41,26 @@ const apiGroups = [
       { path: "/api/ssl", methods: ["GET"], desc: "List certificates" },
       { path: "/api/ssl/create", methods: ["POST"], desc: "Issue new certificate (HTTP-01 or DNS-01)" },
       { path: "/api/ssl/create-confirm", methods: ["POST"], desc: "Confirm DNS-01 challenge" },
-      { path: "/api/ssl/renew/:domain", methods: ["POST"], desc: "Renew certificate" },
+      { path: "/api/ssl/renew/:domain", methods: ["POST"], desc: "Renew certificate (keeps its names, reloads nginx)" },
+      { path: "/api/ssl/renew-all", methods: ["POST"], desc: "Renew everything expiring within 30 days" },
+    ],
+  },
+  {
+    id: "deployments",
+    title: "Deployments",
+    endpoints: [
+      { path: "/api/deployments", methods: ["GET", "POST"], desc: "List apps with their status, or create an app" },
+      { path: "/api/deployments/:id", methods: ["GET", "PUT", "DELETE"], desc: "One app with its runs and releases; update it; or stop and delete it (?deleteDomain=1 removes its linked domain too)" },
+      { path: "/api/deployments/:id/deploy", methods: ["POST"], desc: "Start a deployment. Body: { ref? }. Answers 202 with a runId" },
+      { path: "/api/deployments/:id/rollback", methods: ["POST"], desc: "Switch back to an earlier release. Body: { releaseId? }" },
+      { path: "/api/deployments/:id/runs/:runId", methods: ["GET"], desc: "One deployment's status and the tail of its log" },
+      { path: "/api/deployments/:id/hook-token", methods: ["POST", "DELETE"], desc: "Issue (shown once) or revoke the app's deploy token" },
+      { path: "/api/deployments/:id/deploy-key", methods: ["POST"], desc: "Generate the app's SSH deploy key; returns the public half" },
+      { path: "/api/deployments/:id/domain", methods: ["PUT", "DELETE"], desc: "Link the app to a domain (created if it does not exist; body: { domain, ssl? }), or forget the link" },
+      { path: "/api/deployments/:id/move", methods: ["POST"], desc: "Move the app's folder. Body: { path } — the app ends up in <path>/<id>, stopped and started again" },
+      { path: "/api/deployments/:id/github", methods: ["GET"], desc: "The GitHub Actions workflow, the secrets it needs and the URLs GitHub can call" },
+      { path: "/api/deployments/:id/github/apply", methods: ["POST"], desc: "Store the secrets, commit the workflow and add the deploy key through GitHub's API. Body: { token?, target? }" },
+      { path: "/api/deployments/hook", methods: ["GET", "PUT"], desc: "The deploy hook: enabled, port, bind and the domain that exposes it" },
     ],
   },
   {
@@ -162,7 +181,7 @@ export default function APIPage() {
       </div>
 
       <DocsPagination
-        prev={{ title: "SSL Manager", href: "/docs/ssl", section: "Usage" }}
+        prev={{ title: "Deployments", href: "/docs/deployments", section: "Usage" }}
         next={{ title: "Configuration", href: "/docs/configuration", section: "Reference" }}
       />
     </div>

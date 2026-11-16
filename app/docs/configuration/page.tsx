@@ -67,6 +67,30 @@ export default function ConfigurationPage() {
             <td className="py-3 px-4 text-muted italic">empty</td>
             <td className="py-3 px-4 text-muted">Email for Let's Encrypt account (required for cert issuance)</td>
           </tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sslAutoRenew</code></td>
+            <td className="py-3 px-4 text-muted">true</td>
+            <td className="py-3 px-4 text-muted">true</td>
+            <td className="py-3 px-4 text-muted">Renew HTTP-01 certificates in the background</td>
+          </tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">sslAutoRenewDays</code></td>
+            <td className="py-3 px-4 text-muted">7</td>
+            <td className="py-3 px-4 text-muted">7</td>
+            <td className="py-3 px-4 text-muted">Days before expiry at which a certificate is renewed (1–30)</td>
+          </tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">deployHook</code></td>
+            <td className="py-3 px-4 text-muted">off</td>
+            <td className="py-3 px-4 text-muted">off</td>
+            <td className="py-3 px-4 text-muted">The listener CI calls to trigger a deployment: enabled, port (6445), bind, domain</td>
+          </tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">deployDir</code></td>
+            <td className="py-3 px-4 text-muted">&lt;data dir&gt;/ez_deploys</td>
+            <td className="py-3 px-4 text-muted">&lt;data dir&gt;{'\\'}ez_deploys</td>
+            <td className="py-3 px-4 text-muted">Folder new deployed apps are created in. Changing it never moves an existing app</td>
+          </tr>
         </tbody>
       </table>
 
