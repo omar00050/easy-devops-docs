@@ -79,10 +79,11 @@ export const docsIndex: DocsIndexEntry[] = [
     title: "Deployments",
     href: "/docs/deployments",
     section: "Using the CLI",
-    description: "Git-based deploys, ez.json, health checks, rollback and GitHub Actions.",
+    description: "Git-based deploys, ez.json, health checks, persistent folders and files, rollback and GitHub Actions.",
     headings: [
       { id: "how-it-works", text: "How a deployment runs" },
       { id: "ez-json", text: "ez.json" },
+      { id: "persistent-data", text: "Persistent data" },
       { id: "github-actions", text: "Deploying from GitHub Actions" },
       { id: "from-the-hub", text: "Deploying from the Hub" },
       { id: "rollback", text: "Rolling back" },

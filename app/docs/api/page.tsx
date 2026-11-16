@@ -51,9 +51,10 @@ const apiGroups = [
     title: "Deployments",
     endpoints: [
       { path: "/api/deployments", methods: ["GET", "POST"], desc: "List apps with their status, or create an app" },
-      { path: "/api/deployments/:id", methods: ["GET", "PUT", "DELETE"], desc: "One app with its runs and releases; update it; or stop and delete it (?deleteDomain=1 removes its linked domain too)" },
+      { path: "/api/deployments/:id", methods: ["GET", "PUT", "DELETE"], desc: "One app with its runs and releases; update it; or stop and delete it (?deleteDomain=1 removes its linked domain too, ?purgeData=1 its persistent data)" },
       { path: "/api/deployments/:id/deploy", methods: ["POST"], desc: "Start a deployment. Body: { ref? }. Answers 202 with a runId" },
       { path: "/api/deployments/:id/rollback", methods: ["POST"], desc: "Switch back to an earlier release. Body: { releaseId? }" },
+      { path: "/api/deployments/:id/releases/:releaseId", methods: ["DELETE"], desc: "Delete an old release's folder. The log and the persistent data stay; the live release and the rollback fallback are refused" },
       { path: "/api/deployments/:id/runs/:runId", methods: ["GET"], desc: "One deployment's status and the tail of its log" },
       { path: "/api/deployments/:id/hook-token", methods: ["POST", "DELETE"], desc: "Issue (shown once) or revoke the app's deploy token" },
       { path: "/api/deployments/:id/deploy-key", methods: ["POST"], desc: "Generate the app's SSH deploy key; returns the public half" },

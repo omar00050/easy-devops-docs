@@ -6,8 +6,8 @@ import DocPage from "@/components/DocPage";
 export const metadata: Metadata = {
   title: "Deployments",
   description:
-    "Deploy a project from a git repository with Easy DevOps: built on the server, run under PM2, health-checked, rolled back automatically, and triggered from the dashboard or GitHub Actions. Optional ez.json keeps the commands with the code.",
-  keywords: ["deploy from GitHub", "GitHub Actions deploy", "PM2 deployment", "ez.json", "automatic rollback", "self-hosted CI/CD", "deploy hook", "Node.js deployment"],
+    "Deploy a project from a git repository with Easy DevOps: built on the server, run under PM2, health-checked, rolled back automatically, and triggered from the dashboard or GitHub Actions. Optional ez.json keeps the commands with the code, and persistent paths keep a database, uploads and logs across deployments.",
+  keywords: ["deploy from GitHub", "GitHub Actions deploy", "PM2 deployment", "ez.json", "persistent data", "persistent files", "SQLite deploy", "automatic rollback", "self-hosted CI/CD", "deploy hook", "Node.js deployment"],
   alternates: { canonical: "/docs/deployments" },
 };
 
@@ -25,7 +25,7 @@ export default function DeploymentsPage() {
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
         <li><strong className="text-foreground">Fetch</strong> — a fresh checkout into its own release folder. The running release is never built over.</li>
         <li><strong className="text-foreground">Settings</strong> — read from <code className={C}>ez.json</code>, then <code className={C}>package.json</code>, with anything you set on the app taking precedence.</li>
-        <li><strong className="text-foreground">Pre hook → install → build</strong> — in the new folder.</li>
+        <li><strong className="text-foreground">Pre hook → install → build</strong> — in the new folder, with the paths listed under <a href="#persistent-data" className="text-primary hover:underline">persistent data</a> linked in first.</li>
         <li><strong className="text-foreground">Switch</strong> — the old process is stopped and the new one started under PM2, as <code className={C}>ez-&lt;name&gt;</code>.</li>
         <li><strong className="text-foreground">Health check</strong> — the app must answer on its port before the deployment counts.</li>
         <li><strong className="text-foreground">Post hook</strong>, then old releases are pruned.</li>
@@ -84,6 +84,7 @@ export default function DeploymentsPage() {
   "start": "node dist/server.js",
   "port": 3000,
   "health": "/healthz",
+  "persist": ["data", "uploads/imgs"],
   "hooks": {
     "pre": "node scripts/check-env.js",
     "post": "node scripts/warm-cache.js"
@@ -122,6 +123,11 @@ export default function DeploymentsPage() {
             <td className="py-3 px-4"><code className={C}>health</code></td>
             <td className="py-3 px-4 text-muted text-xs">A path, or <code className={C}>{`{ "path": "/healthz", "timeout": 60 }`}</code></td>
             <td className="py-3 px-4 text-muted text-xs"><code className={C}>/</code>, 60 seconds</td>
+          </tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className={C}>persist</code></td>
+            <td className="py-3 px-4 text-muted text-xs">Folders or single files, or a list of them, kept across deployments and rollbacks — see <a href="#persistent-data" className="text-primary hover:underline">persistent data</a></td>
+            <td className="py-3 px-4 text-muted text-xs">Nothing is kept; each deployment starts from the repository</td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>hooks.pre</code> / <code className={C}>hooks.post</code></td>
@@ -170,6 +176,55 @@ export default function DeploymentsPage() {
 
       <h2 id="environment" className="text-xl font-bold mt-10 mb-4 text-foreground">Environment variables</h2>
       <p className="text-muted text-sm leading-relaxed mb-10">Set them on the app, one <code className={C}>NAME=value</code> per line — a pasted <code className={C}>.env</code> file works. They are stored on the server only, and are available to the build and to the running app. They are never written to the repository and never sent to the Hub.</p>
+
+      <h2 id="persistent-data" className="text-xl font-bold mt-10 mb-4 text-foreground">Persistent data</h2>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        Every deployment starts from a fresh checkout in a new release folder. That is what makes a failed build harmless and a rollback instant — but it also means the folder is disposable. A SQLite database, uploaded images, or a JSON log the app writes each day belong to that one release: the next deployment starts without them, and a rollback brings back the older release&apos;s <em>code</em>, not the data written since.
+      </p>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        List the folders — or single files — your app writes to under <strong className="text-foreground">Folders and files to keep</strong> in the app&apos;s Edit form. Add one path at a time and it appears as a chip with an × to remove it. Each path is kept once outside the releases, and every release — new, older, rolled back — reaches it at the same path inside the project. Deploying, rolling back and pruning releases leave it alone.
+      </p>
+      <CodeBlock lang="json" filename="ez.json">{`{
+  "persist": ["data", "uploads/imgs", "logs"]
+}`}</CodeBlock>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
+        <li>Paths are relative to the project folder. A list set on the app in the dashboard or in the Hub overrides the file, like every other field.</li>
+        <li><strong className="text-foreground">Prefer the folder.</strong> SQLite creates <code className={C}>-wal</code> and <code className={C}>-shm</code> files next to its database, so list <code className={C}>prisma</code>, not <code className={C}>prisma/hub.db</code> — keeping only the database can leave its latest writes behind. A single file works when the file is genuinely all there is, and on Windows it is kept as a hard link instead of a symlink.</li>
+        <li>Up to 20 paths. <code className={C}>.git</code> and <code className={C}>node_modules</code> cannot be listed; dependencies are always installed fresh for each release.</li>
+        <li>Paths may not overlap: listing <code className={C}>data</code> and <code className={C}>data/uploads</code> keeps only <code className={C}>data</code>.</li>
+        <li>The running app receives the shared location as <code className={C}>EZ_SHARED_DIR</code>, for the rare case where it needs an absolute path.</li>
+      </ul>
+
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">When this happens</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">To the kept paths</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Deploy</td><td className="py-3 px-4 text-muted text-xs leading-relaxed">Unchanged. The new release sees the same files the old one did.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Roll back</td><td className="py-3 px-4 text-muted text-xs leading-relaxed">Unchanged. The older release sees the <em>current</em> data, not the copy it had when it was live.</td></tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Old releases pruned</td><td className="py-3 px-4 text-muted text-xs leading-relaxed">Untouched. Release folders are deleted; the kept paths are not part of them.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Move app</td><td className="py-3 px-4 text-muted text-xs leading-relaxed">They move with the app and keep working.</td></tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Delete app</td><td className="py-3 px-4 text-muted text-xs leading-relaxed"><strong className="text-foreground">Kept by default</strong>, at the path shown when you delete. Tick &quot;Also delete the persistent data&quot; to remove them too.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="persistent-seed" className="text-base font-bold mt-8 mb-3 text-foreground">The first deployment, and after</h3>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
+        <li>The first deployment after a path is listed seeds the kept location: from the live release when the app has already run, otherwise from the repository. After that the <strong className="text-foreground">kept copy is what counts</strong> — editing those files in the repository changes nothing, because the deployment will not overwrite data your app may have written since.</li>
+        <li>A path that exists nowhere — a database written for the first time at runtime — is created empty: an empty folder, or an empty file when the name has an extension.</li>
+        <li>Paths are linked in before install and build, so a build step can use them too. If a build deletes or replaces one, the deployment fails there, rather than finishing without the data.</li>
+      </ul>
+
+      <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-6">
+        ⚠️ A rollback runs the older code against the <strong className="text-foreground">same data</strong>. A database migration in a newer release can leave the previous release unable to read it. Keep migrations backward compatible, or run them from the post hook once the new release is healthy.
+      </div>
+
+      <p className="text-muted text-sm leading-relaxed mb-10">
+        What not to keep: caches, compiled assets, anything the build recreates. And since each release installs its own dependencies, keeping <code className={C}>node_modules</code> would only hide which release is running with which packages — the disk cost of releases is expected, and releases are pruned for that reason.
+      </p>
 
       <h2 id="github-actions" className="text-xl font-bold mt-10 mb-4 text-foreground">Deploying from GitHub Actions</h2>
       <p className="text-muted text-sm leading-relaxed mb-4">Every push can deploy the pushed commit, and the commit&apos;s check on GitHub turns red if the deployment fails. This uses the <strong className="text-foreground">deploy hook</strong>: a small listener that is off until you switch it on.</p>
@@ -230,7 +285,7 @@ export default function DeploymentsPage() {
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Deploy</td><td className="py-3 px-4 text-muted text-xs">Start a deployment of an existing app from its configured repository.</td></tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Roll back</td><td className="py-3 px-4 text-muted text-xs">Switch an app back to an earlier release.</td></tr>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">View deployment logs</td><td className="py-3 px-4 text-muted text-xs">Read a deployment&apos;s output.</td></tr>
-          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Create, edit and delete apps</td><td className="py-3 px-4 text-muted text-xs">Add an app from a repository, change its settings, issue its deploy token, or remove it.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Create, edit and delete apps</td><td className="py-3 px-4 text-muted text-xs">Add an app from a repository, change its settings, issue its deploy token, delete an old release, or remove the app.</td></tr>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Read and edit environment variables</td><td className="py-3 px-4 text-muted text-xs">Separate from managing an app on purpose. Values pass through the Hub while being edited and are not stored there.</td></tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Deploy from CI through the Hub</td><td className="py-3 px-4 text-muted text-xs">Let a GitHub Action trigger a deployment by calling the Hub.</td></tr>
         </tbody>
@@ -238,12 +293,15 @@ export default function DeploymentsPage() {
       <p className="text-muted text-sm leading-relaxed mb-10">The list of apps and their status is always visible on the Hub: a paired server is a monitored server. It contains the <em>names</em> of environment variables, never their values. A deploy key cannot be generated from the Hub — its private half never leaves the server.</p>
 
       <h2 id="rollback" className="text-xl font-bold mt-10 mb-4 text-foreground">Rolling back</h2>
-      <p className="text-muted text-sm leading-relaxed mb-4">The app&apos;s <strong className="text-foreground">Releases</strong> tab lists what is on disk. Rolling back starts an earlier release exactly as it was built — nothing is fetched or rebuilt. The newest five releases are kept by default (2–20); the live one and the one before it are never deleted.</p>
+      <p className="text-muted text-sm leading-relaxed mb-4">The app&apos;s <strong className="text-foreground">Releases</strong> tab lists what is on disk. Rolling back starts an earlier release exactly as it was built — nothing is fetched or rebuilt. The newest five releases are kept by default (2–20); the live one and the one before it are never deleted. The list follows a deployment started from outside the dashboard — a push through GitHub Actions, the Hub, or the CLI — on its own.</p>
+      <p className="text-muted text-sm leading-relaxed mb-4">Each older release also has a <strong className="text-foreground">Delete</strong> button beside <strong className="text-foreground">Roll back</strong>. Deleting removes that release&apos;s folder from the server; its deployment log stays, and persistent data is not touched. The live release and the one an automatic rollback would return to cannot be deleted, and nothing can be deleted while a deployment of the app is running.</p>
       <p className="text-muted text-sm leading-relaxed mb-10">Automatic rollback can be switched off per app. Then an unhealthy release is stopped and the deployment is reported as failed.</p>
 
       <h2 id="files" className="text-xl font-bold mt-10 mb-4 text-foreground">Where things live</h2>
       <CodeBlock lang="text" filename="In the deployments folder">{`ez_deploys/<app>/releases/<id>/    ← one checkout per deployment, built in place
+ez_deploys/<app>/shared/           ← the persistent paths (folders and files) listed under persistent data
 ez_deploys/<app>/logs/<id>.log     ← that deployment's output
+ez_deploys/<app>/runs/<id>.json    ← that deployment's state
 ez_deploys/<app>/id_deploy         ← the app's private deploy key (owner-only)`}</CodeBlock>
 
       <DocsPagination

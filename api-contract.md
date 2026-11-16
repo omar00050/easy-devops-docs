@@ -1,6 +1,6 @@
 # Easy DevOps — Dashboard API Contract
 
-**Contract version: 2.6.0** · Last updated: 2026-11-15 · Derived from the code in
+**Contract version: 2.8.0** · Last updated: 2026-11-16 · Derived from the code in
 `src/dashboard/`, not from any earlier plan.
 
 > ## The rule
@@ -736,6 +736,7 @@ is `core/deploy/`; these routes are a thin layer over it.
 | POST | `/api/deployments/:id/move` | session | Move the app's folder elsewhere on the server |
 | POST | `/api/deployments/:id/deploy` | session | Start a deployment |
 | POST | `/api/deployments/:id/rollback` | session | Switch back to an earlier release |
+| DELETE | `/api/deployments/:id/releases/:releaseId` | session | Delete an old release's folder |
 | GET | `/api/deployments/:id/runs/:runId` | session | One run, with the tail of its log |
 | POST | `/api/deployments/:id/hook-token` | session | Issue (or replace) the app's deploy token |
 | DELETE | `/api/deployments/:id/hook-token` | session | Revoke it |
@@ -754,11 +755,14 @@ is `core/deploy/`; these routes are a thin layer over it.
   "authType": "deployKey",
   "hasToken": false,
   "deployKey": "ssh-rsa AAAA… easy-devops-deploy-my-api",
-  "settings": { "port": 3000, "healthPath": "/healthz" },
+  "settings": { "port": 3000, "healthPath": "/healthz", "persist": ["data", "uploads/imgs"] },
   "env": { "DATABASE_URL": "…" },
   "keepReleases": 5,
   "autoRollback": true,
   "notifyChannelIds": [],
+  "dir": "/home/me/.config/easy-devops/ez_deploys/my-api",
+  "sharedDir": "/home/me/.config/easy-devops/ez_deploys/my-api/shared",
+  "hasSharedData": true,
   "hook": { "hasToken": true, "tokenHint": "x9Qz", "createdAt": "2026-11-15T…" },
   "createdAt": "…", "updatedAt": "…"
 }
@@ -777,7 +781,8 @@ is `core/deploy/`; these routes are a thin layer over it.
   dashboard's own login. They are not included in anything sent to a Hub.
 - `settings` are overrides. Any of `install`, `build`, `pre`, `post` (string,
   list of strings, or `false` to switch the step off), `start` (one command),
-  `port`, `healthPath`, `healthTimeout` (seconds). Absent means "use ez.json,
+  `port`, `healthPath`, `healthTimeout` (seconds), and `persist` (a folder or a
+  list of folders kept across releases — see below). Absent means "use ez.json,
   then package.json".
 
 In `apps[]` and `GET /:id` each app additionally has `currentRelease`,
@@ -815,6 +820,30 @@ would act on; `409` when the destination exists and is not empty, when the app
 is already there, or while a deployment of it is running. If the move itself
 fails nothing has changed and the process is started again where it was.
 
+**Persistent paths (2.8.0).** `settings.persist` lists project-relative
+folders — or single files, such as `prisma/hub.db` — kept outside the
+releases: each lives once in `<dir>/shared/<path>` and is linked into every
+release at the same path. `sharedDir` is that location and `hasSharedData`
+says whether it holds anything. A path already in the shared area wins. When
+it is new, the kind comes from the live release's copy, then from the
+checkout, and failing both from its name (a last segment with a dot is a
+file); a folder is seeded from the checkout and then the live release on top,
+a file from the live release and then the checkout, and a path that exists
+nowhere is created empty. Enabling it on an app that already ran seeds from
+its live release, so data written before is not lost. On Windows without the
+symlink privilege folders use junctions and files hard links, and the link is
+checked after the build. Paths are validated in `core/deploy/ezfile.js`:
+relative, no `.` or `..`, not `.git` or `node_modules`, at most 20, no
+case-insensitive overlap. A build that replaces a link with a real file or
+folder fails the deployment at the `build` step.
+
+**`DELETE /:id/releases/:releaseId`** deletes that release's folder. The
+run's log stays and `<dir>/shared` is not touched. Response `200`
+`{ deleted }`; `400` for an id that is not a release id, `404` for an unknown
+app or a release that is no longer on disk. `409` when a deployment of the app
+is running, when the release is the live one, and when it is the one an
+automatic rollback would return to.
+
 **Domains (2.6.0).** Every app has `domain`, the name of the domain linked to
 it, or `null`. **`PUT /:id/domain`** takes `{ domain, ssl? }`. An existing
 domain is re-pointed at the app's port; an unknown one is created. The app
@@ -828,8 +857,11 @@ linked domain is moved to the app's port if that changed.
 **`DELETE /:id/domain`** forgets the link and leaves the domain as it is.
 
 **`DELETE /:id`** accepts `?deleteDomain=1` to remove the linked domain as
-well. Response `{ deleted, domainDeleted, warning }`; when the domain could
-not be removed the app is deleted anyway and `warning` says so.
+well, and `?purgeData=1` (or `{ "purgeData": true }`) to delete the persistent
+folders too. Without it `<dir>/shared` is kept — an empty one is removed with
+the rest. Response `{ deleted, domainDeleted, warning, sharedKept, sharedPath }`;
+when the domain could not be removed the app is deleted anyway and `warning`
+says so.
 
 **The run object:**
 
@@ -1180,15 +1212,20 @@ with `command:result` like every other command.
   `github` (`id`) → the setup of §2.8, with the public app view. No permission.
 - `deploy` (`id`, `ref?`) → `{ runId, status: "running" }`. Needs `deploy.run`.
 - `rollback` (`id`, `releaseId?`) → `{ runId, status }`. Needs `deploy.rollback`.
+- `deleteRelease` (`id`, `releaseId`) → `{ deleted }` (2.8.0). Needs
+  `deploy.manage`. Refused for the live release, the one an automatic rollback
+  would return to, and while a deployment of the app is running.
 - `run` (`id`, `runId`) → the run with `log` (last 32 kB) and `logTruncated`.
   Needs `deploy.logs`.
 - `linkDomain` (`id`, `domain`) · `unlinkDomain` (`id`) · `move` (`id`, `path`)
   (2.6.0). Need `deploy.manage`. `linkDomain` additionally needs
   `domains.create` or `domains.edit`, and never requests a certificate;
   `delete` with `deleteDomain: true` additionally needs `domains.delete`.
-- `create` (`app`) · `update` (`id`, `app`) · `delete` (`id`) · `issueToken`
-  (`id`) → `{ token, tokenHint }`. Need `deploy.manage`. `app` takes the fields
-  of `POST /api/deployments` **except `env`**, which is ignored here.
+- `create` (`app`) · `update` (`id`, `app`) · `delete` (`id`, `deleteDomain?`,
+  `purgeData?`) · `issueToken` (`id`) → `{ token, tokenHint }`. Need
+  `deploy.manage`. Without `purgeData` the persistent data is kept, and the
+  answer carries `sharedKept` and `sharedPath`. `app` takes the fields of
+  `POST /api/deployments` **except `env`**, which is ignored here.
 - `getEnv` (`id`) → `{ env }` · `setEnv` (`id`, `env`) → `{ envKeys }`. Need
   `deploy.env`. This is the only path on which environment values leave the
   server, and only to the person who asked; the Hub does not store them.
