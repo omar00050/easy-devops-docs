@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
+import DocPage from "@/components/DocPage";
 import { Check } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -26,12 +27,11 @@ const winDetails = ["✅", "✅", "✅", "✅", "✅", "✅", "✅ nvm-windows",
 
 export default function PlatformPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Reference</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Platform Support</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">Easy DevOps works on both Linux and Windows servers.</p>
+    <DocPage
+      section="Reference"
+      title="Platform Support"
+      description="Easy DevOps works on both Linux and Windows servers."
+    >
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
         <div className="bg-surface border border-border rounded-2xl p-8 relative overflow-hidden group hover:border-primary/30 transition-all duration-200">
@@ -92,6 +92,6 @@ export default function PlatformPage() {
         prev={{ title: "Configuration", href: "/docs/configuration", section: "Reference" }}
         next={{ title: "FAQ & Troubleshooting", href: "/docs/faq", section: "Help" }}
       />
-    </div>
+    </DocPage>
   );
 }

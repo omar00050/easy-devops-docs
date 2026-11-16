@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { BookOpen, Sun, Moon, Menu, X } from "lucide-react";
+import { BookOpen, Sun, Moon, Menu, X, ExternalLink } from "lucide-react";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -19,6 +19,9 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     let last = 0;
@@ -72,6 +75,15 @@ export default function Navbar() {
               </Link>
             )}
             <a
+              href="https://ez.hub.devxor.team"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted hover:text-primary transition-colors"
+            >
+              Hub
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <a
               href="https://github.com/omar00050/Easy-DevOps"
               target="_blank"
               rel="noopener noreferrer"
@@ -84,7 +96,11 @@ export default function Navbar() {
               className="p-2 text-muted hover:text-foreground transition-colors"
               aria-label="Toggle theme"
             >
-              {resolvedTheme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {mounted && resolvedTheme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
             </button>
             <button
               onClick={() => setMobileOpen(true)}
@@ -107,10 +123,14 @@ export default function Navbar() {
               </button>
             </div>
             {isHome && <NavLinks vertical />}
-            <div className="mt-6">
+            <div className="mt-6 space-y-2">
               <Link href="/docs/overview" className="block w-full px-4 py-2.5 text-sm font-medium bg-primary/10 text-primary rounded-lg text-center" onClick={() => setMobileOpen(false)}>
                 Documentation →
               </Link>
+              <a href="https://ez.hub.devxor.team" target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-muted border border-border rounded-lg text-center hover:text-primary hover:border-primary/40 transition-colors">
+                Open the Hub
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
         </div>

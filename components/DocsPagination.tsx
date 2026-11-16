@@ -13,29 +13,45 @@ interface DocsPaginationProps {
 }
 
 export default function DocsPagination({ prev, next }: DocsPaginationProps) {
+  if (!prev && !next) return null;
+
   return (
-    <div className="flex gap-4 mt-16 pt-8 border-t border-border">
-      {prev && (
-        <Link href={prev.href} className="flex-1 group block border border-border rounded-xl p-4 hover:border-primary/40 transition-all duration-200">
-          <div className="flex items-center gap-2 text-xs text-muted mb-1">
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-            Previous
-          </div>
-          <div className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{prev.title}</div>
-          <div className="text-xs text-muted">{prev.section}</div>
-        </Link>
-      )}
-      {next && (
-        <Link href={next.href} className="flex-1 group block border border-border rounded-xl p-4 hover:border-primary/40 transition-all duration-200 text-right">
-          <div className="flex items-center gap-2 justify-end text-xs text-muted mb-1">
-            Next
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </div>
-          <div className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{next.title}</div>
-          <div className="text-xs text-muted">{next.section}</div>
-        </Link>
-      )}
-      {!prev && !next && null}
-    </div>
+    <nav aria-label="Documentation pagination" className="mt-16 border-t border-border pt-8">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {prev ? (
+          <Link
+            href={prev.href}
+            className="group rounded-xl border border-border bg-surface/50 p-4 transition-colors duration-200 hover:border-primary/40 hover:bg-primary/[0.03]"
+          >
+            <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+              <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+              Previous
+            </div>
+            <div className="mt-1.5 text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+              {prev.title}
+            </div>
+            <div className="text-[11px] text-muted">{prev.section}</div>
+          </Link>
+        ) : (
+          <div className="hidden sm:block" />
+        )}
+
+        {next && (
+          <Link
+            href={next.href}
+            className="group rounded-xl border border-border bg-surface/50 p-4 text-right transition-colors duration-200 hover:border-primary/40 hover:bg-primary/[0.03] sm:col-start-2"
+          >
+            <div className="flex items-center justify-end gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+              Next
+              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            </div>
+            <div className="mt-1.5 text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+              {next.title}
+            </div>
+            <div className="text-[11px] text-muted">{next.section}</div>
+          </Link>
+        )}
+      </div>
+    </nav>
   );
 }

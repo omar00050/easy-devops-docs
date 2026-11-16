@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import InstallTabs from "@/components/InstallTabs";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Installation",
@@ -12,16 +13,15 @@ export const metadata: Metadata = {
 
 export default function InstallationPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Getting Started</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Installation</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">Choose the method that fits your setup. The bootstrap installer handles Node.js + Easy DevOps in one pass.</p>
+    <DocPage
+      section="Getting Started"
+      title="Installation"
+      description="Choose the method that fits your setup. The bootstrap installer handles Node.js + Easy DevOps in one pass."
+    >
 
       <InstallTabs />
 
-      <div id="requirements" className="mt-10 bg-surface border border-border rounded-xl p-6">
+      <div className="mt-10 bg-surface border border-border rounded-xl p-6">
         <h2 id="requirements" className="text-base font-bold mb-4 text-foreground">Requirements</h2>
         <ul className="space-y-2.5 text-sm text-muted">
           <li className="flex items-start gap-2">
@@ -45,8 +45,8 @@ export default function InstallationPage() {
 
       <DocsPagination
         prev={{ title: "Features", href: "/docs/features", section: "Getting Started" }}
-        next={{ title: "Quick Start", href: "/docs/quickstart", section: "Usage" }}
+        next={{ title: "Quick Start", href: "/docs/quickstart", section: "Getting Started" }}
       />
-    </div>
+    </DocPage>
   );
 }

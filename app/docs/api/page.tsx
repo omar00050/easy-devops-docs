@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Dashboard API",
@@ -89,12 +90,11 @@ const apiGroups = [
 
 export default function APIPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Reference</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Dashboard API</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">The web dashboard exposes a REST API consumed by the Vue 3 frontend.</p>
+    <DocPage
+      section="Reference"
+      title="Dashboard API"
+      description="The web dashboard exposes a REST API consumed by the React dashboard UI."
+    >
 
       <h2 id="example-domain" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Create a Domain</h2>
       <CodeBlock lang="bash" filename="Request">{`curl -X POST http://localhost:6443/api/domains \\
@@ -181,10 +181,10 @@ export default function APIPage() {
       </div>
 
       <DocsPagination
-        prev={{ title: "Deployments", href: "/docs/deployments", section: "Usage" }}
+        prev={{ title: "Maintenance & Updates", href: "/docs/maintenance", section: "Operations" }}
         next={{ title: "Configuration", href: "/docs/configuration", section: "Reference" }}
       />
-    </div>
+    </DocPage>
   );
 }
 

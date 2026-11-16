@@ -15,27 +15,60 @@
 /* Default to dark theme since that's the default in layout.tsx */
 :root {
   --color-border: rgba(255, 255, 255, 0.07);
+  --color-background: #161616;
+  --color-foreground: #e8e8e8;
   --color-text: #e8e8e8;
   --color-muted: #888888;
   --color-surface: #1e1e1e;
   --color-bg: #161616;
   --color-primary: #d64a29;
   --color-primary-rgb: 214, 74, 41;
+
+  /* Docs chrome */
+  --color-elevated: #1a1a1a;
+  --color-code-bg: #0d1117;
+  --color-grid-line: rgba(255, 255, 255, 0.04);
+  --color-terminal-green: #3fb950;
+  --color-terminal-yellow: #d29922;
+  --color-terminal-red: #f85149;
+
+  --ez-motion-fast: 150ms;
+  --ez-motion-base: 200ms;
+  --ez-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Light theme overrides */
 html:not(.dark) {
   --color-border: rgba(0, 0, 0, 0.1);
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
   --color-text: #0f172a;
   --color-muted: #64748b;
   --color-surface: #ffffff;
   --color-bg: #f8fafc;
   --color-primary: #c43d1e;
   --color-primary-rgb: 196, 61, 30;
+
+  --color-elevated: #ffffff;
+  --color-code-bg: #0d1117;
+  --color-grid-line: rgba(15, 23, 42, 0.05);
 }
 
 /* ── Globals ── */
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
+}
+
+::selection {
+  background: rgba(var(--color-primary-rgb), 0.3);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(var(--color-primary-rgb), 0.7);
+  outline-offset: 2px;
+}
 
 /* Ensure dark mode is applied */
 html.dark {
@@ -140,3 +173,195 @@ pre[class*="language-"] code {
 .animate-aurora1 { animation: aurora1 8s ease-in-out infinite; }
 .animate-aurora2 { animation: aurora2 10s ease-in-out infinite; }
 .animate-aurora1-delayed { animation: aurora1 12s ease-in-out infinite 4s; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DOCS EXPERIENCE
+   Layout chrome, typography and motion for the documentation section.
+   The marketing page is untouched — everything here scopes to the docs
+   shell or to .doc-content.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Faint blueprint grid behind the docs shell */
+.docs-shell {
+  position: relative;
+  isolation: isolate;
+}
+.docs-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 30% 0%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 30% 0%, #000 20%, transparent 75%);
+}
+
+/* Route transition: opacity only — a retained transform would turn the
+   fixed top bar into a positioning parent. */
+@keyframes docs-route-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.docs-route-enter {
+  animation: docs-route-in var(--ez-motion-base) var(--ez-ease-out) both;
+}
+
+/* Thin, quiet scrollbars inside the docs chrome */
+.docs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--color-primary-rgb), 0.35) transparent;
+}
+.docs-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+.docs-scroll::-webkit-scrollbar-thumb { background: rgba(var(--color-primary-rgb), 0.35); }
+
+/* Keystroke chip */
+@layer components {
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  padding: 0.1rem 0.3rem;
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--color-elevated);
+}
+}
+
+/* Terminal caret */
+@keyframes ez-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.terminal-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: ez-blink 1.1s steps(1) infinite;
+}
+
+/* Status lamp */
+@keyframes ez-lamp {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.45); }
+  60% { opacity: 0.85; box-shadow: 0 0 0 5px rgba(63, 185, 80, 0); }
+}
+.status-lamp {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--color-terminal-green);
+  animation: ez-lamp 2.4s ease-out infinite;
+}
+
+/* ── Doc content typography ── */
+.doc-content { font-size: 15px; }
+
+.doc-content h2 {
+  position: relative;
+  scroll-margin-top: 6.5rem;
+  letter-spacing: -0.015em;
+  padding-top: 2.25rem;
+  margin-top: 3.25rem !important;
+  border-top: 1px solid var(--color-border);
+}
+.doc-content h3 {
+  scroll-margin-top: 6.5rem;
+  letter-spacing: -0.01em;
+}
+.doc-content h2[id],
+.doc-content h3[id] {
+  transition: border-color var(--ez-motion-fast) var(--ez-ease-out);
+}
+.doc-content h2[id]:hover {
+  border-top-color: rgba(var(--color-primary-rgb), 0.35);
+}
+
+.doc-content a {
+  color: var(--color-primary);
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(var(--color-primary-rgb), 0.35);
+}
+.doc-content a:hover { text-decoration: underline; }
+
+.doc-content p { line-height: 1.75; }
+.doc-content li { line-height: 1.7; }
+
+.doc-content code:not(pre code) {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-size: 0.82em;
+  padding: 0.12em 0.38em;
+  border-radius: 5px;
+  background: rgba(var(--color-primary-rgb), 0.09);
+  color: var(--color-primary);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.12);
+  white-space: nowrap;
+}
+
+.doc-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.doc-content thead th {
+  background: rgba(var(--color-primary-rgb), 0.04);
+}
+.doc-content tbody tr {
+  transition: background-color var(--ez-motion-fast) var(--ez-ease-out);
+}
+.doc-content tbody tr:hover {
+  background: rgba(var(--color-primary-rgb), 0.03);
+}
+.doc-content tbody td {
+  border-top: 1px solid var(--color-border);
+}
+
+.doc-content hr {
+  border-color: var(--color-border);
+  margin: 2.5rem 0;
+}
+
+/* Long tables scroll on small screens instead of breaking the layout */
+@media (max-width: 767px) {
+  .doc-content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Terminal surface shared by CLI demo, code blocks and 404 ── */
+.terminal-surface {
+  background:
+    radial-gradient(120% 90% at 50% -20%, rgba(var(--color-primary-rgb), 0.09), transparent 55%),
+    var(--color-code-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 24px 60px -30px rgba(0, 0, 0, 0.65);
+}
+
+@keyframes docs-caret-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .docs-route-enter,
+  .terminal-caret,
+  .status-lamp { animation: none !important; }
+}
+

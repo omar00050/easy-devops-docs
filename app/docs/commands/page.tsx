@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CmdTable, { type CmdGroup } from "@/components/CmdTable";
 import CodeBlock from "@/components/CodeBlock";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Command Reference",
@@ -19,10 +20,44 @@ const groups: CmdGroup[] = [
       { name: "Nginx Manager", description: "Reload, restart, test config, view error log, install nginx." },
       { name: "SSL Manager", description: "List certs, issue new certs (HTTP-01 or DNS-01), renew expiring certs." },
       { name: "Domain Manager", description: "List, add, edit, enable/disable, delete reverse proxy configs." },
-      { name: "Open Dashboard", description: "Starts the Express + Vue 3 web dashboard." },
+      { name: "Open Dashboard", description: "Starts the web dashboard — React UI served by the Express + Socket.io server." },
       { name: "Settings", description: "Configure ports, directories, passwords, ACME email, and Linux permissions." },
       { name: "Check for Updates", description: "Checks npm registry for a new version of easy-devops." },
       { name: "Exit", description: "Exit the CLI gracefully. Press Ctrl+C at any time." },
+    ],
+  },
+  {
+    title: "Background Service & Lifecycle",
+    commands: [
+      { name: "service install", description: "Install the native background service (systemd / Windows service) and enable it at boot." },
+      { name: "service status", description: "Show whether the service is running and whether it starts on boot." },
+      { name: "service start", description: "Start the service now." },
+      { name: "service stop", description: "Stop it until the next logon or boot (temporary)." },
+      { name: "service restart", description: "Stop and start the service in one step." },
+      { name: "service logs", description: "Print recent service output and error log lines." },
+      { name: "service repair", description: "Reinstall the service definition after an interrupted update." },
+      { name: "service uninstall", description: "Remove the service definition. Data and certificates are kept." },
+      { name: "runtime status", description: "Show the pinned Node runtime and the available LTS versions." },
+      { name: "runtime update", description: "Move the service to a newer Node, with rollback if it fails." },
+      { name: "daemon", description: "Run the background worker in the foreground for debugging. No web port is opened." },
+      { name: "update", description: "Update Easy DevOps itself, then restart the service." },
+      { name: "cleanup", description: "List reclaimable files (runtime backups, old logs, stale locks, nginx .bak files) and remove the ones you choose. Use --days N for the log age." },
+      { name: "uninstall", description: "Remove Easy DevOps. Needs --purge to do anything; the data directory is exported as a backup first." },
+      { name: "dashboard setup-code", description: "Issue a new first-run setup code, printed to the local terminal only." },
+      { name: "system-info", description: "Print detected system info (OS, Node, nginx) and exit." },
+    ],
+  },
+  {
+    title: "Global Flags",
+    commands: [
+      { name: "--dash", description: "Start the web dashboard in the foreground and print its URL. Ctrl+C stops it cleanly." },
+      { name: "--dev", description: "Use an isolated data directory (.dev-data in the project), so development never touches the installed configuration. Combines with --dash." },
+      { name: "--classic-ui", description: "Serve the old EJS dashboard instead of the React one, for one run. Temporary fallback." },
+      { name: "--purge", description: "With uninstall: remove the service, the pinned runtime and the data directory, after exporting a backup." },
+      { name: "--days N", description: "With cleanup: treat logs older than N days as reclaimable (default 14)." },
+      { name: "--yes", description: "Answer confirmations yes. For scripts; uninstall --purge still prints what it will do." },
+      { name: "-h, --help", description: "Show the full command help." },
+      { name: "-v, --version", description: "Print the installed version and exit." },
     ],
   },
   {
@@ -76,12 +111,15 @@ const groups: CmdGroup[] = [
 
 export default function CommandsPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Usage</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Command Reference</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">Launch with <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">easy-devops</code> or the short alias <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">ezz</code> — both are registered as npm bin commands and do the same thing. Select an option with arrow keys, then follow the sub-menu prompts.</p>
+    <DocPage
+      section="Using the CLI"
+      title="Command Reference"
+      description={
+        <>
+          Launch with <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">easy-devops</code> or the short alias <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">ezz</code> — both are registered as npm bin commands and do the same thing. Select an option with arrow keys, then follow the sub-menu prompts.
+        </>
+      }
+    >
 
       <h2 id="cli-banner" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Banner</h2>
       <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v2.0.0
@@ -107,9 +145,9 @@ export default function CommandsPage() {
       <CmdTable groups={groups} />
 
       <DocsPagination
-        prev={{ title: "Quick Start", href: "/docs/quickstart", section: "Usage" }}
-        next={{ title: "SSL Manager", href: "/docs/ssl", section: "Usage" }}
+        prev={{ title: "CLI Interface", href: "/docs/cli", section: "Using the CLI" }}
+        next={{ title: "SSL Manager", href: "/docs/ssl", section: "Using the CLI" }}
       />
-    </div>
+    </DocPage>
   );
 }

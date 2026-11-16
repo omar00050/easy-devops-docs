@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -12,14 +13,15 @@ export const metadata: Metadata = {
 
 export default function OverviewPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Getting Started</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Overview</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">
+    <DocPage
+      section="Getting Started"
+      title="Overview"
+      description={
+        <>
         Easy DevOps is a unified DevOps management tool — part CLI, part web dashboard — built for developers who need to manage <strong className="text-foreground">Nginx</strong>, <strong className="text-foreground">SSL certificates</strong>, and <strong className="text-foreground">Node.js</strong> on Linux and Windows servers without juggling dozens of scripts. It also <strong className="text-foreground">deploys your apps</strong>: give it a git repository and it is fetched, built and kept running, from the dashboard or from GitHub Actions.
-      </p>
+        </>
+      }
+    >
 
       <h2 id="what-is-it" className="text-xl font-bold mt-10 mb-4 text-foreground">What is it?</h2>
       <p className="text-muted text-sm leading-relaxed mb-8">
@@ -59,7 +61,7 @@ export default function OverviewPage() {
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           <div className="text-2xl mb-3">📊</div>
           <h3 className="text-sm font-bold mb-2">Web Dashboard</h3>
-          <p className="text-xs text-muted leading-relaxed">Vue 3 interface with dark/light themes, Socket.io real-time updates, and configurable accent colors.</p>
+          <p className="text-xs text-muted leading-relaxed">React 19 interface with dark/light themes, Socket.io real-time updates, and configurable accent colors.</p>
         </div>
         <div className="bg-surface border border-border rounded-xl p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
@@ -92,7 +94,7 @@ export default function OverviewPage() {
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 font-mono font-semibold text-sm text-primary">Dashboard</td>
-            <td className="py-3 px-4 text-muted">Express 5, Socket.io, Vue 3 (CDN)</td>
+            <td className="py-3 px-4 text-muted">Express 5, Socket.io, React 19 + Vite</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 font-mono font-semibold text-sm text-primary">SSL</td>
@@ -108,6 +110,6 @@ export default function OverviewPage() {
       <DocsPagination
         next={{ title: "Features", href: "/docs/features", section: "Getting Started" }}
       />
-    </div>
+    </DocPage>
   );
 }

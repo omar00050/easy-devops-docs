@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Configuration",
@@ -11,12 +12,11 @@ export const metadata: Metadata = {
 
 export default function ConfigurationPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Reference</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Configuration</h1>
-      <p className="text-muted text-base leading-relaxed mb-6">All configuration is stored in a single SQLite file in a persistent user directory — never inside the npm package folder, so it survives updates.</p>
+    <DocPage
+      section="Reference"
+      title="Configuration"
+      description="All configuration is stored in a single SQLite file in a persistent user directory — never inside the npm package folder, so it survives updates."
+    >
       <div className="bg-surface border border-border rounded-xl p-5 text-sm mb-10">
         <p className="font-bold text-foreground mb-2">Database location</p>
         <ul className="space-y-1 text-muted">
@@ -145,6 +145,6 @@ export default function ConfigurationPage() {
         prev={{ title: "Dashboard API", href: "/docs/api", section: "Reference" }}
         next={{ title: "Platform Support", href: "/docs/platform", section: "Reference" }}
       />
-    </div>
+    </DocPage>
   );
 }

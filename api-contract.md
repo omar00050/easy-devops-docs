@@ -218,6 +218,7 @@ its only consumer and renaming would break that for no gain.
 | POST | `/api/ssl/create-cancel` | session | Abandon a pending DNS-01 issuance |
 | POST | `/api/ssl/renew/:domain` | session | Renew one certificate |
 | POST | `/api/ssl/renew-all` | session | Renew everything expiring within 30 days |
+| DELETE | `/api/ssl/:domain` | session | Delete a certificate, refusing while nginx configs still reference it |
 
 **`GET /api/ssl`** response `200` is an array; each item is:
 ```json
@@ -269,6 +270,33 @@ renewal the job will not perform.
 `renew-all` returns an array of per-domain results, each with `domain`,
 `success`, `certPath`, `keyPath`, `mode`, `fellBack`, `nginxDownMs`,
 `configRegenerated`, `nginxReloaded`, `summary`.
+
+**`DELETE /api/ssl/:domain`** removes the certificate's directory
+(`${sslDir}/${domain}`, containing `fullchain.pem` and `privkey.pem`). Before
+deleting anything it scans the nginx configuration tree (`nginxDir`,
+recursively, over `*.conf` and `*.conf.disabled` files including the main
+`nginx.conf`) for lines that point into that directory.
+
+- `200` `{ "deleted": "broken.example.com", "directory": "/etc/easy-devops/ssl/broken.example.com" }`.
+- `404` `{ "error": "Certificate '<domain>' not found" }` when the certificate
+  directory does not exist.
+- `409` when a config still references the certificate; nothing is deleted:
+  ```json
+  {
+    "error": "cert_in_use",
+    "directory": "/etc/easy-devops/ssl/app.example.com",
+    "references": [
+      {
+        "file": "/etc/nginx/conf.d/app.example.com.conf",
+        "line": 14,
+        "text": "ssl_certificate /etc/easy-devops/ssl/app.example.com/fullchain.pem;"
+      }
+    ],
+    "hint": "At least one nginx config still points at this certificate. …"
+  }
+  ```
+  Disable SSL on the referencing domain (or remove the lines) first; this is
+  what keeps a delete from leaving nginx pointing at missing files.
 
 **Renewal behaviour (2.3.0).** `renew/:domain`, `renew-all`, the CLI, the Hub
 command and the background job all go through `renewCertificate()` in

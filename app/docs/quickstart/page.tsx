@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Quick Start",
@@ -41,12 +42,11 @@ const steps = [
 
 export default function QuickstartPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Usage</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Quick Start</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">From zero to a working reverse proxy with SSL in five steps.</p>
+    <DocPage
+      section="Getting Started"
+      title="Quick Start"
+      description="From zero to a working reverse proxy with SSL in five steps."
+    >
 
       <div className="space-y-4 mb-10">
         {steps.map((step, i) => (
@@ -81,8 +81,8 @@ export default function QuickstartPage() {
 
       <DocsPagination
         prev={{ title: "Installation", href: "/docs/installation", section: "Getting Started" }}
-        next={{ title: "Command Reference", href: "/docs/commands", section: "Usage" }}
+        next={{ title: "CLI Interface", href: "/docs/cli", section: "Using the CLI" }}
       />
-    </div>
+    </DocPage>
   );
 }

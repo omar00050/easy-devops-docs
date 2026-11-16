@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import {
   ArrowRight,
+  ArrowUpRight,
   Terminal,
   Check,
   Shield,
@@ -434,6 +435,16 @@ export default function LandingPage() {
             >
               <GitHubIcon className="w-4 h-4" />
               View on GitHub
+            </a>
+            <a
+              href="https://ez.hub.devxor.team"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold text-primary bg-primary/10 border border-primary/25 rounded-xl hover:bg-primary/20 hover:border-primary transition-all duration-200"
+            >
+              <Globe className="w-4 h-4" />
+              Open the Hub
+              <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </a>
           </motion.div>
 

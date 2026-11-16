@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Deployments",
@@ -14,12 +15,11 @@ const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounde
 
 export default function DeploymentsPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Usage</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Deployments</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">Put a project from a git repository on your server and keep it deployed. The code is fetched and built on the server, started under PM2, checked for health, and the previous release is kept one step away.</p>
+    <DocPage
+      section="Using the CLI"
+      title="Deployments"
+      description="Put a project from a git repository on your server and keep it deployed. The code is fetched and built on the server, started under PM2, checked for health, and the previous release is kept one step away."
+    >
 
       <h2 id="how-it-works" className="text-xl font-bold mt-10 mb-4 text-foreground">How a deployment runs</h2>
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
@@ -247,9 +247,9 @@ ez_deploys/<app>/logs/<id>.log     ← that deployment's output
 ez_deploys/<app>/id_deploy         ← the app's private deploy key (owner-only)`}</CodeBlock>
 
       <DocsPagination
-        prev={{ title: "SSL Manager", href: "/docs/ssl", section: "Usage" }}
-        next={{ title: "Dashboard API", href: "/docs/api", section: "Reference" }}
+        prev={{ title: "SSL Manager", href: "/docs/ssl", section: "Using the CLI" }}
+        next={{ title: "Background Service", href: "/docs/service", section: "Operations" }}
       />
-    </div>
+    </DocPage>
   );
 }

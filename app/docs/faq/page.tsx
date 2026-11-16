@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
+import DocPage from "@/components/DocPage";
 import Accordion from "@/components/Accordion";
-
-const SITE_URL = "https://easy-devops.devxor.team";
 
 export const metadata: Metadata = {
   title: "FAQ & Troubleshooting",
@@ -63,7 +62,11 @@ export default function FAQPage() {
   const items = faqSchemaData;
 
   return (
-    <div>
+    <DocPage
+      section="Help"
+      title="FAQ & Troubleshooting"
+      description="Answers to common questions and known issues."
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -78,11 +81,6 @@ export default function FAQPage() {
           }),
         }}
       />
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Help</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">FAQ &amp; Troubleshooting</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">Answers to common questions and known issues.</p>
 
       <Accordion items={items} />
 
@@ -93,6 +91,6 @@ export default function FAQPage() {
       <DocsPagination
         prev={{ title: "Platform Support", href: "/docs/platform", section: "Reference" }}
       />
-    </div>
+    </DocPage>
   );
 }

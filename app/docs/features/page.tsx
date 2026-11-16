@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
+import DocPage from "@/components/DocPage";
 
 export const metadata: Metadata = {
   title: "Features",
@@ -25,12 +26,11 @@ const features = [
 
 export default function FeaturesPage() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-xs text-muted mb-2">
-        <span>Docs</span> <span>/</span> <span>Getting Started</span>
-      </div>
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Features</h1>
-      <p className="text-muted text-base leading-relaxed mb-10">Everything you need to manage a production web server from one tool.</p>
+    <DocPage
+      section="Getting Started"
+      title="Features"
+      description="Everything you need to manage a production web server from one tool."
+    >
 
       <div className="max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5 mb-12">
         {features.map((f, i) => (
@@ -70,7 +70,7 @@ export default function FeaturesPage() {
         prev={{ title: "Overview", href: "/docs/overview", section: "Getting Started" }}
         next={{ title: "Installation", href: "/docs/installation", section: "Getting Started" }}
       />
-    </div>
+    </DocPage>
   );
 }
 
