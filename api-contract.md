@@ -1,6 +1,6 @@
 # Easy DevOps — Dashboard API Contract
 
-**Contract version: 2.8.0** · Last updated: 2026-11-16 · Derived from the code in
+**Contract version: 2.9.0** · Last updated: 2026-11-17 · Derived from the code in
 `src/dashboard/`, not from any earlier plan.
 
 > ## The rule
@@ -451,6 +451,83 @@ a file people share, and a scrypt hash is still worth cracking offline.
 so a backup can neither reinstate a plain-text password nor silently re-open the
 listener.
 
+#### Updating Easy DevOps — `src/dashboard/routes/update.js` (mounted at `/api`)
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| GET | `/api/update` | session | Registry check, install source, and the last run |
+| GET | `/api/update/status` | session | The run record alone; no registry call |
+| POST | `/api/update` | session | Accept an update run; the worker does the work |
+
+**`GET /api/update`** response `200`:
+```json
+{
+  "current": "1.3.4",
+  "latest": "1.3.5",
+  "reachable": true,
+  "updateAvailable": true,
+  "source": {
+    "kind": "npm",
+    "reason": "an npm-installed package at /usr/lib/node_modules/easy-devops",
+    "npmUpdatable": true,
+    "howToUpdate": []
+  },
+  "run": null
+}
+```
+`source.kind` is `npm`, `clone` or `unknown`. Only `npm` is updatable in place;
+for the others `howToUpdate` carries the commands to run instead, and `POST`
+refuses (the same rule as `ezz update` — see `src/core/installSource.js`).
+`run` is the last run record (§ below) or `null`.
+
+**`POST /api/update`** body `{ "version": "1.3.5" }` (a release triple; when it
+is absent or malformed the server does a fresh registry check and uses
+`latest`). The request never performs the update itself — npm replaces the
+files this process runs from, and the process is stopped mid-way — so it
+records the run and spawns a detached worker that survives the restart and
+performs the SAME `core/updater.js` flow as `ezz update`.
+
+- `202` `{ "started": true, "run": { … } }` — the worker was started. This is
+  NOT "the update succeeded"; the outcome is only ever in the run record.
+- `409` when this copy is not npm-managed (`source` included), when a run is
+  already active (`run` included), or when the registry says it is up to date.
+- `502` when the registry cannot be reached and no version was given.
+
+The dashboard stops within a second or two of the `202`, so clients MUST expect
+the next requests to fail with a connection error and keep polling
+`GET /api/update/status` until it answers again. The dashboard is restarted on
+the port the request arrived on, with the same data directory.
+
+**The run record** (`run` in both GET responses):
+```json
+{
+  "id": "m9x2k1-a1b2c3",
+  "phase": "done",
+  "from": "1.3.4",
+  "to": "1.3.5",
+  "step": null,
+  "reason": null,
+  "logTail": ["Updating Easy DevOps v1.3.4 -> v1.3.5", "…"],
+  "startedAt": 1730000000000,
+  "updatedAt": 1730000000000,
+  "finishedAt": 1730000000000,
+  "rolledBack": false,
+  "restored": null,
+  "runningVersion": "1.3.5",
+  "versionConfirmed": true,
+  "serviceInstalled": true,
+  "refreshedCopy": false,
+  "dashboardRestarted": true,
+  "dashboardPort": 6443
+}
+```
+`phase` is one of `starting`, `stopping`, `updating`, `restarting` (active) or
+`done`, `failed`, `interrupted` (final). An active phase whose worker is gone
+and whose heartbeat is older than 45 s is reported as `interrupted`, never as
+still running — the file lives at `update-status.json` in the data directory
+and is written atomically. `failed` carries `step` and `reason`; `rolledBack`
+and `restored` say whether the previous version was reinstalled and started.
+
 ### 2.6 Hub pairing — `src/dashboard/routes/hub.js` (mounted at `/api/hub`)
 
 | Method | Path | Auth | Purpose |
@@ -461,9 +538,17 @@ listener.
 | PUT | `/api/hub/permissions` | session | Grant/revoke hub permissions |
 
 `GET /api/hub/status` returns `linked`, `hubUrl`, `serverId`, `permissions`,
-`tree`, `comingSoon`, `connected`, `status`, `lastError`, `attempts`, `dataDir`,
-`defaultDataDir`, `devDataDir`. **It never returns the shared secret**, and no
-endpoint echoes an `ezops://` string back.
+`tree`, `comingSoon`, `connected`, `status`, `lastError`, `attempts`,
+`agentOwner`, `agentReported`, `dataDir`, `defaultDataDir`, `devDataDir`.
+**It never returns the shared secret**, and no endpoint echoes an `ezops://`
+string back.
+
+`agentOwner` is `"daemon"` when a background service is running (it holds the
+Hub connection and the fields describe ITS agent) and `"dashboard"` when this
+process holds the agent itself. `agentReported` is `false` in the daemon case
+until that process has reported its state over the event channel: the answer is
+then honestly "waiting", never a guessed `connected` or a permanent
+`connecting` that looks stuck.
 
 `defaultDataDir` and `devDataDir` answer different questions, and conflating
 them was a bug:
@@ -1018,6 +1103,7 @@ and there is only one schema.
 | `logs:line` | `{ line, logFile }` | `socketManager.js` — per line while a tail is active | **No** — a tail exists only for a watching client |
 | `local:changed` | `{ section, source, at, …detail }`, `section` ∈ `domains`, `ssl`, `nginx`, `settings` | `core/hub/agent.js` after it applies a Hub command (`source: "hub"`), and `core/jobs/revisionWatcher.js` when another process moves the change counter (`source: "revision"`) | **Yes** |
 | `service:changed` | the `backgroundService` object from §2.7, identically shaped | `dashboard/lib/daemonBridge.js` — whenever the background service or the jobs owner changes | **No** — it describes the service *as this dashboard sees it* |
+| `hub:agentState` | `{ linked, connected, status, lastError, attempts }` (the same fields as `GET /api/hub/status`) | `core/hub/agent.js` — on every real state transition (connecting, connected, unreachable, rejected, not linked) | **Yes** — the agent lives in the job-owning process |
 
 **Replay on connect.** `nginx:status`, `domain:health` and `service:changed`
 are state, so the server remembers the last payload of each and sends it to a
@@ -1084,6 +1170,7 @@ answer 403 instead of reporting a dropped command as dispatched.
 | `hub:nginxAction` | `{ action: start \| stop \| restart \| reload \| test }` | `nginx.<action>` |
 | `hub:manageDomain` | `{ action: create \| update \| toggle \| delete \| reload, … }` | `domains.<action>` (`reload` → `nginx.reload`) |
 | `hub:manageSSL` | `{ action: renew \| renewAll \| issue \| delete, … }` | `ssl.<action>` |
+| `hub:manageProcess` | `{ action: start \| stop \| restart, name }` | `process.<action>` |
 | `hub:getConfigs` | `{ filename? }` | `nginx.config.view` |
 | `hub:saveConfig` | `{ filename, content, reload? }` | `nginx.config.edit` |
 | `hub:getLogs` | `{ lines? }` | `nginx.logs.view` |
@@ -1120,6 +1207,14 @@ things to be trusted with:
 A reload that is attempted and fails does not undo the save — the file has
 already passed `nginx -t`, so `reloaded` is `false` and `reloadDetail` explains
 that the config is saved and valid but the reload did not succeed.
+
+**`hub:manageProcess`** starts, stops or restarts a PM2 app **by name**. It
+refuses when PM2 is not installed, when no process has that name, or when the
+app belongs to a different OS user than the one running Easy DevOps (PM2 keeps
+a separate process list per user, so that app is not controllable from here).
+`start` on an existing app restarts it, matching PM2. `data` echoes
+`{ name, action, managed, output }`, where `managed` says whether Easy DevOps
+created the app.
 
 ---
 

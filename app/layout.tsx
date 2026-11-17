@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { latestVersion } from "@/lib/version";
 
 import "./globals.css";
 
@@ -105,7 +106,9 @@ export const metadata: Metadata = {
   category: "Developer Tool",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const version = await latestVersion();
+
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <head>
@@ -147,7 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 url: "https://farghaly.dev",
               },
               image: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
-              softwareVersion: "1.0.0",
+              ...(version ? { softwareVersion: version } : {}),
             }),
           }}
         />

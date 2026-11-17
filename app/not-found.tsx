@@ -32,18 +32,7 @@ export default function NotFound() {
         </div>
 
         <h1 className="mt-4 text-6xl font-black tracking-tight sm:text-7xl">
-          Not{" "}
-          <span
-            style={{
-              background: "linear-gradient(to right, var(--color-primary), rgba(var(--color-primary-rgb), 0.6))",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              color: "transparent",
-            }}
-          >
-            found.
-          </span>
+          Not <span className="docs-gradient-text">found.</span>
         </h1>
 
         <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-muted">
@@ -91,7 +80,7 @@ export default function NotFound() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 px-6 py-3 text-sm font-semibold shadow-[0_1px_0_rgba(255,255,255,0.1)_inset,0_4px_12px_rgba(var(--color-primary-rgb),0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_8px_24px_rgba(var(--color-primary-rgb),0.45)]"
+            className="docs-btn-sheen inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary/80 px-6 py-3 text-sm font-semibold shadow-[0_1px_0_rgba(255,255,255,0.1)_inset,0_4px_12px_rgba(var(--color-primary-rgb),0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_8px_24px_rgba(var(--color-primary-rgb),0.45)]"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to home

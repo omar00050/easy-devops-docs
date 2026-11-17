@@ -200,6 +200,75 @@ pre[class*="language-"] code {
   -webkit-mask-image: radial-gradient(ellipse 90% 70% at 30% 0%, #000 20%, transparent 75%);
 }
 
+/* Slow aurora wash behind the whole docs shell — the same idea as the Hub
+   landing, dialled down so long-form reading stays comfortable. */
+.docs-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(34% 28% at 82% -4%, rgba(var(--color-primary-rgb), 0.1), transparent 70%),
+    radial-gradient(30% 24% at 6% 4%, rgba(var(--color-primary-rgb), 0.05), transparent 72%);
+  animation: docs-breathe 20s ease-in-out infinite alternate;
+}
+
+@keyframes docs-breathe {
+  from { opacity: 0.75; transform: translate3d(0, 0, 0) scale(1); }
+  to { opacity: 1; transform: translate3d(0, 1.5%, 0) scale(1.05); }
+}
+
+/* Animated gradient headline — the docs twin of the Hub landing treatment. */
+.docs-gradient-text {
+  background: linear-gradient(
+    100deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 52%, var(--color-text)) 55%,
+    var(--color-primary) 100%
+  );
+  background-size: 180% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: docs-pan 10s var(--ez-ease-out) infinite alternate;
+}
+
+@keyframes docs-pan {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+/* Light sweep across primary buttons on hover. */
+.docs-btn-sheen {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.docs-btn-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 45%;
+  transform: translateX(-160%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34), transparent);
+  pointer-events: none;
+}
+.docs-btn-sheen:hover::after {
+  animation: docs-sheen 0.9s var(--ez-ease-out);
+}
+
+@keyframes docs-sheen {
+  to { transform: translateX(280%) skewX(-18deg); }
+}
+
+/* Soft accent halo behind every doc page title. */
+.doc-header-glow {
+  background: radial-gradient(52% 64% at 18% 30%, rgba(var(--color-primary-rgb), 0.1), transparent 72%);
+  filter: blur(6px);
+}
+
 /* Route transition: opacity only — a retained transform would turn the
    fixed top bar into a positioning parent. */
 @keyframes docs-route-in {
@@ -363,5 +432,8 @@ pre[class*="language-"] code {
   .docs-route-enter,
   .terminal-caret,
   .status-lamp { animation: none !important; }
+  .docs-shell::after,
+  .docs-gradient-text { animation: none !important; }
+  .docs-btn-sheen:hover::after { animation: none !important; }
 }
 

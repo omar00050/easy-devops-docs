@@ -364,7 +364,7 @@ function GitHubIcon({ className }: { className?: string }) {
   );
 }
 
-export default function LandingPage() {
+export default function LandingPage({ version }: { version: string | null }) {
   const [copied, setCopied] = useState(false);
 
   return (
@@ -392,21 +392,13 @@ export default function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
             </span>
-            v2.0.0 — Open Source
+            {version ? `v${version} — ` : ""}Open Source
           </motion.div>
 
           {/* Headline */}
           <h1 className="text-5xl sm:text-6xl md:text-[72px] font-black tracking-tight leading-[1.05] mb-5">
             <SplitText text="DevOps, Made" /> <br />
-            <span style={{
-              background: 'linear-gradient(to right, var(--color-primary), rgba(var(--color-primary-rgb), 0.7))',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              color: 'transparent',
-              display: 'inline-block',
-              transform: 'translateZ(0)',
-            }}>Simple.</span>
+            <span className="docs-gradient-text inline-block">Simple.</span>
           </h1>
 
           {/* Subtitle with morphing text */}
@@ -423,7 +415,7 @@ export default function LandingPage() {
           >
             <Link
               href="/docs/installation"
-              className="group relative inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold  rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-[0_1px_0_rgba(255,255,255,0.1)_inset,0_4px_12px_rgba(var(--color-primary-rgb),0.35)] hover:shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_8px_24px_rgba(var(--color-primary-rgb),0.5)] hover:-translate-y-0.5 transition-all duration-200"
+              className="docs-btn-sheen group relative inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold  rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-[0_1px_0_rgba(255,255,255,0.1)_inset,0_4px_12px_rgba(var(--color-primary-rgb),0.35)] hover:shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_8px_24px_rgba(var(--color-primary-rgb),0.5)] hover:-translate-y-0.5 transition-all duration-200"
             >
               Get Started
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -456,6 +448,29 @@ export default function LandingPage() {
             transition={{ delay: 1.8, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
             <TypewriterTerminal />
+          </motion.div>
+
+          {/* Proof strip */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.4, duration: 0.6 }}
+            className="mt-9 flex flex-wrap items-center justify-center gap-2.5"
+          >
+            {[
+              "CLI + web dashboard",
+              "Linux + Windows",
+              "Let's Encrypt built in",
+              "Real-time over sockets",
+            ].map((item) => (
+              <span
+                key={item}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 font-mono text-[11px] text-muted backdrop-blur"
+              >
+                <Check className="h-3 w-3 text-primary" />
+                {item}
+              </span>
+            ))}
           </motion.div>
 
           {/* Scroll indicator */}

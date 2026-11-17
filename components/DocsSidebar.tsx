@@ -13,6 +13,7 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
+import { useLatestVersion } from "@/lib/useLatestVersion";
 
 interface NavItem {
   title: string;
@@ -93,6 +94,7 @@ export default function DocsSidebar({
 }) {
   const pathname = usePathname();
   const activeKey = getPageKey(pathname);
+  const version = useLatestVersion();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
     Object.fromEntries(groups.map((group) => [group.label, true]))
   );
@@ -126,8 +128,11 @@ export default function DocsSidebar({
       <div className="shrink-0 px-5 pb-4 pt-5">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Documentation</div>
         <div className="mt-2 flex items-center gap-2">
-          <span className="rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary">
-            v2.0.0
+          <span
+            className="rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-primary"
+            title={version ? `Easy DevOps ${version} — the latest published release` : "Reading the latest published release…"}
+          >
+            {version ? `v${version}` : "v…"}
           </span>
           <span className="text-[11px] text-muted">CLI · Dashboard · Hub</span>
         </div>

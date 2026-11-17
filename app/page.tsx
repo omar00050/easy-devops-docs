@@ -1,4 +1,5 @@
 import LandingPage from "./LandingPage";
+import { latestVersion } from "@/lib/version";
 
 export const metadata = {
   title: "Easy DevOps — Unified DevOps CLI for Nginx, SSL & Node.js",
@@ -15,6 +16,9 @@ export const metadata = {
   },
 };
 
-export default function Home() {
-  return <LandingPage />;
+export const revalidate = 3600;
+
+export default async function Home() {
+  const version = await latestVersion();
+  return <LandingPage version={version} />;
 }

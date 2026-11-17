@@ -33,10 +33,15 @@ export default function MaintenancePage() {
 # checks npm for a newer release, installs it,
 # then restarts the background service`}</CodeBlock>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
+        <li><strong className="text-foreground">Settings → Update</strong> in the dashboard runs the same flow. The dashboard stops while the new version is installed and starts again on the same port by itself; the result, including a rollback, is shown on the page when it comes back.</li>
         <li>The CLI menu&apos;s <strong className="text-foreground">Check for Updates</strong> runs the same check interactively.</li>
         <li>Node itself is updated separately with <code className={C}>ezz runtime update</code> — see <a href="/docs/service#runtime">the pinned runtime</a>.</li>
         <li>An interrupted update is recoverable with <code className={C}>ezz service repair</code>; data is never part of the transaction.</li>
       </ul>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        The Hub cannot run an update: the update stops and replaces the process that would have
+        reported back. That is the one operation that stays out of the Hub.
+      </p>
 
       <h2 id="cleanup" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Reclaiming disk space
