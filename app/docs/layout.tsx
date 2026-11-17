@@ -9,6 +9,7 @@ import DocsSidebar from "@/components/DocsSidebar";
 import DocsSearch from "@/components/DocsSearch";
 import OnThisPage from "@/components/OnThisPage";
 import ReadingProgress from "@/components/ReadingProgress";
+import { currentYear } from "@/lib/site";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -91,6 +92,13 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           </aside>
         </div>
       </main>
+
+      <footer className="border-t border-border py-5 text-center font-mono text-[10px] text-muted lg:pl-72">
+        © {currentYear()} Easy DevOps · provided by{" "}
+        <a href="https://devxor.team" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+          DevXor Team
+        </a>
+      </footer>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ExternalLink, Terminal } from "lucide-react";
+import { currentYear } from "@/lib/site";
 
 export default function NotFound() {
   return (
@@ -134,7 +135,10 @@ export default function NotFound() {
       </main>
 
       <footer className="relative z-10 border-t border-border px-5 py-4 text-center font-mono text-[10px] text-muted sm:px-8">
-        exit code 404 · even a good pipeline misses a path now and then
+        exit code 404 · even a good pipeline misses a path now and then · © {currentYear()} Easy DevOps · provided by{" "}
+        <a href="https://devxor.team" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+          DevXor Team
+        </a>
       </footer>
     </div>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import { currentYear } from "@/lib/site";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -656,6 +657,12 @@ export default function LandingPage() {
           · Licensed under{" "}
           <a href="https://opensource.org/licenses/MIT" target="_blank" className="text-primary hover:underline">
             MIT
+          </a>
+        </p>
+        <p className="mt-2 font-mono text-[11px] text-muted/70">
+          © {currentYear()} Easy DevOps · provided by{" "}
+          <a href="https://devxor.team" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            DevXor Team
           </a>
         </p>
       </footer>
