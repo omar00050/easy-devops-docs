@@ -89,9 +89,9 @@ export const metadata: Metadata = {
   },
   verification: {},
   icons: {
-    icon: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
-    shortcut: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
-    apple: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
+    icon: "/img/icon_b.png",
+    shortcut: "/img/icon_b.png",
+    apple: "/img/icon_b.png",
   },
   category: "Developer Tool",
 };
@@ -139,7 +139,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 name: "Omar Farghaly",
                 url: "https://farghaly.dev",
               },
-              image: "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/src/dashboard/public/img/icon_b.png",
+              image: "https://easy-devops.devxor.team/img/icon_b.png",
               ...(version ? { softwareVersion: version } : {}),
             }),
           }}
