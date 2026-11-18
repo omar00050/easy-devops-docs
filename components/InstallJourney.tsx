@@ -24,7 +24,7 @@ const steps: Step[] = [
     num: "01",
     title: "Open the CLI for the first time",
     tag: "first run",
-    desc: "A fresh install asks you to create the dashboard password here. If the server asks for a setup code, it is printed in this terminal only.",
+    desc: "A fresh install asks for a one-time setup code, then your new dashboard password. The code appears in this terminal or the service log; ezz dashboard setup-code prints a fresh one.",
     cmd: "ezz",
   },
   {

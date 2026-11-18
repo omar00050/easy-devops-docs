@@ -16,7 +16,7 @@ const steps = [
   {
     num: 1,
     title: "Install Easy DevOps",
-    desc: "Run npm install -g easy-devops or use the bootstrap installer above.",
+    desc: "Run `npm install -g easy-devops`, or use the one-line installer on the Installation page.",
   },
   {
     num: 2,
@@ -36,7 +36,7 @@ const steps = [
   {
     num: 5,
     title: "Start the Dashboard (optional)",
-    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://localhost:6443 (or your configured port). A fresh install asks you to create the dashboard password on first visit.',
+    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://localhost:6443 (or your configured port). The first visit needs the one-time setup code printed in the server terminal or service log — `ezz dashboard setup-code` issues a fresh one — then you choose the dashboard password.',
     code: { lang: "bash", text: "easy-devops\n# or the short alias:\nezz" },
   },
 ];
@@ -46,14 +46,13 @@ export default function QuickstartPage() {
     <DocPage
       section="Getting Started"
       title="Quick Start"
-      description="From a fresh server to a live site and app — the whole path, then the short version."
+      description="From a fresh server to a live site — the whole path, then the short version."
     >
 
       <h2 id="the-path" className="text-xl font-bold mt-10 mb-4 text-foreground">The path from install to a running fleet</h2>
       <p className="text-muted text-sm leading-relaxed mb-2">
         Every install follows the same arc: install it, point it at nginx, put a site online, deploy an app,
-        then let it keep watch. This is the whole journey — the short version with copy-ready commands is
-        right below it.
+        then let it keep watch. This is the whole journey; the short version is right below it.
       </p>
       <InstallJourney />
 
@@ -87,7 +86,7 @@ export default function QuickstartPage() {
       </div>
 
       <div className="bg-primary/[0.06] border border-primary/20 rounded-xl p-5 text-sm">
-        <p className="text-muted"><strong className="text-foreground">Tip:</strong> From the Dashboard menu, select "How to use" for a quick guide on getting started.</p>
+        <p className="text-muted"><strong className="text-foreground">Tip:</strong> From the CLI's Open Dashboard menu, select "How to use" for a quick guide on getting started.</p>
       </div>
 
       <DocsPagination

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { latestVersion } from "@/lib/version";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
 import DocPage from "@/components/DocPage";
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs/overview" },
 };
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  const version = await latestVersion();
+  const versionLabel = version ? `  v${version}` : "";
+
   return (
     <DocPage
       section="Getting Started"
@@ -25,20 +29,26 @@ export default function OverviewPage() {
     >
 
       <h2 id="what-is-it" className="text-xl font-bold mt-10 mb-4 text-foreground">What is it?</h2>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        It runs on the server itself and manages the real stack — nginx configs and reloads, Let's Encrypt
+        certificates, and PM2 apps deployed from a git repository — rather than wrapping someone else's
+        control panel. One install covers the daily loop: add a domain, issue SSL, deploy a release, watch
+        health and renewals, and keep it running through the background service.
+      </p>
       <p className="text-muted text-sm leading-relaxed mb-8">
         No external ACME binaries required — SSL certificates are issued via <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">acme-client</code> (pure Node.js, Let's Encrypt).
       </p>
 
       <h2 id="how-it-fits-together" className="text-xl font-bold mt-10 mb-4 text-foreground">How it fits together</h2>
       <p className="text-muted text-sm leading-relaxed mb-2">
-        One package, three ways in. The CLI, the web dashboard and the Hub all drive the same core — the same
+        One engine, three ways in. The CLI, the web dashboard and the Hub all drive the same core — the same
         nginx configs, the same certificates, the same deployments. Nothing is duplicated and nothing is
         rewritten per surface.
       </p>
       <SystemMap />
 
       <h2 id="cli-preview" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Preview</h2>
-      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v2.0.0
+      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps${versionLabel}
   ██╔════╝╚════██╗     ─────────────────────
   █████╗      ██╔╝     CLI & Web Dashboard
   ██╔══╝     ██╔╝      Nginx · SSL · Domains · Node.js
