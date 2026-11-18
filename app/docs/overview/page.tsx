@@ -69,7 +69,7 @@ export default async function OverviewPage() {
 
       <h2 id="core-capabilities" className="text-xl font-bold mt-10 mb-4 text-foreground">Core Capabilities</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <div className="bg-surface border border-border rounded-xl p-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
           <div className="text-2xl mb-3">🖥️</div>
@@ -87,6 +87,12 @@ export default async function OverviewPage() {
           <div className="text-2xl mb-3">🔒</div>
           <h3 className="text-sm font-bold mb-2">Pure Node.js SSL</h3>
           <p className="text-xs text-muted leading-relaxed">Let's Encrypt certificates via acme-client — no certbot, no external binaries. HTTP-01 and DNS-01 challenges supported.</p>
+        </div>
+        <div className="bg-surface border border-border rounded-xl p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="text-2xl mb-3">🚀</div>
+          <h3 className="text-sm font-bold mb-2">Git Deployments</h3>
+          <p className="text-xs text-muted leading-relaxed">Deploy from a git repository: build a fresh release, health-check it, swap PM2, and roll back to a previous release in one click.</p>
         </div>
       </div>
 
