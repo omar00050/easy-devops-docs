@@ -31,44 +31,48 @@ const faqSchemaData = [
     answer: "Open a new terminal so the PATH can update. If it still fails, run npm bin -g and add the output directory to your PATH. For Linux users with permission issues, prefix the install command with sudo. Both ezz and easy-devops are registered as bin aliases — either one will launch the CLI.",
   },
   {
-    question: "How do I change the dashboard password?",
-    answer: "From the CLI, select Settings from the main menu, then set a new password. This updates dashboardPassword in the SQLite database and takes effect immediately.",
+    question: "There is no default password. How does the first login work?",
+    answer: "A fresh dashboard has no password and no built-in account. The first visit shows a setup screen: set a password, which requires the one-time setup code printed in the server's terminal or service log (six digits, 24 hours; ezz dashboard setup-code issues a new one), or choose no-password mode. No-password mode is offered only when the dashboard listens on 127.0.0.1 and the request comes from this machine.",
+  },
+  {
+    question: "How do I change or reset the dashboard password?",
+    answer: "From the dashboard: Settings → Access and authentication, then set a new password. From the CLI: Settings → Dashboard Auth, then Password. The new password is stored as a scrypt hash (the old plain-text field is migrated and cleared). No old password is required from the CLI. If the dashboard is in no-password mode, choosing Password again sets one.",
   },
   {
     question: 'SSL issuance fails with a "port 80 in use" error.',
-    answer: "HTTP-01 validation requires exclusive access to port 80. Stop nginx before issuing a certificate (Nginx Manager → Stop), then retry. After issuance, Easy DevOps will restart nginx automatically. Alternatively, use DNS-01 which does not require stopping nginx.",
+    answer: "You do not need to stop nginx for HTTP-01. In the default proxy mode nginx keeps running and forwards /.well-known/acme-challenge/ to a loopback listener Easy DevOps starts on acmeChallengePort (8089). If a local preflight fails, the usual cause is outside Easy DevOps: the domain's DNS does not point here, port 80 is blocked by a firewall, an AAAA record points elsewhere, or a CDN intercepts the path. Standalone mode (which stops nginx and always restores it) is only a fallback when nginx is not running, or an explicit setting. DNS-01 avoids port 80 entirely.",
   },
   {
     question: "What is acmeEmail and why is it required?",
-    answer: "The acmeEmail setting registers your ACME account with Let's Encrypt. It is required for certificate issuance — Let's Encrypt uses it to send expiry notifications and account recovery. Set it in Settings before issuing certificates.",
+    answer: "The acmeEmail setting registers your ACME account with Let's Encrypt. Issuance is refused until one is set — Let's Encrypt uses it for account recovery and expiry notices. Set it in Settings before issuing certificates.",
   },
   {
     question: "Can I use Easy DevOps on macOS?",
-    answer: "Yes — the install.sh script works on macOS. However, the primary tested platforms are Linux and Windows. Community contributions for macOS-specific features are welcome.",
+    answer: "Not as a supported server platform. src/core/platform.js has exactly two branches, Windows and everything else; there is no darwin branch anywhere in src/. The CLI and dashboard can start and use ~/.config/easy-devops, but ezz service install resolves to a systemd unit on every non-Windows platform, and nginx control is built as sudo -n /usr/bin/systemctl ... nginx with a sudoers rule for /usr/bin/systemctl — neither exists on macOS, which uses launchd. Treat macOS as unsupported for the service and for nginx control.",
   },
   {
     question: "How do I run the dashboard directly without the CLI menu?",
-    answer: "From the project directory, run npm run dashboard. This starts the Express + Socket.io server directly. Access it at http://localhost:6443 (or your configured port). Alternatively, run ezz and select 'Open Dashboard' from the main menu.",
+    answer: "Run ezz --dash to start it in the foreground and print its URL. From a source checkout, npm run dashboard starts the Express + Socket.io server directly. Access it at http://127.0.0.1:6443 (Linux default) or your configured port and bind address. Alternatively, run ezz and select Open Dashboard from the main menu.",
   },
   {
     question: "Wildcard domains — why is DNS-01 the only option?",
-    answer: "Let's Encrypt does not support HTTP-01 for wildcard certificates. DNS-01 is the only validation method that can prove control of *.domain.com. Easy DevOps automatically disables HTTP-01 when you enable the wildcard option on a domain.",
+    answer: "Let's Encrypt does not support HTTP-01 for wildcard certificates. DNS-01 is the only validation method that can prove control of *.domain.com, so HTTP-01 issuance for a wildcard is refused. Wildcard certificates are also never renewed automatically: they need a TXT record a person adds, so they keep the expiry warning instead.",
   },
   {
     question: "Where is the data stored?",
-    answer: "Since v2.0.0, the database lives in a persistent user directory that survives npm updates — Linux/macOS: ~/.config/easy-devops/easy-devops.sqlite, Windows: %APPDATA%\\easy-devops\\easy-devops.sqlite. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). If upgrading from v1.0.x, the database is migrated automatically on first run.",
+    answer: "The database lives in a persistent directory that survives npm updates — Linux and other non-Windows platforms: ~/.config/easy-devops/easy-devops.sqlite, Windows personal: %APPDATA%\\easy-devops\\easy-devops.sqlite, Windows Server mode: C:\\ProgramData\\easy-devops\\easy-devops.sqlite. SSL certificates are stored under sslDir (default: /etc/easy-devops/ssl/ on Linux, C:\\easy-devops\\ssl\\ on Windows). A v1.0.x package-relative database is copied in once on first run.",
   },
   {
-    question: 'Dashboard shows "Linux permissions not configured" on nginx start/stop/reload.',
-    answer: 'The dashboard runs headless (no terminal), so sudo cannot prompt for a password. You need to configure NOPASSWD sudoers rules once. From the CLI: Settings → Setup Linux Permissions. From the dashboard: Settings → Linux Permissions card → enter your password → Setup Permissions. This writes /etc/sudoers.d/easy-devops with NOPASSWD rules for systemctl and the nginx binary.',
+    question: 'Dashboard says the Linux permissions are not configured on nginx start/stop/reload.',
+    answer: 'The dashboard runs headless, so sudo cannot prompt there — and it never asks for your password. Open Settings → Linux Permissions in the dashboard to see the exact commands and copy them into a terminal, where sudo asks you. The CLI route is Settings → Setup Linux Permissions. The rule written to /etc/sudoers.d/easy-devops grants exactly five commands: /usr/bin/systemctl start|stop|reload|restart|status nginx. Nothing else, and no wildcards.',
   },
   {
-    question: '"nginx config test failed" even though the config looks correct (shows "syntax is ok").',
-    answer: 'When nginx -t is run as a non-root user, it prints "syntax is ok" then tries to write /run/nginx.pid — which requires root — causing it to exit with code 1. The config is actually valid. Easy DevOps v2.0.0+ handles this correctly: it checks the output text for "syntax is ok" rather than relying on the exit code alone. If you see this on an older version, upgrade to v2.0.0.',
+    question: 'Is an "nginx config test failed" message wrong when it also says "syntax is ok"?',
+    answer: 'A non-root nginx -t can print "syntax is ok" and still exit non-zero because it cannot write /run/nginx.pid. The config may be valid. Easy DevOps checks the output text as well as the exit code, so it reports that case correctly. It always runs nginx -t without sudo: the test is read-only.',
   },
   {
-    question: 'Why does Easy DevOps run nginx -t without sudo?',
-    answer: 'nginx -t only reads configuration files, which are world-readable (644 permissions). It never needs root to validate syntax. Running it with sudo was the source of "a terminal is required" errors in the dashboard. Since v2.0.0, sudo has been removed from all nginx -t calls on every platform.',
+    question: "Why does the dashboard warn that PM2 is not installed?",
+    answer: "PM2 runs your deployed apps, and Easy DevOps does not install it. There is no PM2 install button in the dashboard: install it yourself with npm install -g pm2. The Processes page reports whether PM2 is present and lists its apps; the Deployments page links there and tells you the command when it is missing.",
   },
 ];
 

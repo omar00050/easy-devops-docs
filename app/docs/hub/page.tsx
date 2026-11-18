@@ -7,7 +7,7 @@ import { ArrowRight, Cloud, Monitor, Server, ShieldCheck, ExternalLink } from "l
 export const metadata: Metadata = {
   title: "Easy DevOps Hub",
   description:
-    "Pair an Easy DevOps server with the Hub: the outbound agent, the ezops:// connection string, per-permission control that is enforced locally, agent statuses and deploying from CI through the Hub.",
+    "Pair an Easy DevOps server with the Hub: the outbound agent, the ezops:// connection string, per-permission control that is enforced locally, process control, agent statuses and deployments.",
   keywords: ["Easy DevOps Hub", "remote server management", "pair server", "hub permissions", "deploy through hub"],
   alternates: { canonical: "/docs/hub" },
   openGraph: {
@@ -46,8 +46,12 @@ const permissionGroups = [
     allowed: "Deploy, roll back, read deployment logs, create and manage apps, read or edit environment variables, and trigger deploys from CI through the Hub.",
   },
   {
-    group: "Processes & System",
-    allowed: "Shown in the permission tree but not yet enabled. Starting or stopping PM2 processes and rebooting the server stay local for now.",
+    group: "Processes",
+    allowed: "Start, stop and restart one of your PM2 processes. Easy DevOps itself runs as a native background service, not a PM2 app, so it cannot be controlled this way.",
+  },
+  {
+    group: "System",
+    allowed: "Shown in the permission tree but not yet enabled: managing Node.js versions and rebooting the server stay local.",
   },
 ];
 
@@ -113,12 +117,25 @@ export default function HubPage() {
         <li>Open the dashboard on the server: <strong className="text-foreground">Settings → Hub</strong>.</li>
         <li>Paste the string and save. The agent connects outbound and the status turns <strong className="text-green-500">connected</strong>.</li>
       </ol>
-      <CodeBlock lang="text" filename="ezops:// connection string">{`ezops://ez.hub.devxor.team/<server-id>?secret=<shown-once>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The connection string is three pipe-separated fields:{" "}
+        <code className={C}>ezops://hubUrl|serverId|secret</code>. Anything else — a missing part, a
+        path, a query string — is rejected before it is stored.
+      </p>
+      <CodeBlock lang="text" filename="ezops:// connection string">{`ezops://<hub-url>|<server-id>|<secret>
 
+# Example shape (the values come from the Hub):
+ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
+
+# Three pipe-separated parts after the scheme:
+#   hubUrl    the Hub origin, e.g. ez.hub.devxor.team
+#   serverId  the id the Hub assigned to this server
+#   secret    the shared secret that authenticates the agent
+#
 # Stored in the SQLite database as hub-link:
 #   { hubUrl, serverId, secret }
-# The secret authenticates the agent and is never returned by
-# an API, never logged, and never sent to the browser.`}</CodeBlock>
+# The secret is never returned by an API, never logged,
+# and never sent to the browser.`}</CodeBlock>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
         <li>Re-pairing replaces the existing link; the old secret stops working.</li>
         <li>An unpaired server is a fully local product. Nothing about the Hub is required.</li>
@@ -165,10 +182,25 @@ export default function HubPage() {
 
       <p className="text-sm text-muted leading-relaxed mb-10">
         <strong className="text-foreground">Monitoring is never gated.</strong> Metrics, nginx
-        status, the domain list, domain health and certificate expiry are always reported. A paired
-        server is a monitored server; gating read-only telemetry would protect nothing and make the
-        Hub useless.
+        status, the domain list, domain health, certificate expiry and the deployed-app list are always
+        reported. A paired server is a monitored server; gating read-only telemetry would protect
+        nothing and make the Hub useless.
       </p>
+
+      <h2 id="process-control" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Process control from the Hub
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Starting, stopping and restarting your PM2 processes from the Hub is available, under three
+        switches that are off by default: <code className={C}>process.start</code>,{" "}
+        <code className={C}>process.stop</code> and <code className={C}>process.restart</code>.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
+        <li>The agent re-checks the permission map on this server before acting; the Hub&apos;s copy is a UI hint only.</li>
+        <li>Only a process PM2 actually knows is acted on, so a typo cannot be reported as success.</li>
+        <li>A process owned by a different OS user is refused with that user&apos;s name — PM2 keeps one process list per user.</li>
+        <li>Easy DevOps&apos; own background service is not a PM2 app and is never in that list.</li>
+      </ul>
 
       <h2 id="agent-status" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Agent status
@@ -215,6 +247,36 @@ export default function HubPage() {
         <a href="/docs/deployments#github-actions">Deploying from GitHub Actions</a> for the workflow
         and the two secrets it needs.
       </p>
+
+      <h2 id="deployment-changes" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        What the Hub can do with deployments
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The server&apos;s Hub page has the same deployment actions as the local Deployments page, each
+        behind its own switch:
+      </p>
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Permission</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">What it allows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.run</td><td className="py-3 px-4 text-muted text-xs">Start a deployment of an existing app from its configured repository.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.rollback</td><td className="py-3 px-4 text-muted text-xs">Switch an app back to an earlier release still on this server.</td></tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.logs</td><td className="py-3 px-4 text-muted text-xs">Read a deployment&apos;s output.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.manage</td><td className="py-3 px-4 text-muted text-xs">Create, edit and delete apps; issue a deploy token; link or unlink a domain; move an app; delete an old release.</td></tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.env</td><td className="py-3 px-4 text-muted text-xs">Read and edit environment variables. Values pass through the Hub while being edited and are not stored there.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.ci</td><td className="py-3 px-4 text-muted text-xs">Let a GitHub Action trigger a deployment by calling the Hub with the app&apos;s own token.</td></tr>
+        </tbody>
+      </table>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
+        <li>Linking an app to a domain from the Hub also needs the matching <code className={C}>domains.create</code> or <code className={C}>domains.edit</code> permission, and removing the domain needs <code className={C}>domains.delete</code>. Managing apps does not imply managing domains.</li>
+        <li>A certificate is never requested by the Hub&apos;s link action. That stays a separate <code className={C}>ssl.issue</code> action.</li>
+        <li>A deploy key cannot be generated from the Hub: its private half never leaves the server.</li>
+        <li>The app list is monitoring and always visible; it carries environment-variable <em>names</em>, never values.</li>
+      </ul>
 
       <a
         href="https://ez.hub.devxor.team"

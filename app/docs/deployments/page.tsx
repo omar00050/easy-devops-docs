@@ -39,20 +39,24 @@ export default function DeploymentsPage() {
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
         <li><strong className="text-foreground">Fetch</strong> — a fresh checkout into its own release folder. The running release is never built over.</li>
         <li><strong className="text-foreground">Settings</strong> — read from <code className={C}>ez.json</code>, then <code className={C}>package.json</code>, with anything you set on the app taking precedence.</li>
-        <li><strong className="text-foreground">Pre hook → install → build</strong> — in the new folder, with the paths listed under <a href="#persistent-data" className="text-primary hover:underline">persistent data</a> linked in first.</li>
-        <li><strong className="text-foreground">Switch</strong> — the old process is stopped and the new one started under PM2, as <code className={C}>ez-&lt;name&gt;</code>.</li>
-        <li><strong className="text-foreground">Health check</strong> — the app must answer on its port before the deployment counts.</li>
+        <li><strong className="text-foreground">Pre hook → install → build → migrate</strong> — in the new folder, with the paths listed under <a href="#persistent-data" className="text-primary hover:underline">persistent data</a> linked in first.</li>
+        <li><strong className="text-foreground">Switch</strong> — the old process is stopped and the new one started under PM2, as <code className={C}>ez-&lt;name&gt;</code>. A cluster app that is already running in cluster mode is reloaded instead, with no downtime.</li>
+        <li><strong className="text-foreground">Health check</strong> — the app must answer on its port and stay online under PM2 before the deployment counts.</li>
         <li><strong className="text-foreground">Post hook</strong>, then old releases are pruned.</li>
       </ol>
       <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-10">
-        💡 Nothing before the switch touches what is running, so <strong className="text-foreground">a broken build costs nothing</strong>. If the new release starts but is not healthy, the previous release is started again automatically. The switch itself is a restart: the app is down for as long as it takes to start.
+        💡 Nothing before the switch touches what is running, so <strong className="text-foreground">a broken build or a failed migration costs nothing</strong>. If the new release crashes at boot — it exits, PM2 restarts it, or the health check fails — the previous release is started again automatically and the run says why. The switch itself is a restart: the app is down for as long as it takes to start.
       </div>
 
       <h2 id="requirements" className="text-xl font-bold mt-10 mb-4 text-foreground">Requirements</h2>
-      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-10">
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-4">
         <li><strong className="text-foreground">git</strong> on the server, on the PATH of the Easy DevOps service.</li>
-        <li><strong className="text-foreground">PM2</strong> — install it from the Processes page, or with <code className={C}>npm install -g pm2</code>.</li>
+        <li><strong className="text-foreground">PM2</strong> — install it yourself with <code className={C}>npm install -g pm2</code>. Easy DevOps does not install PM2 and the dashboard has no install button; when PM2 is missing, the Deployments page says so and links to Processes, which only reports its state.</li>
       </ul>
+      <p className="text-xs text-muted leading-relaxed mb-10">
+        There is no CLI deploy command. A deployment is started from the dashboard, from a GitHub
+        Action through the deploy hook, from the Hub, or by CI calling the Hub.
+      </p>
 
       <h2 id="first-app" className="text-xl font-bold mt-10 mb-4 text-foreground">Your first app</h2>
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
@@ -95,9 +99,12 @@ export default function DeploymentsPage() {
       <CodeBlock lang="json" filename="ez.json">{`{
   "install": "npm ci",
   "build": "npm run build",
+  "migrate": "npx prisma migrate deploy",
   "start": "node dist/server.js",
   "port": 3000,
   "health": "/healthz",
+  "execMode": "cluster",
+  "instances": "max",
   "persist": ["data", "uploads/imgs"],
   "hooks": {
     "pre": "node scripts/check-env.js",
@@ -124,6 +131,11 @@ export default function DeploymentsPage() {
             <td className="py-3 px-4 text-muted text-xs">The <code className={C}>build</code> script, if the project has one</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className={C}>migrate</code></td>
+            <td className="py-3 px-4 text-muted text-xs">Same, run in the new release after <code className={C}>build</code> and before <code className={C}>start</code></td>
+            <td className="py-3 px-4 text-muted text-xs">No migration step</td>
+          </tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>start</code></td>
             <td className="py-3 px-4 text-muted text-xs">One command — the long-running process</td>
             <td className="py-3 px-4 text-muted text-xs">The <code className={C}>start</code> script, else <code className={C}>node &lt;main&gt;</code></td>
@@ -137,6 +149,16 @@ export default function DeploymentsPage() {
             <td className="py-3 px-4"><code className={C}>health</code></td>
             <td className="py-3 px-4 text-muted text-xs">A path, or <code className={C}>{`{ "path": "/healthz", "timeout": 60 }`}</code></td>
             <td className="py-3 px-4 text-muted text-xs"><code className={C}>/</code>, 60 seconds</td>
+          </tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className={C}>execMode</code></td>
+            <td className="py-3 px-4 text-muted text-xs"><code className={C}>&quot;fork&quot;</code> (one process) or <code className={C}>&quot;cluster&quot;</code> (one worker per instance)</td>
+            <td className="py-3 px-4 text-muted text-xs"><code className={C}>fork</code> — exactly as before</td>
+          </tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className={C}>instances</code></td>
+            <td className="py-3 px-4 text-muted text-xs">A whole number from 1 to the CPU count, or <code className={C}>&quot;max&quot;</code> for one per CPU</td>
+            <td className="py-3 px-4 text-muted text-xs">1</td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>persist</code></td>
@@ -153,9 +175,26 @@ export default function DeploymentsPage() {
       <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
         <li>The port is passed to your app as <code className={C}>PORT</code>, so the port in <code className={C}>ez.json</code> is the port it actually listens on.</li>
         <li>With an explicit health path, only a 2xx or 3xx answer counts. With the default <code className={C}>/</code>, any answer that is not a server error does.</li>
+        <li><strong className="text-foreground">migrate</strong> runs after the build, in the new release, with the same environment as the build. A failing command aborts the deployment before the switch, so the running release keeps running.</li>
+        <li>Migrations are <strong className="text-foreground">forward-only</strong>: rolling the code back cannot undo a migration that already ran. Keep each migration backward-compatible for one release.</li>
         <li>A failing <strong className="text-foreground">post</strong> hook is reported as a warning; the release stays live.</li>
         <li>A mistake in <code className={C}>ez.json</code> stops the deployment before anything running is touched.</li>
       </ul>
+
+      <h3 id="cluster-mode" className="text-base font-bold mt-8 mb-3 text-foreground">Cluster mode</h3>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        Cluster mode runs one worker per instance under PM2 and can reload a deployment without downtime: the new workers start before the old ones stop. It is off by default — <code className={C}>execMode</code> is <code className={C}>&quot;fork&quot;</code> with one instance, which is exactly how every app ran before these fields existed.
+      </p>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
+        <li><code className={C}>instances</code> must be a whole number from 1 to the number of CPUs on the server, or <code className={C}>&quot;max&quot;</code>. The error names the CPU count when the value is out of range or not a whole number.</li>
+        <li>Cluster mode only accepts a Node app started by running a JS file directly: <code className={C}>node dist/index.js</code> or <code className={C}>node server.mjs</code>. <code className={C}>npm start</code>, yarn/pnpm scripts and non-Node commands are refused, because PM2 has to own the workers; the error tells you to change the start command to <code className={C}>node &lt;file&gt;</code>.</li>
+        <li><code className={C}>instances</code> above 1 with <code className={C}>execMode: &quot;fork&quot;</code> is refused: several forked copies would all try to bind the same port. Choose <code className={C}>cluster</code> instead.</li>
+        <li>A deployment of a cluster app that is already running in cluster mode uses <code className={C}>pm2 reload</code>; the first deployment, or a switch between fork and cluster, still stops and starts. Rollback follows the same rule, using the mode recorded in the release.</li>
+        <li>The health check watches every worker. One errored, stopped or restarting worker is a boot crash and triggers the normal automatic rollback, even if another worker answers.</li>
+      </ul>
+      <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-6">
+        ⚠️ Cluster mode runs several copies of the app; it must be stateless (no in-memory sessions, sockets, caches or schedulers that assume one process). The dashboard shows this warning wherever the setting appears, but it never blocks a deployment.
+      </div>
 
       <h3 id="any-language" className="text-base font-bold mt-8 mb-3 text-foreground">Any language</h3>
       <p className="text-muted text-sm leading-relaxed mb-4">When <code className={C}>ez.json</code> gives the commands, they are run exactly as written — the project does not have to be Node. PM2 keeps any program running.</p>
@@ -189,7 +228,7 @@ export default function DeploymentsPage() {
       <p className="text-muted text-sm leading-relaxed mb-10">To move one, use <strong className="text-foreground">Move app</strong> in its Domain &amp; folder tab and give a folder. The app is stopped in PM2, its folder is moved to <code className={C}>&lt;folder&gt;/&lt;app name&gt;</code>, and it is started again from there. Moving to another disk copies every release and can take a while.</p>
 
       <h2 id="environment" className="text-xl font-bold mt-10 mb-4 text-foreground">Environment variables</h2>
-      <p className="text-muted text-sm leading-relaxed mb-10">Set them on the app, one <code className={C}>NAME=value</code> per line — a pasted <code className={C}>.env</code> file works. They are stored on the server only, and are available to the build and to the running app. They are never written to the repository and never sent to the Hub.</p>
+      <p className="text-muted text-sm leading-relaxed mb-10">Set them on the app, one <code className={C}>NAME=value</code> per line — a pasted <code className={C}>.env</code> file works. They are stored on the server only, and are available to install, build, migrate and the running app. They are never written to the repository and never sent to the Hub.</p>
 
       <h2 id="persistent-data" className="text-xl font-bold mt-10 mb-4 text-foreground">Persistent data</h2>
       <p className="text-muted text-sm leading-relaxed mb-4">
@@ -233,7 +272,7 @@ export default function DeploymentsPage() {
       </ul>
 
       <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-6">
-        ⚠️ A rollback runs the older code against the <strong className="text-foreground">same data</strong>. A database migration in a newer release can leave the previous release unable to read it. Keep migrations backward compatible, or run them from the post hook once the new release is healthy.
+        ⚠️ A rollback runs the older code against the <strong className="text-foreground">same data</strong>. A database migration in a newer release can leave the previous release unable to read it — and the migration itself cannot be undone by rolling the code back. Keep migrations backward compatible for one release, and run them from <code className={C}>migrate</code> rather than the post hook so a failed migration stops the deployment before the switch.
       </div>
 
       <p className="text-muted text-sm leading-relaxed mb-10">
@@ -263,7 +302,7 @@ export default function DeploymentsPage() {
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-foreground font-medium">Directly, on its own port</td>
-            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The listener binds to every interface (port 6445 by default). <strong className="text-foreground">Plain HTTP</strong>: the token is sent unencrypted, and the port has to be opened in the firewall. For private networks.</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The listener binds to loopback by default (port 6445). Setting its bind to <code className={C}>0.0.0.0</code> exposes it on every interface, and then it is <strong className="text-foreground">plain HTTP</strong>: the token is sent unencrypted, and the port has to be opened in the firewall. For private networks. The UI says so when you choose it.</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-foreground font-medium">Through the Hub</td>
@@ -307,7 +346,7 @@ export default function DeploymentsPage() {
       <p className="text-muted text-sm leading-relaxed mb-10">The list of apps and their status is always visible on the Hub: a paired server is a monitored server. It contains the <em>names</em> of environment variables, never their values. A deploy key cannot be generated from the Hub — its private half never leaves the server.</p>
 
       <h2 id="rollback" className="text-xl font-bold mt-10 mb-4 text-foreground">Rolling back</h2>
-      <p className="text-muted text-sm leading-relaxed mb-4">The app&apos;s <strong className="text-foreground">Releases</strong> tab lists what is on disk. Rolling back starts an earlier release exactly as it was built — nothing is fetched or rebuilt. The newest five releases are kept by default (2–20); the live one and the one before it are never deleted. The list follows a deployment started from outside the dashboard — a push through GitHub Actions, the Hub, or the CLI — on its own.</p>
+      <p className="text-muted text-sm leading-relaxed mb-4">The app&apos;s <strong className="text-foreground">Releases</strong> tab lists what is on disk. Rolling back starts an earlier release exactly as it was built — nothing is fetched or rebuilt. The newest five releases are kept by default (2–20); the live one and the one before it are never deleted. The list follows a deployment started from outside the dashboard — a push through GitHub Actions or the Hub — on its own.</p>
       <p className="text-muted text-sm leading-relaxed mb-4">Each older release also has a <strong className="text-foreground">Delete</strong> button beside <strong className="text-foreground">Roll back</strong>. Deleting removes that release&apos;s folder from the server; its deployment log stays, and persistent data is not touched. The live release and the one an automatic rollback would return to cannot be deleted, and nothing can be deleted while a deployment of the app is running.</p>
       <p className="text-muted text-sm leading-relaxed mb-10">Automatic rollback can be switched off per app. Then an unhealthy release is stopped and the deployment is reported as failed.</p>
 

@@ -65,8 +65,9 @@ export default function ServicePage() {
       <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
         <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">note</div>
         <p className="text-muted leading-relaxed">
-          The daemon serves <strong className="text-foreground">no HTTP port</strong>. The dashboard
-          is started on demand with <code className={C}>ezz --dash</code> or{" "}
+          The daemon serves <strong className="text-foreground">no HTTP port</strong> of its own; the
+          one exception is the deploy hook, which is off until you switch it on and binds to loopback
+          by default. The dashboard is started on demand with <code className={C}>ezz --dash</code> or{" "}
           <code className={C}>Open Dashboard</code>; the two processes talk over local IPC. This is
           why the service can run on a server with no exposed dashboard at all.
         </p>
@@ -75,7 +76,10 @@ export default function ServicePage() {
       <h2 id="service-commands" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Service commands
       </h2>
-      <CodeBlock lang="bash" filename="terminal">{`# install once, from an elevated shell where the platform needs it
+      <CodeBlock lang="bash" filename="terminal">{`# Linux: sudo asks for your password in this terminal;
+# nothing in Easy DevOps stores or sees it.
+# Windows Personal: no elevation at all.
+# Windows Server: one UAC consent for the service step.
 ezz service install
 
 # everyday inspection
@@ -86,6 +90,14 @@ ezz service logs
 ezz service stop
 ezz service start
 ezz service restart`}</CodeBlock>
+
+      <p className="text-xs text-muted leading-relaxed mb-6">
+        Administrator rights are needed for one thing only: <strong className="text-foreground">Windows
+        Server mode</strong>, which registers a real Windows service and writes under{" "}
+        <code className={C}>C:\ProgramData</code>. Windows Personal mode (a Startup-folder launcher)
+        and everyday CLI use need none. On Linux, systemd unit installation uses{" "}
+        <code className={C}>sudo</code> interactively, on your terminal — never through the dashboard.
+      </p>
 
       <table className="w-full text-sm border-collapse mb-6">
         <thead>

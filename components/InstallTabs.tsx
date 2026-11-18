@@ -6,7 +6,7 @@ import CodeBlock from "./CodeBlock";
 
 const tabs = [
   { id: "quick", label: "Quick Install", icon: Code },
-  { id: "linux", label: "Linux / macOS", icon: Terminal },
+  { id: "linux", label: "Linux", icon: Terminal },
   { id: "windows", label: "Windows", icon: Download },
   { id: "source", label: "From Source", icon: FolderOpen },
 ];
@@ -54,7 +54,7 @@ export default function InstallTabs() {
           </div>
         )}
 
-        {/* Linux / macOS */}
+        {/* Linux */}
         {active === "linux" && (
           <div className="space-y-6">
             <InstallStep number={1} title="Run the bootstrap installer" desc="Downloads Node.js LTS via nvm, installs Easy DevOps, and launches the CLI.">
@@ -70,10 +70,12 @@ export default function InstallTabs() {
         {/* Windows */}
         {active === "windows" && (
           <div className="space-y-6">
-            <div className="bg-red-500/8 border border-red-500/20 rounded-lg p-4 text-sm text-red-500 dark:bg-red-500/8 dark:border-red-500/20">
-              ⚠️ <strong>Run PowerShell as Administrator.</strong> Right-click PowerShell → "Run as Administrator".
+            <div className="bg-primary/[0.06] border border-primary/20 rounded-lg p-4 text-sm text-muted">
+              No Administrator terminal is needed to install Easy DevOps itself. If you choose{" "}
+              <strong className="text-foreground">Server mode</strong> for the background service,
+              Windows will ask for UAC consent for that one step — not for a password.
             </div>
-            <InstallStep number={1} title="Run the bootstrap installer" desc="Downloads nvm-windows, installs Node.js LTS, and registers Easy DevOps globally.">
+            <InstallStep number={1} title="Run the bootstrap installer" desc="Installs nvm-windows, installs Node.js LTS, and registers Easy DevOps globally.">
               <CodeBlock lang="powershell" filename="PowerShell">Invoke-WebRequest -Uri "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.ps1" -OutFile "install.ps1"; ./install.ps1</CodeBlock>
             </InstallStep>
             <InstallStep number={2} title="From Command Prompt" >

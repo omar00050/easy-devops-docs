@@ -44,11 +44,11 @@ export default function InstallationPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-green-500 mt-0.5">✅</span>
-            <span><strong className="text-foreground">Linux</strong> (Debian/Ubuntu etc.) or <strong className="text-foreground">Windows</strong></span>
+            <span><strong className="text-foreground">Linux</strong> (Debian/Ubuntu etc.) or <strong className="text-foreground">Windows</strong>. macOS is not a supported server platform — see <a href="/docs/platform" className="text-primary hover:underline">Platform Support</a>.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-yellow-500 mt-0.5">⚠️</span>
-            <span><strong className="text-foreground">Windows users:</strong> PowerShell must be run <em>as Administrator</em> (required for managing services and SSL certificates)</span>
+            <span><strong className="text-foreground">Windows:</strong> no Administrator terminal is needed for normal use. Only <strong className="text-foreground">Server mode</strong> (the real Windows service, the default on a Windows Server edition) needs one UAC consent for the service step; the installer raises it for you. You are never asked for a password.</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-500 mt-0.5">➕</span>

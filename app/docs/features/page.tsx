@@ -25,14 +25,16 @@ export const metadata: Metadata = {
 };
 
 const features = [
-  { icon: "🌐", title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Automatic installation via apt-get (Linux) or winget (Windows)." },
-  { icon: "🔑", title: "SSL Certificates", desc: "Issue and renew Let's Encrypt certs via acme-client. Supports HTTP-01, DNS-01, wildcard certs, automatic renewal in the background, and expiry tracking with color-coded status badges." },
-  { icon: "🚀", title: "Deployments", desc: "Put a project from a git repository on the server: fetched, built and started under PM2, with a health check, automatic rollback and earlier releases kept. Trigger it from the dashboard or from GitHub Actions." },
+  { icon: "🌐", title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Install nginx with apt-get on Linux, or from the current stable build on nginx.org on Windows (winget is not used)." },
+  { icon: "🔑", title: "SSL Certificates", desc: "Issue and renew Let's Encrypt certs via acme-client. HTTP-01, DNS-01, wildcard certs, automatic renewal in the background, expiry tracking, a certificate suggestion when you add a domain, and deletion that is refused while a config still references it." },
+  { icon: "🚀", title: "Deployments", desc: "Put a project from a git repository on the server: fetched, built and started under PM2, with a health check, automatic rollback and earlier releases kept. Link a domain, move an app, and trigger it from the dashboard, GitHub Actions or the Hub." },
   { icon: "🔗", title: "Domain Management", desc: "Reverse proxy configs with SSL, external URL backends, wildcard domains, WebSocket support, gzip, rate limiting, security headers, and custom timeouts." },
+  { icon: "🖥️", title: "Processes", desc: "List every PM2 app with status, CPU, memory, uptime and restart count, and start, stop or restart it. Easy DevOps does not install PM2; it reports when it is missing." },
+  { icon: "☁️", title: "Hub", desc: "Pair a server over an outbound connection — no inbound port. Per-permission control is enforced on the server, and process control, deployments, domains and certificates can be granted one action at a time." },
   { icon: "🔔", title: "Notifications", desc: "Named Discord and Telegram channels configured once and assigned per domain per event type. State-aware dispatch prevents spam — alerts fire only on status changes. Recovery notifications sent when services come back online." },
-  { icon: "📦", title: "Node.js Manager", desc: "Switch Node.js versions via nvm or nvm-windows. Install/uninstall global npm packages. Update npm automatically." },
+  { icon: "📦", title: "Node.js Manager", desc: "Switch Node.js versions via nvm or nvm-windows, with the available versions fetched live. Install/uninstall global npm packages. Update npm automatically." },
   { icon: "📋", title: "Log Viewer", desc: "Stream nginx error.log and access.log in real time via Socket.io. Toggle between logs, auto-scroll, pause/resume, and colour-coded output." },
-  { icon: "💾", title: "SQLite Storage", desc: "Persistent configuration stored in a single SQLite database file in your home directory. Survives npm updates. No separate database server required." },
+  { icon: "💾", title: "SQLite Storage", desc: "Persistent configuration stored in a single SQLite database file in your user directory (ProgramData in Windows Server mode). Survives npm updates. No separate database server required." },
   { icon: "🛡️", title: "Bootstrap Installer", desc: "One-line installers for Linux and Windows that auto-detect Node.js, install nvm if needed, and register the global command." },
   { icon: "✨", title: "Themed Dashboard", desc: "Dark and light modes with 5 accent colors (teal, violet, amber, rose, cyan). Settings persist in localStorage." },
   { icon: "🔄", title: "Real-time Updates", desc: "Socket.io powered live updates: nginx status every 5 s, domain health badges every 60 s, cert expiry on connect and every 12 hours." },

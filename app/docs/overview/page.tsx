@@ -62,14 +62,18 @@ export default async function OverviewPage() {
       <SystemMap />
 
       <h2 id="cli-preview" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Preview</h2>
-      <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps${versionLabel}
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The banner reports your machine&apos;s detected nginx and Node versions. The example below
+        shows the layout, not fixed versions.
+      </p>
+      <CodeBlock lang="text" filename="terminal (example output)">{`  ███████╗███████╗     Easy DevOps${versionLabel}
   ██╔════╝╚════██╗     ─────────────────────
   █████╗      ██╔╝     CLI & Web Dashboard
   ██╔══╝     ██╔╝      Nginx · SSL · Domains · Node.js
   ███████╗ ██████╗
   ╚══════╝ ╚═════╝
 
-  nginx: ✅ v1.26.2 | ACME: acme-client | node: v22.21.1
+  nginx: <detected> | ACME: acme-client | node: <detected>
 
 ? Select an option:
 ❯ 📦 Node.js Manager

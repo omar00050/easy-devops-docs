@@ -57,7 +57,8 @@ export const docsIndex: DocsIndexEntry[] = [
     headings: [
       { id: "interactive-menu", text: "The interactive menu" },
       { id: "menu-map", text: "Menu map" },
-      { id: "flags", text: "Global flags" },
+      { id: "submenus", text: "Sub-menus" },
+      { id: "flags", text: "Commands and global flags" },
     ],
   },
   {
@@ -75,7 +76,10 @@ export const docsIndex: DocsIndexEntry[] = [
     headings: [
       { id: "challenge-methods", text: "Challenge Methods" },
       { id: "automatic-renewal", text: "Automatic Renewal" },
+      { id: "renewal-state", text: "What each certificate's plan is" },
       { id: "certificate-status", text: "Certificate Status" },
+      { id: "suggestion", text: "Certificate suggestion" },
+      { id: "deletion", text: "Deleting a certificate" },
       { id: "file-structure", text: "Certificate File Structure" },
     ],
   },
@@ -113,8 +117,10 @@ export const docsIndex: DocsIndexEntry[] = [
     headings: [
       { id: "pairing", text: "Pairing a server" },
       { id: "permissions", text: "Hub permissions" },
+      { id: "process-control", text: "Process control from the Hub" },
       { id: "agent-status", text: "Agent status" },
       { id: "hub-deploys", text: "Deploying through the Hub" },
+      { id: "deployment-changes", text: "What the Hub can do with deployments" },
     ],
   },
   {
@@ -134,25 +140,24 @@ export const docsIndex: DocsIndexEntry[] = [
     title: "Dashboard API",
     href: "/docs/api",
     section: "Reference",
-    description: "REST endpoints for nginx, domains, SSL, deployments and settings.",
+    description: "The published API contract, the request header, the session cookie, and a curl walkthrough.",
     headings: [
-      { id: "nginx", text: "Nginx" },
-      { id: "domains", text: "Domains" },
-      { id: "ssl", text: "SSL" },
-      { id: "deployments", text: "Deployments" },
-      { id: "settings", text: "Settings" },
-      { id: "channels", text: "Notification Channels" },
+      { id: "transport", text: "Transport rules" },
+      { id: "authentication", text: "Authentication and the session cookie" },
+      { id: "curl", text: "A working curl walkthrough" },
     ],
   },
   {
     title: "Configuration",
     href: "/docs/configuration",
     section: "Reference",
-    description: "Config fields, database keys and Linux permissions setup.",
+    description: "Config fields, first-run authentication, the listen address, database keys and Linux permissions setup.",
     headings: [
       { id: "config-fields", text: "Config Fields" },
+      { id: "first-run", text: "First run: no default password" },
+      { id: "listen-address", text: "Listen address" },
       { id: "database-keys", text: "Database Keys" },
-      { id: "linux-permissions", text: "Linux Permissions" },
+      { id: "linux-permissions", text: "Linux permissions" },
     ],
   },
   {
@@ -166,7 +171,7 @@ export const docsIndex: DocsIndexEntry[] = [
     title: "FAQ & Troubleshooting",
     href: "/docs/faq",
     section: "Help",
-    description: "Command not found, password changes, SSL port conflicts and more.",
+    description: "First-run setup code, password changes, SSL challenges, macOS, Linux permissions and PM2.",
     headings: [],
   },
 ];

@@ -6,8 +6,8 @@ import DocPage from "@/components/DocPage";
 export const metadata: Metadata = {
   title: "Dashboard API",
   description:
-    "Easy DevOps web dashboard REST API reference. Nginx, domains, SSL, settings, and notification channel endpoints with request/response examples.",
-  keywords: ["Easy DevOps API", "DevOps dashboard API", "REST API documentation", "Nginx API", "domain management API", "SSL API", "notification channels API"],
+    "How to call the Easy DevOps dashboard API: the published contract, the X-EZ-Request header, the session cookie, and a complete curl walkthrough.",
+  keywords: ["Easy DevOps API", "DevOps dashboard API", "API contract", "X-EZ-Request", "session cookie", "curl"],
   alternates: { canonical: "/docs/api" },
   openGraph: {
     type: "article",
@@ -15,184 +15,136 @@ export const metadata: Metadata = {
     siteName: "Easy DevOps",
     title: "Dashboard API",
     description:
-      "Every dashboard REST endpoint — Nginx, domains, SSL, settings and notifications — with request and response examples.",
+      "The contract, the request rules, the session cookie, and a curl walkthrough that works.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Dashboard API",
     description:
-      "Every dashboard REST endpoint — Nginx, domains, SSL, settings and notifications — with request and response examples.",
+      "The contract, the request rules, the session cookie, and a curl walkthrough that works.",
   },
 };
 
-const apiGroups = [
-  {
-    id: "nginx",
-    title: "Nginx",
-    endpoints: [
-      { path: "/api/nginx/status", methods: ["GET"], desc: "Get nginx running status" },
-      { path: "/api/nginx/start", methods: ["POST"], desc: "Start nginx" },
-      { path: "/api/nginx/stop", methods: ["POST"], desc: "Stop nginx" },
-      { path: "/api/nginx/reload", methods: ["POST"], desc: "Graceful reload" },
-      { path: "/api/nginx/configs", methods: ["GET"], desc: "List config files" },
-      { path: "/api/nginx/config/:file", methods: ["GET", "POST"], desc: "Read / write config file" },
-    ],
-  },
-  {
-    id: "domains",
-    title: "Domains",
-    endpoints: [
-      { path: "/api/domains", methods: ["GET", "POST"], desc: "List / create domains. Responses include a notifications field with per-domain channel config." },
-      { path: "/api/domains/:name", methods: ["PUT", "DELETE"], desc: "Update / delete domain" },
-      { path: "/api/domains/:name/toggle", methods: ["PUT"], desc: "Enable or disable domain" },
-      { path: "/api/domains/:name/reload", methods: ["POST"], desc: "Reload nginx for domain" },
-      { path: "/api/domains/:name/notifications", methods: ["GET", "PUT"], desc: "Get or update per-domain notification config (enabled flag + channelIds per event type)" },
-    ],
-  },
-  {
-    id: "ssl",
-    title: "SSL",
-    endpoints: [
-      { path: "/api/ssl", methods: ["GET"], desc: "List certificates" },
-      { path: "/api/ssl/create", methods: ["POST"], desc: "Issue new certificate (HTTP-01 or DNS-01)" },
-      { path: "/api/ssl/create-confirm", methods: ["POST"], desc: "Confirm DNS-01 challenge" },
-      { path: "/api/ssl/renew/:domain", methods: ["POST"], desc: "Renew certificate (keeps its names, reloads nginx)" },
-      { path: "/api/ssl/renew-all", methods: ["POST"], desc: "Renew everything expiring within 30 days" },
-    ],
-  },
-  {
-    id: "deployments",
-    title: "Deployments",
-    endpoints: [
-      { path: "/api/deployments", methods: ["GET", "POST"], desc: "List apps with their status, or create an app" },
-      { path: "/api/deployments/:id", methods: ["GET", "PUT", "DELETE"], desc: "One app with its runs and releases; update it; or stop and delete it (?deleteDomain=1 removes its linked domain too, ?purgeData=1 its persistent data)" },
-      { path: "/api/deployments/:id/deploy", methods: ["POST"], desc: "Start a deployment. Body: { ref? }. Answers 202 with a runId" },
-      { path: "/api/deployments/:id/rollback", methods: ["POST"], desc: "Switch back to an earlier release. Body: { releaseId? }" },
-      { path: "/api/deployments/:id/releases/:releaseId", methods: ["DELETE"], desc: "Delete an old release's folder. The log and the persistent data stay; the live release and the rollback fallback are refused" },
-      { path: "/api/deployments/:id/runs/:runId", methods: ["GET"], desc: "One deployment's status and the tail of its log" },
-      { path: "/api/deployments/:id/hook-token", methods: ["POST", "DELETE"], desc: "Issue (shown once) or revoke the app's deploy token" },
-      { path: "/api/deployments/:id/deploy-key", methods: ["POST"], desc: "Generate the app's SSH deploy key; returns the public half" },
-      { path: "/api/deployments/:id/domain", methods: ["PUT", "DELETE"], desc: "Link the app to a domain (created if it does not exist; body: { domain, ssl? }), or forget the link" },
-      { path: "/api/deployments/:id/move", methods: ["POST"], desc: "Move the app's folder. Body: { path } — the app ends up in <path>/<id>, stopped and started again" },
-      { path: "/api/deployments/:id/github", methods: ["GET"], desc: "The GitHub Actions workflow, the secrets it needs and the URLs GitHub can call" },
-      { path: "/api/deployments/:id/github/apply", methods: ["POST"], desc: "Store the secrets, commit the workflow and add the deploy key through GitHub's API. Body: { token?, target? }" },
-      { path: "/api/deployments/hook", methods: ["GET", "PUT"], desc: "The deploy hook: enabled, port, bind and the domain that exposes it" },
-    ],
-  },
-  {
-    id: "settings",
-    title: "Settings",
-    endpoints: [
-      { path: "/api/settings", methods: ["GET", "POST"], desc: "Get / save dashboard settings" },
-      { path: "/api/settings/permissions", methods: ["GET"], desc: "Check whether Linux NOPASSWD sudoers are configured" },
-      { path: "/api/settings/permissions/setup", methods: ["POST"], desc: "Write /etc/sudoers.d/easy-devops via sudo -S (Linux only). Body: { password: string }" },
-      { path: "/api/settings/backup", methods: ["GET"], desc: "Download config and domains as a JSON file (password excluded)" },
-      { path: "/api/settings/restore", methods: ["POST"], desc: "Restore config and domains from a backup JSON body" },
-    ],
-  },
-  {
-    id: "channels",
-    title: "Notification Channels",
-    endpoints: [
-      { path: "/api/settings/channels", methods: ["GET"], desc: "List all named notification channels" },
-      { path: "/api/settings/channels", methods: ["POST"], desc: "Create a channel. Body: { name, type: 'discord'|'telegram', webhookUrl?, botToken?, chatId?, message? }" },
-      { path: "/api/settings/channels/:id", methods: ["PUT"], desc: "Update channel name or credentials. Type is immutable after creation." },
-      { path: "/api/settings/channels/:id", methods: ["DELETE"], desc: "Delete a channel" },
-      { path: "/api/settings/channels/:id/test", methods: ["POST"], desc: "Send a live test notification to a single channel" },
-    ],
-  },
-];
+const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";
+const CONTRACT = "https://github.com/omar00050/Easy-DevOps/blob/main/API-CONTRACT.md";
 
 export default function APIPage() {
   return (
     <DocPage
       section="Reference"
       title="Dashboard API"
-      description="The web dashboard exposes a REST API consumed by the React dashboard UI."
+      description="The dashboard exposes a REST API under /api. Its single source of truth is API-CONTRACT.md in the easy-devops repository — this page explains how to talk to it, and does not repeat the endpoint list."
     >
+      <div className="rounded-xl border border-primary/25 bg-primary/[0.06] p-5 text-sm mb-10">
+        <p className="font-bold text-foreground mb-1">The contract lives with the code</p>
+        <p className="text-muted leading-relaxed">
+          Every endpoint, request shape, response shape, auth rule and Socket.io event is
+          documented in{" "}
+          <a href={CONTRACT} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">
+            API-CONTRACT.md
+          </a>
+          . That file is enforced by <code className={C}>e2e/run.mjs</code>, which compares the routes
+          registered in <code className={C}>src/dashboard/routes/</code> against it, so it cannot drift
+          from the code. Read it there; this page only covers the transport rules you have to satisfy
+          before any endpoint will answer.
+        </p>
+      </div>
 
-      <h2 id="example-domain" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Create a Domain</h2>
-      <CodeBlock lang="bash" filename="Request">{`curl -X POST http://localhost:6443/api/domains \\
+      <h2 id="transport" className="text-xl font-bold mt-10 mb-4 text-foreground">Transport rules</h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Three checks run on <strong className="text-foreground">every</strong>{" "}
+        <code className={C}>/api</code> request, before authentication, in both auth modes. They are
+        implemented in <code className={C}>src/dashboard/lib/localRequest.js</code>.
+      </p>
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Check</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Rule</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Failure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4 font-mono text-xs text-primary">Host</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The port must match the dashboard&apos;s. On a loopback bind the hostname must be <code className={C}>localhost</code>, <code className={C}>127.0.0.1</code> or <code className={C}>[::1]</code>; on a public bind any hostname is accepted.</td>
+            <td className="py-3 px-4 text-muted text-xs">403</td>
+          </tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4 font-mono text-xs text-primary">Origin</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">When present, its port must match. On a loopback bind its hostname must be a loopback name; on a public bind it must equal the <code className={C}>Host</code> hostname (same-origin).</td>
+            <td className="py-3 px-4 text-muted text-xs">403</td>
+          </tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4 font-mono text-xs text-primary">X-EZ-Request: 1</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">Required on every <code className={C}>POST</code>, <code className={C}>PUT</code>, <code className={C}>PATCH</code>, <code className={C}>DELETE</code>, and on the Socket.io handshake. Not required on a plain <code className={C}>GET</code>, but sending it everywhere is harmless and keeps one client path.</td>
+            <td className="py-3 px-4 text-muted text-xs">403</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="text-xs text-muted leading-relaxed mb-10">
+        A 403 from these checks is deliberately not a 401: logging in cannot fix &quot;this request may
+        not be made from where it came from&quot;. The body carries{" "}
+        <code className={C}>{`{ error, reason, detail }`}</code>.
+      </p>
+
+      <h2 id="authentication" className="text-xl font-bold mt-10 mb-4 text-foreground">Authentication and the session cookie</h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        <code className={C}>dashboardAuth</code> is either <code className={C}>password</code> (the
+        default) or <code className={C}>none</code>. In <strong className="text-foreground">password</strong>{" "}
+        mode, every endpoint except the auth router needs a logged-in session; without one it answers{" "}
+        <code className={C}>401 {`{ "error": "Unauthorized" }`}</code>. Log in once with{" "}
+        <code className={C}>POST /api/login</code> and reuse the cookie it sets — its name is{" "}
+        <code className={C}>connect.sid</code> and it is <code className={C}>HttpOnly</code>, so a script
+        has to keep it in a cookie jar rather than read it.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>There is no default password. First-run setup requires a one-time code printed in the server&apos;s terminal or service log, or the choice of no-password mode when the dashboard listens on loopback only.</li>
+        <li>In <strong className="text-foreground">none</strong> mode no session is required, but only while the bind address is loopback. A stored <code className={C}>none</code> with a public bind falls back to requiring a password.</li>
+        <li>The transport checks above are never relaxed in <code className={C}>none</code> mode. They are the only defence left.</li>
+        <li>Failed logins are rate limited per IP: 10 attempts per 15 minutes, answered with <code className={C}>429</code> and a <code className={C}>Retry-After</code> header.</li>
+      </ul>
+
+      <h2 id="curl" className="text-xl font-bold mt-10 mb-4 text-foreground">A working curl walkthrough</h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Two requests are enough to show the whole pattern: log in, storing the cookie in a jar, then
+        send a state-changing request with that jar and the <code className={C}>X-EZ-Request: 1</code>{" "}
+        header.
+      </p>
+      <CodeBlock lang="bash" filename="1 — log in and keep the cookie">{`curl -sS -c cookies.txt \\
   -H "Content-Type: application/json" \\
+  -H "X-EZ-Request: 1" \\
+  -d '{"password":"your-dashboard-password"}' \\
+  http://127.0.0.1:6443/api/login
+
+# {"ok":true}
+# cookies.txt now holds the session (connect.sid)`}</CodeBlock>
+      <CodeBlock lang="bash" filename="2 — reuse the cookie for a change">{`curl -sS -b cookies.txt \\
+  -H "Content-Type: application/json" \\
+  -H "X-EZ-Request: 1" \\
   -d '{
     "name": "example.com",
     "port": 3000,
     "backendHost": "127.0.0.1",
     "upstreamType": "http",
-    "ssl": { "enabled": true },
+    "ssl": { "enabled": false },
     "performance": { "gzip": true },
     "security": { "rateLimit": false }
-  }'`}</CodeBlock>
-
-      <CodeBlock lang="json" filename="Response (201)">{`{
-  "name": "example.com",
-  "port": 3000,
-  "backendHost": "127.0.0.1",
-  "upstreamType": "http",
-  "ssl": { "enabled": true },
-  "enabled": true,
-  "notifications": {
-    "domain_health": { "enabled": true, "channelIds": [] },
-    "cert_expiry":   { "enabled": true, "channelIds": [] }
-  }
-}`}</CodeBlock>
-
-      <h2 id="example-channel" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Create a Notification Channel</h2>
-      <CodeBlock lang="bash" filename="Request">{`curl -X POST http://localhost:6443/api/settings/channels \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "name": "Production Discord",
-    "type": "discord",
-    "webhookUrl": "https://discord.com/api/webhooks/...",
-    "message": "<@&1280907071813976196>"
-  }'`}</CodeBlock>
-
-      <CodeBlock lang="json" filename="Response (201)">{`{
-  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "name": "Production Discord",
-  "type": "discord",
-  "webhookUrl": "https://discord.com/api/webhooks/...",
-  "message": "<@&1280907071813976196>"
-}`}</CodeBlock>
-
-      <h2 id="example-notif-config" className="text-xl font-bold mt-10 mb-4 text-foreground">Example: Configure Domain Notifications</h2>
-      <CodeBlock lang="bash" filename="Request">{`curl -X PUT http://localhost:6443/api/domains/example.com/notifications \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "domain_health": { "enabled": true,  "channelIds": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"] },
-    "cert_expiry":   { "enabled": false, "channelIds": [] }
-  }'`}</CodeBlock>
-
-      <h2 id="endpoints" className="text-xl font-bold mt-10 mb-4 text-foreground">All Endpoints</h2>
-
-      <div className="space-y-8 mb-10">
-        {apiGroups.map((group) => (
-          <div key={group.id}>
-            <h3 id={group.id} className="text-base font-bold mb-3 text-foreground">{group.title}</h3>
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr>
-                  <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Endpoint</th>
-                  <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Method</th>
-                  <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {group.endpoints.map((ep, ei) => (
-                  <tr key={ei} className={`${ei % 2 === 1 ? "bg-primary/[0.015]" : ""} hover:bg-primary/[0.03] transition-colors`}>
-                    <td className="py-3 px-4 font-mono font-semibold text-xs text-primary">{ep.path}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-1">
-                        {ep.methods.map((m) => <MethodBadge key={m} method={m} />)}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-muted text-xs">{ep.desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))}
+  }' \\
+  http://127.0.0.1:6443/api/domains`}</CodeBlock>
+      <CodeBlock lang="bash" filename="Read-only requests work the same way">{`curl -sS -b cookies.txt \\
+  -H "X-EZ-Request: 1" \\
+  http://127.0.0.1:6443/api/ssl`}</CodeBlock>
+      <div className="rounded-xl border border-border bg-surface p-5 text-sm mb-10">
+        <p className="font-bold text-foreground mb-1">If you get a 403</p>
+        <p className="text-muted leading-relaxed">
+          Check the <code className={C}>reason</code> in the body. <code className={C}>missing_request_header</code>{" "}
+          means <code className={C}>X-EZ-Request: 1</code> is absent;{" "}
+          <code className={C}>host_not_local</code> means the <code className={C}>Host</code> header is not
+          a loopback name while the dashboard is bound to loopback. Calling{" "}
+          <code className={C}>127.0.0.1</code> rather than a hostname avoids the second one. A 401 means
+          the cookie is missing or expired — log in again.
+        </p>
       </div>
 
       <DocsPagination
@@ -201,14 +153,4 @@ export default function APIPage() {
       />
     </DocPage>
   );
-}
-
-function MethodBadge({ method }: { method: string }) {
-  const map: Record<string, string> = {
-    GET: "bg-blue-500/12 text-blue-500",
-    POST: "bg-green-500/12 text-green-500",
-    PUT: "bg-yellow-500/12 text-yellow-500",
-    DELETE: "bg-red-500/12 text-red-500",
-  };
-  return <span className={`px-2 py-0.5 text-[11px] font-mono font-bold rounded ${map[method] || "bg-gray-500/12 text-gray-500"}`}>{method}</span>;
 }

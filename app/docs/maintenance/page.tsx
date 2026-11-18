@@ -47,8 +47,9 @@ export default function MaintenancePage() {
 # checks npm for a newer release, installs it,
 # then restarts the background service`}</CodeBlock>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
-        <li><strong className="text-foreground">Settings → Update</strong> in the dashboard runs the same flow. The dashboard stops while the new version is installed and starts again on the same port by itself; the result, including a rollback, is shown on the page when it comes back.</li>
-        <li>The CLI menu&apos;s <strong className="text-foreground">Check for Updates</strong> runs the same check interactively.</li>
+        <li><strong className="text-foreground">Settings → Update</strong> in the dashboard runs the same flow. The HTTP request only records the run and starts a detached worker; that worker stops the dashboard, installs the new version (rolling back if the new one will not start), starts the dashboard again on the same port, and writes every phase to <code className={C}>update-status.json</code> in the data directory. The page reads it back and shows the result, including the last lines of <code className={C}>logs/update.log</code>.</li>
+        <li>Phases are <code className={C}>starting</code>, <code className={C}>stopping</code>, <code className={C}>updating</code>, <code className={C}>restarting</code>, then <code className={C}>done</code> or <code className={C}>failed</code>. A worker that disappears leaves the run as <code className={C}>interrupted</code> (no heartbeat for 45 seconds), never as still running.</li>
+        <li>The CLI menu&apos;s <strong className="text-foreground">Check for Updates</strong> and <code className={C}>ezz update</code> run the same check and install.</li>
         <li>Node itself is updated separately with <code className={C}>ezz runtime update</code> — see <a href="/docs/service#runtime">the pinned runtime</a>.</li>
         <li>An interrupted update is recoverable with <code className={C}>ezz service repair</code>; data is never part of the transaction.</li>
       </ul>
@@ -85,8 +86,8 @@ ezz cleanup --yes      # in scripts, after reviewing the list`}</CodeBlock>
         The dashboard can export your configuration as a single JSON file and restore it later:
       </p>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
-        <li><strong className="text-foreground">Download backup</strong> — settings and domains. The dashboard password is deliberately excluded.</li>
-        <li><strong className="text-foreground">Restore</strong> — accepts the same file and rewrites the configuration from it.</li>
+        <li><strong className="text-foreground">Download backup</strong> — settings and domains. Both the dashboard password and its hash are deliberately excluded.</li>
+        <li><strong className="text-foreground">Restore</strong> — accepts the same file and rewrites the configuration from it. The password, listen address and auth mode are kept from the current installation rather than restored, so an old backup cannot re-open the listener or bring back a removed password.</li>
         <li>Certificates are files on disk, not database rows; back up <code className={C}>sslDir</code> separately if you need them.</li>
         <li><code className={C}>uninstall --purge</code> exports a backup before it removes anything.</li>
       </ul>

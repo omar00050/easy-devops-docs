@@ -339,10 +339,10 @@ function MorphingText() {
    Page
    ═══════════════════════════════════════════════════ */
 const features = [
-  { icon: <Globe className="w-5 h-5" />, title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Automatic installation via apt-get or winget." },
-  { icon: <Shield className="w-5 h-5" />, title: "SSL Certificates", desc: "Let's Encrypt via acme-client. HTTP-01, DNS-01, wildcard certs, expiry tracking with color-coded badges." },
+  { icon: <Globe className="w-5 h-5" />, title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. apt-get on Linux, or the current stable build from nginx.org on Windows." },
+  { icon: <Shield className="w-5 h-5" />, title: "SSL Certificates", desc: "Let's Encrypt via acme-client. HTTP-01, DNS-01, wildcard certs, automatic renewal, expiry tracking, certificate suggestion and safe deletion." },
   { icon: <Wifi className="w-5 h-5" />, title: "Domain Management", desc: "Reverse proxy configs with SSL, external URLs, wildcards, WebSocket, gzip, rate limiting, security headers." },
-  { icon: <Package className="w-5 h-5" />, title: "Node.js Manager", desc: "Switch versions via nvm/nvm-windows. Install/uninstall global packages. Update npm automatically." },
+  { icon: <Package className="w-5 h-5" />, title: "Node.js Manager", desc: "Switch versions via nvm/nvm-windows, with versions fetched live. Install/uninstall global packages. Update npm automatically." },
   { icon: <Zap className="w-5 h-5" />, title: "Real-time Updates", desc: "Socket.io powered status updates. Nginx status streams live in the dashboard." },
   { icon: <Database className="w-5 h-5" />, title: "SQLite Storage", desc: "Persistent config in a single SQLite file. No separate database server needed." },
   { icon: <Download className="w-5 h-5" />, title: "Bootstrap Installer", desc: "One-line installers for Linux and Windows. Auto-detects Node.js, installs nvm if needed." },
@@ -351,9 +351,10 @@ const features = [
 
 const faqItems = [
   { q: '"easy-devops: command not found" after install?', a: "Open a new terminal so the PATH can update. If it still fails, run npm bin -g and add the output directory to your PATH. Linux users may need to prefix install commands with sudo." },
-  { q: "How do I change the dashboard password?", a: "From the CLI, select Settings → set a new password. This updates dashboardPassword in the SQLite database and takes effect immediately." },
-  { q: "SSL issuance fails with a 'port 80 in use' error.", a: "HTTP-01 validation requires exclusive access to port 80. Stop nginx before issuing a certificate, then retry. Alternatively, use DNS-01 which does not require stopping nginx." },
-  { q: "What is acmeEmail and why is it required?", a: "The acmeEmail setting registers your ACME account with Let's Encrypt. It is required for certificate issuance — Let's Encrypt uses it to send expiry notifications and account recovery." },
+  { q: "There is no default password. How does the first login work?", a: "A fresh dashboard has no password. The first visit asks you to set one, using the one-time setup code printed in the server terminal or service log, or to choose no-password mode when the dashboard listens on this machine only." },
+  { q: "How do I change the dashboard password?", a: "Settings → Access and authentication in the dashboard, or Settings → Dashboard Auth in the CLI. The new password is stored as a scrypt hash; no default or old password is required from the CLI." },
+  { q: "SSL issuance fails with a 'port 80 in use' error.", a: "You do not need to stop nginx. HTTP-01 runs in proxy mode: nginx keeps running and forwards the challenge to a loopback listener. A failure there is usually DNS, a firewall, an IPv6 record or a CDN in front of the server. Standalone mode is only a fallback." },
+  { q: "What is acmeEmail and why is it required?", a: "The acmeEmail setting registers your ACME account with Let's Encrypt. Issuance is refused until one is set — Let's Encrypt uses it for account recovery and expiry notices." },
 ];
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -526,7 +527,7 @@ export default function LandingPage({ version }: { version: string | null }) {
         <div className="max-w-3xl mx-auto space-y-0">
           {[
             { step: "1", label: "Install", desc: "One command to install Easy DevOps globally. The bootstrap installer handles Node.js for you." },
-            { step: "2", label: "Configure", desc: "Set your directories, ACME email, and dashboard password in the interactive Settings menu." },
+            { step: "2", label: "Configure", desc: "Set your directories, ACME email, and dashboard authentication — a password, or no password on this machine only — in Settings." },
             { step: "3", label: "Manage", desc: "Add domains, issue SSL certs, start nginx — all from the CLI or the web dashboard." },
           ].map((s, i) => (
             <ScrollReveal key={i} delay={i * 0.15}>

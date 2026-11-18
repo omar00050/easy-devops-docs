@@ -33,8 +33,8 @@ const scenes: Scene[] = [
     label: "main menu",
     lines: [
       { kind: "prompt", text: "ezz" },
-      { kind: "banner", text: "  Easy DevOps v2.0.0  ·  interactive CLI" },
-      { kind: "status", text: "  nginx ● 1.26.2    node v22.21.1    service ● running", delay: 460 },
+      { kind: "banner", text: "  Easy DevOps  ·  interactive CLI" },
+      { kind: "status", text: "  nginx ● <detected>    node <detected>    service ● running", delay: 460 },
       { kind: "blank", text: "" },
       { kind: "info", text: "? Select an option", delay: 420 },
       { kind: "menuActive", text: "❯ Node.js Manager" },
@@ -70,7 +70,7 @@ const scenes: Scene[] = [
     id: "deploy",
     label: "deploy an app",
     lines: [
-      { kind: "prompt", text: "ezz  →  Deployments  →  deploy storefront" },
+      { kind: "prompt", text: "dashboard  →  Deployments  →  Deploy storefront" },
       { kind: "blank", text: "" },
       { kind: "info", text: "[1/6] fetch     main@4f2c1a9", delay: 480 },
       { kind: "info", text: "[2/6] install   npm ci · 412 packages" },
@@ -80,6 +80,7 @@ const scenes: Scene[] = [
       { kind: "ok", text: "[6/6] release   4f2c1a9 is live", delay: 520 },
       { kind: "blank", text: "" },
       { kind: "dim", text: "Previous release kept for instant rollback · 3 older releases pruned" },
+      { kind: "dim", text: "The CLI has no deploy command: use the dashboard, a GitHub Action, or the Hub." },
     ],
   },
 ];

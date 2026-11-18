@@ -48,7 +48,7 @@ const steps = [
   {
     num: 5,
     title: "Start the Dashboard (optional)",
-    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://localhost:6443 (or your configured port). The first visit needs the one-time setup code printed in the server terminal or service log — `ezz dashboard setup-code` issues a fresh one — then you choose the dashboard password.',
+    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://127.0.0.1:6443 (the Linux default bind; Windows defaults to every interface). There is no default password: the first visit shows a setup screen, where you either set a password using the one-time setup code printed in the server terminal or service log (`ezz dashboard setup-code` issues a fresh one), or choose no-password mode — offered only when the dashboard listens on this machine only.',
     code: { lang: "bash", text: "easy-devops\n# or the short alias:\nezz" },
   },
 ];
