@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "The Easy DevOps native service: what the daemon does, how to install, inspect and repair it on Linux and Windows, the pinned Node runtime, and where its logs live.",
   keywords: ["Easy DevOps service", "systemd easy-devops", "Windows service DevOps", "background daemon", "pinned Node runtime"],
   alternates: { canonical: "/docs/service" },
+  openGraph: {
+    type: "article",
+    url: "/docs/service",
+    siteName: "Easy DevOps",
+    title: "Background Service",
+    description:
+      "What the native service does, how to install, inspect and repair it, the pinned Node runtime, and where logs live.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Background Service",
+    description:
+      "What the native service does, how to install, inspect and repair it, the pinned Node runtime, and where logs live.",
+  },
 };
 
 const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";

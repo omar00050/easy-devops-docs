@@ -20,6 +20,20 @@ export const metadata: Metadata = {
     "The Easy DevOps interactive CLI: keyboard-driven menus, live service status, sub-menus for nginx, SSL, domains and deployments, and every global flag.",
   keywords: ["Easy DevOps CLI", "ezz command", "interactive DevOps menu", "terminal UI", "CLI flags"],
   alternates: { canonical: "/docs/cli" },
+  openGraph: {
+    type: "article",
+    url: "/docs/cli",
+    siteName: "Easy DevOps",
+    title: "CLI Interface",
+    description:
+      "The interactive terminal interface: menus, live service status, and every global flag for nginx, SSL, domains and deployments.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CLI Interface",
+    description:
+      "The interactive terminal interface: menus, live service status, and every global flag for nginx, SSL, domains and deployments.",
+  },
 };
 
 const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";

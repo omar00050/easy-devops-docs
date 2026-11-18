@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Issue and manage Let's Encrypt SSL certificates with Easy DevOps. Supports HTTP-01, DNS-01, and wildcard certificates via acme-client — no certbot required.",
   keywords: ["SSL management", "Let's Encrypt CLI", "acme-client", "HTTP-01", "DNS-01", "wildcard SSL", "free SSL certificates", "SSL certificate automation", "easy SSL"],
   alternates: { canonical: "/docs/ssl" },
+  openGraph: {
+    type: "article",
+    url: "/docs/ssl",
+    siteName: "Easy DevOps",
+    title: "SSL Manager",
+    description:
+      "Issue and renew Let's Encrypt certificates — HTTP-01, DNS-01 and wildcard — via acme-client, no certbot needed.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SSL Manager",
+    description:
+      "Issue and renew Let's Encrypt certificates — HTTP-01, DNS-01 and wildcard — via acme-client, no certbot needed.",
+  },
 };
 
 export default function SSLPage() {

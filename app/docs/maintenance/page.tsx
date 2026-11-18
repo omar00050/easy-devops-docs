@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Keep an Easy DevOps installation healthy: self-update, reclaim disk space with cleanup, back up and restore configuration, reissue first-run setup codes and uninstall cleanly.",
   keywords: ["Easy DevOps update", "cleanup disk", "backup configuration", "setup code", "uninstall Easy DevOps"],
   alternates: { canonical: "/docs/maintenance" },
+  openGraph: {
+    type: "article",
+    url: "/docs/maintenance",
+    siteName: "Easy DevOps",
+    title: "Maintenance & Updates",
+    description:
+      "Self-update, cleanup, backup and restore, setup-code reissue, and a clean uninstall.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Maintenance & Updates",
+    description:
+      "Self-update, cleanup, backup and restore, setup-code reissue, and a clean uninstall.",
+  },
 };
 
 const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";

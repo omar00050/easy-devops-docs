@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Easy DevOps web dashboard REST API reference. Nginx, domains, SSL, settings, and notification channel endpoints with request/response examples.",
   keywords: ["Easy DevOps API", "DevOps dashboard API", "REST API documentation", "Nginx API", "domain management API", "SSL API", "notification channels API"],
   alternates: { canonical: "/docs/api" },
+  openGraph: {
+    type: "article",
+    url: "/docs/api",
+    siteName: "Easy DevOps",
+    title: "Dashboard API",
+    description:
+      "Every dashboard REST endpoint — Nginx, domains, SSL, settings and notifications — with request and response examples.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dashboard API",
+    description:
+      "Every dashboard REST endpoint — Nginx, domains, SSL, settings and notifications — with request and response examples.",
+  },
 };
 
 const apiGroups = [

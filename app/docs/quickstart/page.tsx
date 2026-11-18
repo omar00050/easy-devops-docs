@@ -10,6 +10,18 @@ export const metadata: Metadata = {
     "Get from zero to a working reverse proxy with SSL in five steps. Quick start guide for Easy DevOps CLI.",
   keywords: ["Easy DevOps quick start", "DevOps tutorial", "get started DevOps", "Nginx setup guide", "SSL setup guide"],
   alternates: { canonical: "/docs/quickstart" },
+  openGraph: {
+    type: "article",
+    url: "/docs/quickstart",
+    siteName: "Easy DevOps",
+    title: "Quick Start",
+    description: "From zero to a live reverse proxy with SSL in five steps.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quick Start",
+    description: "From zero to a live reverse proxy with SSL in five steps.",
+  },
 };
 
 const steps = [

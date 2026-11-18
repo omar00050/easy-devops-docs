@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Install Easy DevOps on Linux or Windows. One-line installers, bootstrap scripts, and npm global install instructions.",
   keywords: ["Easy DevOps install", "install DevOps CLI", "npm install easy-devops", "DevOps installer Linux", "DevOps installer Windows"],
   alternates: { canonical: "/docs/installation" },
+  openGraph: {
+    type: "article",
+    url: "/docs/installation",
+    siteName: "Easy DevOps",
+    title: "Installation",
+    description:
+      "Install on Linux or Windows via one-line installer, bootstrap script, or npm global install.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Installation",
+    description:
+      "Install on Linux or Windows via one-line installer, bootstrap script, or npm global install.",
+  },
 };
 
 export default function InstallationPage() {

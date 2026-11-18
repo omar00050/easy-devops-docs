@@ -10,6 +10,20 @@ export const metadata: Metadata = {
     "Pair an Easy DevOps server with the Hub: the outbound agent, the ezops:// connection string, per-permission control that is enforced locally, agent statuses and deploying from CI through the Hub.",
   keywords: ["Easy DevOps Hub", "remote server management", "pair server", "hub permissions", "deploy through hub"],
   alternates: { canonical: "/docs/hub" },
+  openGraph: {
+    type: "article",
+    url: "/docs/hub",
+    siteName: "Easy DevOps",
+    title: "Easy DevOps Hub",
+    description:
+      "Pair a server with the Hub: the outbound agent, ezops:// connection string, locally enforced permissions and CI deployments.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Easy DevOps Hub",
+    description:
+      "Pair a server with the Hub: the outbound agent, ezops:// connection string, locally enforced permissions and CI deployments.",
+  },
 };
 
 const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";

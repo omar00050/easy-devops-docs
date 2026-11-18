@@ -8,6 +8,20 @@ export const metadata: Metadata = {
     "Easy DevOps configuration reference — dashboard port, password, nginx directory, SSL directory, and ACME email. Database stored in user home directory, survives npm updates.",
   keywords: ["Easy DevOps configuration", "DevOps config", "easy-devops settings", "dashboard password", "acmeEmail"],
   alternates: { canonical: "/docs/configuration" },
+  openGraph: {
+    type: "article",
+    url: "/docs/configuration",
+    siteName: "Easy DevOps",
+    title: "Configuration",
+    description:
+      "Settings reference: dashboard port and password, nginx and SSL directories, ACME email, and where the database lives.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Configuration",
+    description:
+      "Settings reference: dashboard port and password, nginx and SSL directories, ACME email, and where the database lives.",
+  },
 };
 
 export default function ConfigurationPage() {

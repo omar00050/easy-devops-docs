@@ -10,6 +10,20 @@ export const metadata: Metadata = {
     "Complete Easy DevOps CLI command reference: main menu options, Nginx manager, SSL manager, domain manager, and Node.js manager sub-commands.",
   keywords: ["easy-devops commands", "DevOps CLI reference", "Nginx CLI commands", "SSL CLI commands", "domain manager CLI"],
   alternates: { canonical: "/docs/commands" },
+  openGraph: {
+    type: "article",
+    url: "/docs/commands",
+    siteName: "Easy DevOps",
+    title: "Command Reference",
+    description:
+      "Every CLI command and sub-command in one reference — main menu, Nginx, SSL, domains and Node.js managers.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Command Reference",
+    description:
+      "Every CLI command and sub-command in one reference — main menu, Nginx, SSL, domains and Node.js managers.",
+  },
 };
 
 const groups: CmdGroup[] = [

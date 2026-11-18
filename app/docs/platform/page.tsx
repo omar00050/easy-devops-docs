@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Easy DevOps supports both Linux and Windows servers with full feature parity. See platform-specific details for Nginx, SSL, and Node.js management.",
   keywords: ["DevOps Linux Windows", "cross-platform DevOps", "Nginx on Windows", "SSL on Linux", "DevOps compatibility"],
   alternates: { canonical: "/docs/platform" },
+  openGraph: {
+    type: "article",
+    url: "/docs/platform",
+    siteName: "Easy DevOps",
+    title: "Platform Support",
+    description:
+      "Linux and Windows support with feature parity — the platform-specific details for Nginx, SSL and Node.js.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Platform Support",
+    description:
+      "Linux and Windows support with feature parity — the platform-specific details for Nginx, SSL and Node.js.",
+  },
 };
 
 const features = [

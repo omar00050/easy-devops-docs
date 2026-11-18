@@ -8,6 +8,20 @@ export const metadata: Metadata = {
     "Explore Easy DevOps features: Nginx management, Let's Encrypt SSL/TLS certificates (HTTP-01 & DNS-01), wildcard certs, domain reverse proxy configs, Node.js version switching, real-time dashboard, and Discord/Telegram notifications.",
   keywords: ["Nginx management", "SSL certificates", "Let's Encrypt", "DNS-01", "HTTP-01", "wildcard SSL", "domain management", "Node.js switching", "reverse proxy", "real-time dashboard", "Discord notifications", "Telegram notifications"],
   alternates: { canonical: "/docs/features" },
+  openGraph: {
+    type: "article",
+    url: "/docs/features",
+    siteName: "Easy DevOps",
+    title: "Features",
+    description:
+      "Nginx management, Let's Encrypt SSL (HTTP-01 & DNS-01), wildcard certs, Node.js switching, live dashboard and notifications.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Features",
+    description:
+      "Nginx management, Let's Encrypt SSL (HTTP-01 & DNS-01), wildcard certs, Node.js switching, live dashboard and notifications.",
+  },
 };
 
 const features = [

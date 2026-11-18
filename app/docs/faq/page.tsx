@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Frequently asked questions and troubleshooting guide for Easy DevOps CLI — installation issues, password changes, SSL port conflicts, and more.",
   keywords: ["Easy DevOps FAQ", "Easy DevOps troubleshooting", "DevOps CLI common issues", "SSL port 80 in use", "command not found"],
   alternates: { canonical: "/docs/faq" },
+  openGraph: {
+    type: "article",
+    url: "/docs/faq",
+    siteName: "Easy DevOps",
+    title: "FAQ & Troubleshooting",
+    description:
+      "Answers and fixes for common Easy DevOps problems — install errors, password resets, SSL port conflicts and more.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FAQ & Troubleshooting",
+    description:
+      "Answers and fixes for common Easy DevOps problems — install errors, password resets, SSL port conflicts and more.",
+  },
 };
 
 const faqSchemaData = [

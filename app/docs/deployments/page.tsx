@@ -9,6 +9,20 @@ export const metadata: Metadata = {
     "Deploy a project from a git repository with Easy DevOps: built on the server, run under PM2, health-checked, rolled back automatically, and triggered from the dashboard or GitHub Actions. Optional ez.json keeps the commands with the code, and persistent paths keep a database, uploads and logs across deployments.",
   keywords: ["deploy from GitHub", "GitHub Actions deploy", "PM2 deployment", "ez.json", "persistent data", "persistent files", "SQLite deploy", "automatic rollback", "self-hosted CI/CD", "deploy hook", "Node.js deployment"],
   alternates: { canonical: "/docs/deployments" },
+  openGraph: {
+    type: "article",
+    url: "/docs/deployments",
+    siteName: "Easy DevOps",
+    title: "Deployments",
+    description:
+      "Deploy from a git repository: PM2 releases, health checks, automatic rollback, ez.json and persistent data across deploys.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Deployments",
+    description:
+      "Deploy from a git repository: PM2 releases, health checks, automatic rollback, ez.json and persistent data across deploys.",
+  },
 };
 
 const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";

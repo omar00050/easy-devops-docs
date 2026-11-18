@@ -6,7 +6,6 @@ import { latestVersion } from "@/lib/version";
 import "./globals.css";
 
 const SITE_URL = "https://easy-devops.devxor.team/";
-const OG_IMAGE = "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/docs/public/og-image.png";
 const SITE_NAME = "Easy DevOps";
 
 const inter = Inter({
@@ -70,21 +69,12 @@ export const metadata: Metadata = {
     title: "Easy DevOps — Unified DevOps CLI for Nginx, SSL & Node.js",
     description:
       "Manage Nginx, SSL certificates, domains, and Node.js versions from a single interactive CLI or modern web dashboard. Open source and lightweight.",
-    images: [
-      {
-        url: OG_IMAGE,
-        width: 1200,
-        height: 630,
-        alt: "Easy DevOps — Unified DevOps CLI",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Easy DevOps — Unified DevOps CLI for Nginx, SSL & Node.js",
     description:
       "Manage Nginx, SSL certificates, domains, and Node.js from one open-source CLI and web dashboard.",
-    images: [OG_IMAGE],
   },
   robots: {
     index: true,
