@@ -19,6 +19,7 @@ export const docsIndex: DocsIndexEntry[] = [
     description: "What Easy DevOps is, what runs where, and the stack behind it.",
     headings: [
       { id: "what-is-it", text: "What is it?" },
+      { id: "how-it-fits-together", text: "How it fits together" },
       { id: "cli-preview", text: "CLI Preview" },
       { id: "core-capabilities", text: "Core Capabilities" },
       { id: "tech-stack", text: "Tech Stack" },
@@ -43,7 +44,10 @@ export const docsIndex: DocsIndexEntry[] = [
     href: "/docs/quickstart",
     section: "Getting Started",
     description: "Five steps from a fresh server to a proxied domain with SSL.",
-    headings: [],
+    headings: [
+      { id: "the-path", text: "The path from install to a running fleet" },
+      { id: "the-short-version", text: "The short version" },
+    ],
   },
   {
     title: "CLI Interface",

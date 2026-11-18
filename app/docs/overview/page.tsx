@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
 import DocPage from "@/components/DocPage";
+import SystemMap from "@/components/SystemMap";
 
 export const metadata: Metadata = {
   title: "Overview",
@@ -27,6 +28,14 @@ export default function OverviewPage() {
       <p className="text-muted text-sm leading-relaxed mb-8">
         No external ACME binaries required — SSL certificates are issued via <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">acme-client</code> (pure Node.js, Let's Encrypt).
       </p>
+
+      <h2 id="how-it-fits-together" className="text-xl font-bold mt-10 mb-4 text-foreground">How it fits together</h2>
+      <p className="text-muted text-sm leading-relaxed mb-2">
+        One package, three ways in. The CLI, the web dashboard and the Hub all drive the same core — the same
+        nginx configs, the same certificates, the same deployments. Nothing is duplicated and nothing is
+        rewritten per surface.
+      </p>
+      <SystemMap />
 
       <h2 id="cli-preview" className="text-xl font-bold mt-10 mb-4 text-foreground">CLI Preview</h2>
       <CodeBlock lang="text" filename="terminal">{`  ███████╗███████╗     Easy DevOps  v2.0.0

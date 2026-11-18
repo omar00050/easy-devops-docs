@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import CodeBlock from "@/components/CodeBlock";
 import DocPage from "@/components/DocPage";
+import InstallJourney from "@/components/InstallJourney";
 
 export const metadata: Metadata = {
   title: "Quick Start",
@@ -35,7 +36,7 @@ const steps = [
   {
     num: 5,
     title: "Start the Dashboard (optional)",
-    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://localhost:6443 (or your configured port). Default password: admin.',
+    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://localhost:6443 (or your configured port). A fresh install asks you to create the dashboard password on first visit.',
     code: { lang: "bash", text: "easy-devops\n# or the short alias:\nezz" },
   },
 ];
@@ -45,8 +46,18 @@ export default function QuickstartPage() {
     <DocPage
       section="Getting Started"
       title="Quick Start"
-      description="From zero to a working reverse proxy with SSL in five steps."
+      description="From a fresh server to a live site and app — the whole path, then the short version."
     >
+
+      <h2 id="the-path" className="text-xl font-bold mt-10 mb-4 text-foreground">The path from install to a running fleet</h2>
+      <p className="text-muted text-sm leading-relaxed mb-2">
+        Every install follows the same arc: install it, point it at nginx, put a site online, deploy an app,
+        then let it keep watch. This is the whole journey — the short version with copy-ready commands is
+        right below it.
+      </p>
+      <InstallJourney />
+
+      <h2 id="the-short-version" className="text-xl font-bold mt-10 mb-4 text-foreground">The short version</h2>
 
       <div className="space-y-4 mb-10">
         {steps.map((step, i) => (

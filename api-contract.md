@@ -183,6 +183,7 @@ shell access to the server.
 | POST | `/api/domains/:name/reload` | session | Test and reload nginx for one domain |
 | GET | `/api/domains/:name/notifications` | session | Per-domain notification config |
 | PUT | `/api/domains/:name/notifications` | session | Replace that config |
+| GET | `/api/domains/:name/ssl-suggestion` | session | Existing certificate that could serve this domain |
 
 Create/update bodies carry the v2 domain shape: `name`, `port`, `backendHost`,
 `upstreamType`, `www`, `wildcard`, and the nested `ssl`, `performance`,
@@ -207,6 +208,29 @@ its only consumer and renaming would break that for no gain.
 `GET`/`PUT /api/domains/:name/notifications` exchange a map keyed by
 `nginx_down` | `cert_expiry` | `domain_health`, each value
 `{ "enabled": boolean, "channelIds": ["…"] }`.
+
+`GET /api/domains/:name/ssl-suggestion` is read-only and answers
+`{ "found": false }` or:
+
+```json
+{
+  "found": true,
+  "match": "exact | san | wildcard",
+  "certificate": {
+    "domain": "example.com",
+    "names": ["example.com", "www.example.com"],
+    "certPath": "/etc/easy-devops/ssl/example.com/fullchain.pem",
+    "keyPath": "/etc/easy-devops/ssl/example.com/privkey.pem",
+    "expiry": "2027-02-01T00:00:00.000Z",
+    "daysLeft": 76,
+    "status": "valid"
+  }
+}
+```
+
+`exact` is a certificate directory named after the domain, `san` a name inside
+the certificate, `wildcard` a `*.` name covering exactly one label. It changes
+nothing; the UI offers the paths and fills them only when the operator accepts.
 
 ### 2.3 SSL — `src/dashboard/routes/ssl.js` (mounted at `/api/ssl`)
 
@@ -1170,6 +1194,7 @@ answer 403 instead of reporting a dropped command as dispatched.
 | `hub:nginxAction` | `{ action: start \| stop \| restart \| reload \| test }` | `nginx.<action>` |
 | `hub:manageDomain` | `{ action: create \| update \| toggle \| delete \| reload, … }` | `domains.<action>` (`reload` → `nginx.reload`) |
 | `hub:manageSSL` | `{ action: renew \| renewAll \| issue \| delete, … }` | `ssl.<action>` |
+| `hub:manageSSL` | `{ action: suggest, domain }` | none (read-only) |
 | `hub:manageProcess` | `{ action: start \| stop \| restart, name }` | `process.<action>` |
 | `hub:getConfigs` | `{ filename? }` | `nginx.config.view` |
 | `hub:saveConfig` | `{ filename, content, reload? }` | `nginx.config.edit` |
