@@ -28,7 +28,7 @@ const features = [
   { icon: "🌐", title: "Nginx Management", desc: "Start, stop, reload, and view error logs. Built-in config editor. Install nginx with apt-get on Linux, or from the current stable build on nginx.org on Windows (winget is not used)." },
   { icon: "🔑", title: "SSL Certificates", desc: "Issue and renew Let's Encrypt certs via acme-client. HTTP-01, DNS-01, wildcard certs, automatic renewal in the background, expiry tracking, a certificate suggestion when you add a domain, and deletion that is refused while a config still references it." },
   { icon: "🚀", title: "Deployments", desc: "Put a project from a git repository on the server: fetched, built and started under PM2, with a health check, automatic rollback and earlier releases kept. Link a domain, move an app, and trigger it from the dashboard, GitHub Actions or the Hub." },
-  { icon: "🔗", title: "Domain Management", desc: "Reverse proxy configs with SSL, external URL backends, wildcard domains, WebSocket support, gzip, rate limiting, security headers, and custom timeouts." },
+  { icon: "🔗", title: "Domain Management", desc: "Reverse proxy configs with SSL, external URL backends, wildcard domains, WebSocket-ready proxying, an optional behind-Cloudflare real IP, gzip, rate limiting, security headers, and custom timeouts." },
   { icon: "🖥️", title: "Processes", desc: "List every PM2 app with status, CPU, memory, uptime and restart count, and start, stop or restart it. Easy DevOps does not install PM2; it reports when it is missing." },
   { icon: "☁️", title: "Hub", desc: "Pair a server over an outbound connection — no inbound port. Per-permission control is enforced on the server, and process control, deployments, domains and certificates can be granted one action at a time." },
   { icon: "🔔", title: "Notifications", desc: "Named Discord and Telegram channels configured once and assigned per domain per event type. State-aware dispatch prevents spam — alerts fire only on status changes. Recovery notifications sent when services come back online." },
@@ -73,7 +73,7 @@ export default function FeaturesPage() {
         <li><strong className="text-foreground">Backend:</strong> local host:port (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">127.0.0.1:3000</code>) or full external URL (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">https://app.vercel.app</code>)</li>
         <li><strong className="text-foreground">Wildcard domain</strong> (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">*.example.com</code>) — auto-enforces DNS-01 SSL validation</li>
         <li><strong className="text-foreground">SSL/HTTPS</strong> with certificate management</li>
-        <li><strong className="text-foreground">WebSocket</strong> support (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">ws</code> upstream type)</li>
+        <li><strong className="text-foreground">WebSocket-ready proxying</strong> on every domain, with an unbuffered <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">/socket.io/</code> path</li>
         <li><strong className="text-foreground">Gzip compression</strong></li>
         <li><strong className="text-foreground">Rate limiting</strong> (requests/second + burst)</li>
         <li><strong className="text-foreground">Security headers</strong> (X-Frame-Options, etc.)</li>
@@ -81,6 +81,33 @@ export default function FeaturesPage() {
         <li><strong className="text-foreground">Domain-specific access logs</strong></li>
         <li><strong className="text-foreground">Per-domain notification config</strong> — choose which channels receive cert_expiry and domain_health alerts for each domain individually</li>
       </ul>
+
+      <h2 id="websockets-cloudflare" className="text-xl font-bold mt-10 mb-4 text-foreground">WebSockets and Cloudflare</h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Every proxied domain is WebSocket-ready: its generated config sends the upgrade headers, a single
+        shared map decides the <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">Connection</code> value,
+        and <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">/socket.io/</code> is proxied
+        unbuffered with long idle timeouts. Ordinary HTTP keeps its configured timeout and upstream keep-alive.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        A domain whose traffic goes through Cloudflare has a <strong className="text-foreground">Behind Cloudflare</strong> option.
+        Turning it on makes nginx trust <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">CF-Connecting-IP</code>
+        from Cloudflare&apos;s published ranges, so logs and per-IP limits see the visitor instead of the edge. It is off by default.
+        It does not hide your origin: the application behind nginx must trust exactly one proxy (for the Hub,
+        <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">TRUST_PROXY=1</code>), and ports
+        80/443 must be limited to Cloudflare&apos;s ranges at the firewall to close direct access.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        The map file, the exact headers, how to refresh the ranges and what the option does and does not protect are in{" "}
+        <a
+          href="https://github.com/omar00050/Easy-DevOps/blob/main/docs/nginx-websocket-cloudflare.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+        >
+          nginx: WebSocket proxying and Cloudflare real IP
+        </a>.
+      </p>
 
       <DocsPagination
         prev={{ title: "Overview", href: "/docs/overview", section: "Getting Started" }}

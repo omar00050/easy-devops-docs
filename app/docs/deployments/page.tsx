@@ -44,9 +44,22 @@ export default function DeploymentsPage() {
         <li><strong className="text-foreground">Health check</strong> — the app must answer on its port and stay online under PM2 before the deployment counts.</li>
         <li><strong className="text-foreground">Post hook</strong>, then old releases are pruned.</li>
       </ol>
-      <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-10">
+      <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-6">
         💡 Nothing before the switch touches what is running, so <strong className="text-foreground">a broken build or a failed migration costs nothing</strong>. If the new release crashes at boot — it exits, PM2 restarts it, or the health check fails — the previous release is started again automatically and the run says why. The switch itself is a restart: the app is down for as long as it takes to start.
       </div>
+
+      <h3 id="boot-crash" className="text-base font-bold mt-8 mb-3 text-foreground">When the new release does not start</h3>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        A health check on its own can be fooled by a release that answers once and then crash-loops. So a release also has to <strong className="text-foreground">stay online under PM2</strong>: a process PM2 reports as errored or stopped, or one that keeps restarting over the confirmation window, fails the deployment even though a probe answered. In cluster mode every worker is watched, and one bad worker fails the release even when the others are healthy.
+      </p>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        When that happens the previous release is started again, and the failed run carries a <strong className="text-foreground">rollback report</strong>:
+      </p>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-10">
+        <li><strong className="text-foreground">Reason</strong> — for example <code className={C}>crashed at boot: restarting 3 times</code>, <code className={C}>crashed at boot: process is &quot;errored&quot; — it exited instead of listening on port 3000</code>, or <code className={C}>health check failed: …</code>.</li>
+        <li><strong className="text-foreground">Whether the previous release came back</strong> — the run distinguishes &quot;rolled back to the previous release&quot; from &quot;the rollback also failed, the app may be down&quot;. There is nothing to roll back to on a first deployment, and automatic rollback can be switched off per app.</li>
+        <li><strong className="text-foreground">The last lines of the new release&apos;s PM2 output</strong>, with every environment value on the app replaced by <code className={C}>***</code>. They are read <em>before</em> the rollback reuses the PM2 name, so they still belong to the release that failed.</li>
+      </ul>
 
       <h2 id="requirements" className="text-xl font-bold mt-10 mb-4 text-foreground">Requirements</h2>
       <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-4">
@@ -84,7 +97,7 @@ export default function DeploymentsPage() {
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-foreground font-medium">Deploy key</td>
             <td className="py-3 px-4 text-muted text-xs">git@github.com:owner/repo.git</td>
-            <td className="py-3 px-4 text-muted text-xs leading-relaxed">Easy DevOps generates an SSH key for the app. You add its public half to the repository under Settings → Deploy keys, read-only. The private half never leaves the server.</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">A new app generates an ed25519 SSH key as it is created. You add its public half to the repository under Settings → Deploy keys, read-only, or let the GitHub tab do it. The private half never leaves the server.</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-foreground font-medium">Access token</td>
@@ -93,6 +106,20 @@ export default function DeploymentsPage() {
           </tr>
         </tbody>
       </table>
+
+      <h2 id="deploy-keys" className="text-xl font-bold mt-10 mb-4 text-foreground">Deploy keys, in one step</h2>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        With <strong className="text-foreground">Private — deploy key (SSH)</strong> selected, <strong className="text-foreground">Generate a deploy key for me</strong> is on by default. The app is created <em>without starting a deployment</em>, and the key is written in the same step: an ed25519 key in the app folder, with mode <code className={C}>600</code> (on Windows the data folder&apos;s ACL applies), so only the account Easy DevOps runs as can read it. The response shows the <strong className="text-foreground">public key</strong>, its SHA-256 <strong className="text-foreground">fingerprint</strong>, and an <strong className="text-foreground">Add deploy key</strong> link straight to the repository&apos;s GitHub settings. The private half is never in a response.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
+        <li><strong className="text-foreground">Test connection</strong> runs <code className={C}>git ls-remote</code> with the app&apos;s key against the repository. For github.com it checks the server against GitHub&apos;s <strong className="text-foreground">published host keys</strong> (<code className={C}>StrictHostKeyChecking=yes</code>, never <code className={C}>accept-new</code>) and stops after 12 seconds. A wrong key, a changed host key, DNS, port 22 and a missing git each get their own reason and what to do next. Another SSH host is not tested; a deployment to one still uses <code className={C}>accept-new</code>.</li>
+        <li><strong className="text-foreground">Add it to GitHub for me</strong> takes a GitHub token typed for that request. The token is used once and not stored. The key is added <strong className="text-foreground">read-only</strong>, and an older key with the same title is removed only after the new one is on the repository. A GitHub refusal is reported per step, so you can see whether the key or the old-key cleanup failed.</li>
+        <li><strong className="text-foreground">Regenerate key</strong> replaces the private half at once, so the old key stops working on this server immediately. It is refused while a deployment is running, and the result names the previous fingerprint because GitHub still lists the old public key until someone removes it.</li>
+        <li>An app created before this keeps its RSA key and keeps working until the key is regenerated. Nothing changes under it.</li>
+      </ul>
+      <p className="text-muted text-sm leading-relaxed mb-10">
+        The private key is written only to <code className={C}>ez_deploys/&lt;app&gt;/id_deploy</code>; the pinned github.com keys are kept beside it in <code className={C}>known_hosts</code>. Neither the key nor a PEM block ever appears in a response, log, event or Hub payload. Live deployment lines redact the app&apos;s environment values and token before they leave the server.
+      </p>
 
       <h2 id="ez-json" className="text-xl font-bold mt-10 mb-4 text-foreground">ez.json</h2>
       <p className="text-muted text-sm leading-relaxed mb-4">Optional. Put it in the repository to keep the commands with the code. It is looked for at <code className={C}>ez.json</code>, then <code className={C}>deploy/ez.json</code>, then <code className={C}>.deploy/ez.json</code>.</p>
@@ -191,6 +218,7 @@ export default function DeploymentsPage() {
         <li><code className={C}>instances</code> above 1 with <code className={C}>execMode: &quot;fork&quot;</code> is refused: several forked copies would all try to bind the same port. Choose <code className={C}>cluster</code> instead.</li>
         <li>A deployment of a cluster app that is already running in cluster mode uses <code className={C}>pm2 reload</code>; the first deployment, or a switch between fork and cluster, still stops and starts. Rollback follows the same rule, using the mode recorded in the release.</li>
         <li>The health check watches every worker. One errored, stopped or restarting worker is a boot crash and triggers the normal automatic rollback, even if another worker answers.</li>
+        <li>The app shows how many workers are actually up, for example <code className={C}>Cluster · 3/4 online</code>. That count comes from PM2, so a cluster that only partly started is visible rather than assumed healthy; with PM2 not running it reads <code className={C}>0</code>.</li>
       </ul>
       <div className="bg-yellow-500/8 border border-yellow-500/20 rounded-lg p-4 text-sm text-muted mb-6">
         ⚠️ Cluster mode runs several copies of the app; it must be stateless (no in-memory sessions, sockets, caches or schedulers that assume one process). The dashboard shows this warning wherever the setting appears, but it never blocks a deployment.
@@ -215,12 +243,15 @@ export default function DeploymentsPage() {
       <p className="text-muted text-sm leading-relaxed mb-10">A value set on the app in the dashboard overrides the file. To let the file decide, leave that field empty on the app.</p>
 
       <h2 id="domain" className="text-xl font-bold mt-10 mb-4 text-foreground">A domain for the app</h2>
-      <p className="text-muted text-sm leading-relaxed mb-4">In the app&apos;s <strong className="text-foreground">Domain &amp; folder</strong> tab, type a domain name. A new name is created; an existing domain is re-pointed at the app. nginx proxies it to the app&apos;s port, and a deployment that changes the port takes the domain with it.</p>
-      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-10">
-        <li>The app needs a port — set on it, or in <code className={C}>ez.json</code> with one deployment done.</li>
-        <li>Tick <strong className="text-foreground">Request an SSL certificate</strong> to issue one over HTTP-01 at the same time. If it cannot be issued (the DNS does not point here yet) the domain still works over HTTP and you can issue it later from the SSL page.</li>
-        <li>The result is an ordinary domain: it appears on the Domains page and is edited there.</li>
-        <li>Deleting an app asks what to do with its domain. The default is to keep it.</li>
+      <p className="text-muted text-sm leading-relaxed mb-4">In the app&apos;s <strong className="text-foreground">Domain &amp; folder</strong> tab, type a domain name and optionally its <strong className="text-foreground">www</strong> form. A new name is created; an existing domain is re-pointed at the app. nginx proxies it to the app&apos;s port, and a deployment that changes the port takes the domain with it. The validation and nginx output are the same as the Domains page.</p>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
+        <li>The app needs a port — set on it, or in <code className={C}>ez.json</code> with one deployment done — otherwise the link is refused with what to do.</li>
+        <li><strong className="text-foreground">New certificate</strong> — issued over HTTP-01 at the same time (also covering <code className={C}>www</code> when chosen). If it cannot be issued (the DNS does not point here yet) the domain still works over HTTP; the result says why and you can issue it later from the SSL page.</li>
+        <li><strong className="text-foreground">Existing certificate</strong> — choose one from the server&apos;s suggestion, wildcards included. Only the paths in that suggestion are used; a path typed by the caller is ignored.</li>
+        <li><strong className="text-foreground">No certificate</strong> — the link is HTTP only.</li>
+        <li><strong className="text-foreground">Redirect HTTP → HTTPS</strong> is on by default whenever a certificate is used, and the <strong className="text-foreground">Behind Cloudflare</strong> option works exactly as it does on the Domains page.</li>
+        <li><strong className="text-foreground">A new wildcard certificate is refused.</strong> Wildcards need DNS-01, which linking does not do. Issue it from the SSL page, then link the app with that existing certificate.</li>
+        <li>The result is an ordinary domain: it appears on the Domains page and is edited there. Deleting an app asks what to do with its domain; the default is to keep it.</li>
       </ul>
 
       <h2 id="folder" className="text-xl font-bold mt-10 mb-4 text-foreground">Where apps live, and moving one</h2>
@@ -338,12 +369,12 @@ export default function DeploymentsPage() {
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Deploy</td><td className="py-3 px-4 text-muted text-xs">Start a deployment of an existing app from its configured repository.</td></tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Roll back</td><td className="py-3 px-4 text-muted text-xs">Switch an app back to an earlier release.</td></tr>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">View deployment logs</td><td className="py-3 px-4 text-muted text-xs">Read a deployment&apos;s output.</td></tr>
-          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Create, edit and delete apps</td><td className="py-3 px-4 text-muted text-xs">Add an app from a repository, change its settings, issue its deploy token, delete an old release, or remove the app.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Create, edit and delete apps</td><td className="py-3 px-4 text-muted text-xs">Add an app from a repository, change its settings, issue its deploy token, generate or regenerate its deploy key, test it, add it to GitHub read-only, delete an old release, or remove the app.</td></tr>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Read and edit environment variables</td><td className="py-3 px-4 text-muted text-xs">Separate from managing an app on purpose. Values pass through the Hub while being edited and are not stored there.</td></tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Deploy from CI through the Hub</td><td className="py-3 px-4 text-muted text-xs">Let a GitHub Action trigger a deployment by calling the Hub.</td></tr>
         </tbody>
       </table>
-      <p className="text-muted text-sm leading-relaxed mb-10">The list of apps and their status is always visible on the Hub: a paired server is a monitored server. It contains the <em>names</em> of environment variables, never their values. A deploy key cannot be generated from the Hub — its private half never leaves the server.</p>
+      <p className="text-muted text-sm leading-relaxed mb-10">The list of apps and their status is always visible on the Hub: a paired server is a monitored server. It contains the <em>names</em> of environment variables, never their values. A deploy key can be generated, regenerated, tested and added to GitHub from the Hub under <code className={C}>deploy.manage</code>; only its public half and fingerprint ever come back. Linking a domain needs <code className={C}>deploy.manage</code> and <code className={C}>domains.create</code>, and <code className={C}>ssl.issue</code> when a new certificate is requested.</p>
 
       <h2 id="rollback" className="text-xl font-bold mt-10 mb-4 text-foreground">Rolling back</h2>
       <p className="text-muted text-sm leading-relaxed mb-4">The app&apos;s <strong className="text-foreground">Releases</strong> tab lists what is on disk. Rolling back starts an earlier release exactly as it was built — nothing is fetched or rebuilt. The newest five releases are kept by default (2–20); the live one and the one before it are never deleted. The list follows a deployment started from outside the dashboard — a push through GitHub Actions or the Hub — on its own.</p>
@@ -355,7 +386,8 @@ export default function DeploymentsPage() {
 ez_deploys/<app>/shared/           ← the persistent paths (folders and files) listed under persistent data
 ez_deploys/<app>/logs/<id>.log     ← that deployment's output
 ez_deploys/<app>/runs/<id>.json    ← that deployment's state
-ez_deploys/<app>/id_deploy         ← the app's private deploy key (owner-only)`}</CodeBlock>
+ez_deploys/<app>/id_deploy         ← the app's private deploy key (mode 600)
+ez_deploys/<app>/known_hosts       ← GitHub's pinned host keys, written before a fetch`}</CodeBlock>
 
       <DocsPagination
         prev={{ title: "SSL Manager", href: "/docs/ssl", section: "Using the CLI" }}

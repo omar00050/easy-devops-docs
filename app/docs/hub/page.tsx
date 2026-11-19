@@ -43,7 +43,7 @@ const permissionGroups = [
   },
   {
     group: "Deployments",
-    allowed: "Deploy, roll back, read deployment logs, create and manage apps, read or edit environment variables, and trigger deploys from CI through the Hub.",
+    allowed: "Deploy, roll back, read deployment logs, create and manage apps, generate or regenerate a deploy key, test it and add it to GitHub, read or edit environment variables, link a domain with SSL, and trigger deploys from CI through the Hub.",
   },
   {
     group: "Processes",
@@ -141,6 +141,20 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
         <li>An unpaired server is a fully local product. Nothing about the Hub is required.</li>
         <li>Monitoring arrives on the same connection — no extra port or agent to install.</li>
       </ul>
+
+      <h2 id="server-page" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Inside a server
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        A paired server opens on the same sections as its own dashboard, in the same order and with the
+        same names and icons: <strong className="text-foreground">Overview</strong>, <strong className="text-foreground">Domains</strong>, <strong className="text-foreground">SSL certificates</strong>, <strong className="text-foreground">Nginx</strong>, <strong className="text-foreground">Deployments</strong>, <strong className="text-foreground">Notifications</strong>, <strong className="text-foreground">Processes</strong>, <strong className="text-foreground">Logs</strong> and <strong className="text-foreground">Settings</strong>.
+        The server list and switcher, the identity row with one overflow menu (rename, regenerate
+        secret, remove), account and management sit around that view; the permission tree is read-only
+        under Settings.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        A screen the Hub has no command for is read-only and says <strong className="text-foreground">Managed on the server</strong>, rather than offering a control that cannot work. Settings follows the same rule: it shows what the server reported, and changes are made on the server&apos;s own dashboard.
+      </p>
 
       <h2 id="permissions" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Hub permissions
@@ -243,7 +257,11 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
         <li>Point <code className={C}>EZ_DEPLOY_URL</code> at the Hub instead of the server; the workflow file does not change.</li>
       </ol>
       <p className="text-sm text-muted leading-relaxed mb-10">
-        The server still verifies the app token itself; the Hub stores nothing. See{" "}
+        The server still verifies the app token itself; the Hub stores nothing. If the server is
+        offline, does not answer, or refuses, the Action gets the same non-5xx answers as a command:
+        <code className={C}>409 AGENT_OFFLINE</code>, <code className={C}>424 AGENT_TIMEOUT</code> or
+        <code className={C}>422 AGENT_ERROR</code>, with <code className={C}>error</code> and
+        <code className={C}>code</code> in the body. See{" "}
         <a href="/docs/deployments#github-actions">Deploying from GitHub Actions</a> for the workflow
         and the two secrets it needs.
       </p>
@@ -266,17 +284,83 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.run</td><td className="py-3 px-4 text-muted text-xs">Start a deployment of an existing app from its configured repository.</td></tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.rollback</td><td className="py-3 px-4 text-muted text-xs">Switch an app back to an earlier release still on this server.</td></tr>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.logs</td><td className="py-3 px-4 text-muted text-xs">Read a deployment&apos;s output.</td></tr>
-          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.manage</td><td className="py-3 px-4 text-muted text-xs">Create, edit and delete apps; issue a deploy token; link or unlink a domain; move an app; delete an old release.</td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.manage</td><td className="py-3 px-4 text-muted text-xs">Create, edit and delete apps; issue a deploy token; generate, regenerate and test a deploy key and add it to GitHub read-only; link or unlink a domain; move an app; delete an old release.</td></tr>
           <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.env</td><td className="py-3 px-4 text-muted text-xs">Read and edit environment variables. Values pass through the Hub while being edited and are not stored there.</td></tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 font-mono text-xs text-primary">deploy.ci</td><td className="py-3 px-4 text-muted text-xs">Let a GitHub Action trigger a deployment by calling the Hub with the app&apos;s own token.</td></tr>
         </tbody>
       </table>
-      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
-        <li>Linking an app to a domain from the Hub also needs the matching <code className={C}>domains.create</code> or <code className={C}>domains.edit</code> permission, and removing the domain needs <code className={C}>domains.delete</code>. Managing apps does not imply managing domains.</li>
-        <li>A certificate is never requested by the Hub&apos;s link action. That stays a separate <code className={C}>ssl.issue</code> action.</li>
-        <li>A deploy key cannot be generated from the Hub: its private half never leaves the server.</li>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
+        <li>Linking an app to a domain from the Hub needs <code className={C}>deploy.manage</code> <em>and</em> <code className={C}>domains.create</code>. Removing the domain needs <code className={C}>domains.delete</code> as well. Managing apps does not imply managing domains.</li>
+        <li>The link can use <strong className="text-foreground">no certificate</strong>, a <strong className="text-foreground">new one over HTTP-01</strong>, or an <strong className="text-foreground">existing one from the server&apos;s suggestion</strong>, wildcards included. A new certificate also needs <code className={C}>ssl.issue</code>, and a new wildcard is refused because DNS-01 is out of scope here.</li>
+        <li>A deploy key can be generated or regenerated, tested and added to GitHub from the Hub; only its public half and fingerprint come back. A token typed for &quot;Add it to GitHub for me&quot; passes through once and is not stored.</li>
         <li>The app list is monitoring and always visible; it carries environment-variable <em>names</em>, never values.</li>
       </ul>
+
+      <h3 id="live-progress" className="text-base font-bold mt-8 mb-3 text-foreground">Live progress</h3>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Any deployment streams into its run view while it runs — the current step, and new log lines
+        when <code className={C}>deploy.logs</code> is granted — wherever it was started: the Hub, the
+        server&apos;s own dashboard, <code className={C}>ezz daemon</code> or a CI hook. At most one event per second; one event
+        carries at most 200 lines and 32 KiB, each line capped at 2000 characters, and the newest are
+        kept if more arrived.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        Every line is redacted with the app&apos;s environment values and token, and PEM private-key
+        blocks are removed on the server before they are sent. The Hub stores nothing: once the
+        deployment ends, the stored run is the source of truth.
+      </p>
+
+      <h2 id="commands" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Commands, and how they answer
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The Hub sends commands down the connection the server already holds open. An action that
+        finishes in seconds is answered in the same request; a long one is accepted and keeps running
+        on the server. Both are covered by the permissions above.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li><strong className="text-foreground">Quick actions</strong> — reading or saving an nginx
+          config, logs, the deployment list or one app&apos;s detail, a certificate suggestion, a PM2
+          start/stop/restart — are answered within <strong className="text-foreground">15 seconds</strong>.
+          The page shows the server&apos;s actual result, not an assumption.</li>
+        <li><strong className="text-foreground">Long actions</strong> — a deployment, a rollback,
+          certificate issue or renewal, nginx start/stop/restart — are accepted immediately and keep
+          running. Their progress arrives as live events. If you reload the page, the Hub still has the
+          answer for <strong className="text-foreground">10 minutes</strong>, so the page can collect it
+          without running the command again.</li>
+        <li><strong className="text-foreground">A failure says which kind.</strong> An offline server
+          is <code className={C}>409 AGENT_OFFLINE</code> and nothing was sent; no answer within 15
+          seconds is <code className={C}>424 AGENT_TIMEOUT</code> and names the command; the
+          server&apos;s own refusal is <code className={C}>422 AGENT_ERROR</code>. The body keeps
+          <code className={C}>error</code> and adds <code className={C}>code</code>. These are
+          deliberately not 5xx: the Hub sits behind Cloudflare, which may replace an origin 5xx page
+          and hide the reason. None of them leave a spinner up.</li>
+        <li><strong className="text-foreground">A result belongs to you.</strong> It is readable only by
+          the account that owns the server, and expires when its ten minutes are up.</li>
+        <li><strong className="text-foreground">The deployment panel follows the server.</strong> The app
+          list is pushed when a run starts or ends; <strong className="text-foreground">Refresh</strong>
+          re-reads the details and the run log, and returning to a background tab does one fresh read.
+          Nothing polls a command every few seconds.</li>
+      </ul>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        The server still checks every command against its own permission tree before running it, and it
+        writes one timing line per command to its log — name, duration and outcome, never the payload.
+      </p>
+
+      <h2 id="signing-in" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Signing in to the Hub
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Failed sign-in attempts are limited per client address — the address the Hub sees through its
+        proxy, not one the browser can choose. Only <em>failed</em> attempts count, so several people
+        behind one office address do not lock each other out by signing in normally.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        When the limit is reached the Hub answers <code className={C}>429</code> with a wait, and the
+        page says <strong className="text-foreground">&quot;Try again in …&quot;</strong> and disables
+        the button until the countdown ends. That message is deliberately different from a wrong email
+        or password, so a correct password is never reported as incorrect.
+      </p>
 
       <a
         href="https://ez.hub.devxor.team"
