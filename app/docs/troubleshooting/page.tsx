@@ -1,0 +1,563 @@
+import type { Metadata } from "next";
+import DocsPagination from "@/components/DocsPagination";
+import DocPage from "@/components/DocPage";
+import CodeBlock from "@/components/CodeBlock";
+
+export const metadata: Metadata = {
+  title: "Troubleshooting",
+  description:
+    "Find the right Easy DevOps log for each service mode, confirm what the service is really doing, tell a clean stop from a crash, and fix the known install, UAC, runtime and Hub problems.",
+  keywords: ["Easy DevOps troubleshooting", "Easy DevOps logs", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop"],
+  alternates: { canonical: "/docs/troubleshooting" },
+  openGraph: {
+    type: "article",
+    url: "/docs/troubleshooting",
+    siteName: "Easy DevOps",
+    title: "Troubleshooting",
+    description:
+      "Logs per mode, service state, clean stop versus crash, and the fixes for known issues.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Troubleshooting",
+    description:
+      "Logs per mode, service state, clean stop versus crash, and the fixes for known issues.",
+  },
+};
+
+const C = "font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded";
+
+const badgeBase =
+  "ml-2 inline-flex items-center rounded border px-1.5 py-0.5 align-middle font-mono text-[9px] font-bold uppercase tracking-wider";
+const badgeFixed = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
+const badgeAny = `${badgeBase} border-border bg-surface text-muted`;
+
+export default function TroubleshootingPage() {
+  return (
+    <DocPage
+      section="Operations"
+      title="Troubleshooting"
+      description="Start with the log for the mode this server runs in, then with what the service manager actually reports. Most problems end there; the rest are listed below with their fix."
+    >
+
+      <h2 id="logs" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Logs, per mode
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Which file to open depends on how Easy DevOps runs here. The mode decides the supervisor,
+        and the supervisor decides the log names:
+      </p>
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Mode</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Log</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">What is in it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-3 px-4 text-foreground font-medium whitespace-nowrap">Windows Server</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary leading-relaxed align-top">
+              C:\ProgramData\easy-devops\logs\EasyDevOps.wrapper.log<br />
+              C:\ProgramData\easy-devops\logs\EasyDevOps.out.log<br />
+              C:\ProgramData\easy-devops\logs\EasyDevOps.err.log
+            </td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">
+              WinSW start and stop records; then the daemon&apos;s output, then its errors. The service runs as <code className={C}>NT SERVICE\EasyDevOps</code>.
+            </td>
+          </tr>
+          <tr className="bg-primary/[0.015]">
+            <td className="py-3 px-4 text-foreground font-medium whitespace-nowrap">Windows Personal</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary leading-relaxed align-top">
+              %APPDATA%\easy-devops\daemon-supervisor.log
+            </td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">
+              The Startup-folder supervisor, which runs while the user is logged in. <code className={C}>ezz service status</code> prints the exact path.
+            </td>
+          </tr>
+          <tr>
+            <td className="py-3 px-4 text-foreground font-medium whitespace-nowrap">Linux</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary leading-relaxed align-top">
+              journalctl -u easy-devops
+            </td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">
+              The stream of the systemd unit <code className={C}>easy-devops.service</code>, including every start and stop.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <CodeBlock lang="bash" filename="terminal">{`# any mode: the most recent daemon output and errors
+ezz service logs
+
+# Linux: the same stream from the unit, last 100 lines or live
+journalctl -u easy-devops -n 100 --no-pager
+journalctl -u easy-devops -f`}</CodeBlock>
+
+      <div className="mb-10 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">note</div>
+        <p className="text-muted leading-relaxed">
+          The wrapper log exists only where WinSW runs — Windows Server mode. In Personal mode there
+          is no wrapper, so <code className={C}>daemon-supervisor.log</code> is the log to read;{" "}
+          <code className={C}>ezz service status</code> prints where it is.
+        </p>
+      </div>
+
+      <h2 id="check-the-state" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Check the state
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        In 1.4.1, <code className={C}>ezz service status</code> asks Windows or systemd directly, so
+        its answer agrees with <code className={C}>sc query</code> and with the daemon heartbeat. If
+        the stored record and Windows disagree, it says so and tells you to run{" "}
+        <code className={C}>ezz service install</code>.
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell (Administrator)">{`ezz service status
+
+# the Service Control Manager's own view
+sc.exe query EasyDevOps
+sc.exe qc EasyDevOps
+Get-Service EasyDevOps
+
+# services.msc lists it as "Easy DevOps"`}</CodeBlock>
+
+      <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">important</div>
+        <p className="text-muted leading-relaxed">
+          In PowerShell, type <code className={C}>sc.exe</code> — never <code className={C}>sc</code>.{" "}
+          <code className={C}>sc</code> is PowerShell&apos;s alias for{" "}
+          <code className={C}>Set-Content</code>, so it silently writes a file instead of querying the
+          service. In <strong className="text-foreground">cmd</strong>,{" "}
+          <code className={C}>sc query EasyDevOps</code> works as expected.
+        </p>
+      </div>
+
+      <CodeBlock lang="bash" filename="Linux">{`systemctl status easy-devops
+systemctl is-enabled easy-devops   # does it start by itself?`}</CodeBlock>
+
+      <h2 id="clean-stop-or-crash" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Clean stop or crash
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The same stop and restart can be routine or a failure. The wording in the logs is what
+        separates them:
+      </p>
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Signal</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Clean stop or restart</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Crash</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">out.log<br /><span className="font-normal text-muted">(Server mode)</span></td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed font-mono">Received SIGINT. Stopping...<br />Stopped.</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">ends with an error or a stack trace, with no stopping line before the exit</td>
+          </tr>
+          <tr className="bg-primary/[0.015]">
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">wrapper.log</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">Stopping EasyDevOps, then <span className="font-mono">Process &lt;pid&gt; canceled with code 0</span>; a restart then shows <span className="font-mono">Starting WinSW in service mode</span> and <span className="font-mono">Started process &lt;pid&gt;</span></td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">the process exits with a non-zero code, and the next start is WinSW reacting to that exit</td>
+          </tr>
+          <tr>
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">Timing</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">only the restart you asked for — a stop, restart, update or repair</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">WinSW restarts it after 5 s, then 20 s, then every minute</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">note</div>
+        <p className="text-muted leading-relaxed">
+          <code className={C}>Starting WinSW in console mode</code> lines are written every time a
+          command calls the wrapper — install, status and the rest. They are not restarts.
+        </p>
+      </div>
+
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        <code className={C}>ezz service status</code> calls it a crash loop only when it finds three
+        or more real, service-mode process starts within ten minutes that were not clean restarts. A
+        single failure is reported as a failure, not as a loop.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        On Linux the same distinction is in <code className={C}>journalctl</code>:
+      </p>
+      <CodeBlock lang="text" filename="journalctl -u easy-devops">{`Stopped easy-devops.service.                          # a clean stop
+Main process exited, code=exited, status=1/FAILURE     # a crash
+Scheduled restart job                                  # systemd will try again`}</CodeBlock>
+
+      <h2 id="known-problems" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Known problems and fixes
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Each entry is the symptom you saw, the cause, and the fix. Version numbers name the release
+        that changed the behaviour. Every entry carries a label: problems marked{" "}
+        <span className={badgeFixed}>fixed in 1.4.1</span> can only be met by people who installed
+        1.4.0 — update to 1.4.1 or later; problems marked{" "}
+        <span className={badgeAny}>any version</span> can still happen on the current release.
+      </p>
+
+      <h3 id="npm-ebusy" className="text-base font-bold mt-8 mb-3 text-foreground">
+        npm fails with EBUSY on better_sqlite3.node
+        <span className={badgeAny}>any version</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> Updating with{" "}
+        <code className={C}>npm i -g easy-devops</code>, or installing a downloaded package with{" "}
+        <code className={C}>npm i -g ./easy-devops-&lt;version&gt;.tgz</code>, fails with{" "}
+        <code className={C}>EBUSY: resource busy or locked</code> on a path ending in{" "}
+        <code className={C}>better_sqlite3.node</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> An Easy DevOps process from the old
+        version is still running from the npm folder that is being replaced, and Windows keeps the
+        native module file locked. Usually it is a dashboard started from the menu — its command
+        line contains <code className={C}>src\dashboard\server.js</code> — or another{" "}
+        <code className={C}>ezz</code> window left open.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-3">
+        <strong className="text-foreground">Fix.</strong> Stop that process, then install again.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        1. Find the candidates — this lists every Node process with its command line:
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`Get-CimInstance Win32_Process -Filter "name='node.exe'" | Select ProcessId, CommandLine`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        2. Stop <strong className="text-foreground">only</strong> the Easy DevOps process whose
+        CommandLine points into the global npm folder&apos;s easy-devops package — for example{" "}
+        <code className={C}>...\npm\node_modules\easy-devops\src\dashboard\server.js</code> or{" "}
+        <code className={C}>...\easy-devops\src\cli\index.js</code>:
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`Stop-Process -Id <ProcessId>`}</CodeBlock>
+      <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">warning</div>
+        <p className="text-muted leading-relaxed">
+          Never stop PM2 apps or other node processes you do not recognise. Never stop the Windows
+          service&apos;s <code className={C}>C:\ProgramData\easy-devops\runtime\node.exe</code> —
+          that is the background service, which runs from its own copy and does not block npm. Use{" "}
+          <code className={C}>ezz service stop</code> if you want it stopped.
+        </p>
+      </div>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        3. If npm left a half-renamed folder behind, delete the leftover{" "}
+        <code className={C}>node_modules\.easy-devops-*</code> folder in the global npm folder
+        (find it with <code className={C}>npm root -g</code>):
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`Get-ChildItem (npm root -g) -Filter '.easy-devops-*' -Force | Remove-Item -Recurse -Force`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        4. Run the install again: <code className={C}>npm i -g easy-devops</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Prevention.</strong> Stop the dashboard before updating
+        (Easy DevOps &gt; Dashboard &gt; Stop) and close other <code className={C}>ezz</code> windows.
+      </p>
+
+      <h3 id="winsw-xml-not-found" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Server-mode install fails: WinSW-x64.xml not found
+        <span className={badgeFixed}>fixed in 1.4.1</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In 1.4.0 the install stops at{" "}
+        <code className={C}>Registering the service</code> with{" "}
+        <code className={C}>Unable to locate WinSW-x64.[xml|yml] file within executable directory</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The 1.4.0 build did not put the WinSW
+        definition file next to the wrapper executable, which is exactly where the wrapper looks for it.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> Update to 1.4.1 with{" "}
+        <code className={C}>npm install -g easy-devops@latest</code> or{" "}
+        <code className={C}>ezz update</code>, then run <code className={C}>ezz service install</code>{" "}
+        again in an Administrator PowerShell. It reuses the data already moved to{" "}
+        <code className={C}>C:\ProgramData\easy-devops</code>, renames the old{" "}
+        <code className={C}>WinSW-x64.exe</code>, registers, starts and verifies the service.
+      </p>
+
+      <h3 id="stray-sc-files" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Stray files named query, qc, stop, start or delete
+        <span className={badgeFixed}>fixed in 1.4.1</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> Files appear in the folder the command
+        was run from — often <code className={C}>C:\Windows\System32</code> in an Administrator
+        PowerShell — with the content <code className={C}>EasyDevOps</code>. The same cause made{" "}
+        <code className={C}>ezz service stop</code> and <code className={C}>ezz service start</code>{" "}
+        report success without touching the service.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> 1.4.0, and earlier 1.4.1 builds, called{" "}
+        <code className={C}>sc</code>, which PowerShell maps to <code className={C}>Set-Content</code>:
+        the query or control word was written to a file instead of sent to the service.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> Delete them; they are harmless. 1.4.1 always
+        calls <code className={C}>sc.exe</code>.
+      </p>
+
+      <h3 id="status-unknown" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Status says Running: no (unknown), or calls a restart a crash loop
+        <span className={badgeFixed}>fixed in 1.4.1</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong>{" "}
+        <code className={C}>ezz service status</code> prints{" "}
+        <code className={C}>Running: no (unknown)</code> and{" "}
+        <code className={C}>Start on boot: unknown</code> while Windows reports the service{" "}
+        <code className={C}>RUNNING</code>, or it reports a crash loop after a routine restart.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> In 1.4.0 the status query went through{" "}
+        <code className={C}>sc</code>, which PowerShell turns into <code className={C}>Set-Content</code>,
+        so no answer came back; and every{" "}
+        <code className={C}>Starting WinSW in console mode</code> line was counted as a restart.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> 1.4.1 asks Windows with{" "}
+        <code className={C}>sc.exe</code> and counts only real service-mode process starts — three
+        unclean restarts in ten minutes is a crash loop. Update, then run{" "}
+        <code className={C}>ezz service status</code> again.
+      </p>
+
+      <h3 id="uac-unknown-publisher" className="text-base font-bold mt-8 mb-3 text-foreground">
+        A UAC prompt says Unknown publisher
+        <span className={badgeAny}>any version</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> A UAC prompt for{" "}
+        <code className={C}>EasyDevOps.exe</code> shows <code className={C}>Unknown publisher</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> <code className={C}>EasyDevOps.exe</code>{" "}
+        is WinSW, the open-source service wrapper, v2.12.0, downloaded from its GitHub release and
+        verified by SHA-256 before use. It is not code-signed, so Windows cannot show a publisher.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> 1.4.1 checks elevation first and stops with{" "}
+        <code className={C}>Open PowerShell with Run as administrator and run the command again</code>{" "}
+        before copying or migrating anything, so in an elevated terminal no prompt appears. Open an
+        Administrator PowerShell and run the install there.
+      </p>
+
+      <h3 id="slow-first-start" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The first start looks stuck
+        <span className={badgeAny}>any version</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> The install waits, then reports{" "}
+        <code className={C}>started, still initialising</code> while the service is already{" "}
+        <code className={C}>RUNNING</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The first start of the copied{" "}
+        <code className={C}>node.exe</code> can take tens of seconds because Windows Defender scans
+        it. The install waits about 45 s for the daemon to report in.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> Check again a minute later with{" "}
+        <code className={C}>ezz service status</code>. Nothing needs reinstalling.
+      </p>
+
+      <h3 id="repair-while-running" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Repair fails while the service is running
+        <span className={badgeFixed}>fixed in 1.4.1</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In 1.4.0,{" "}
+        <code className={C}>ezz service repair</code> fails with{" "}
+        <code className={C}>EBUSY ... runtime\node.exe</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> Windows locks a running executable, so
+        the runtime copy cannot be replaced underneath it.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> 1.4.1 stops the service, refreshes the
+        runtime copy, starts it again and restores the previous copy if the new one does not start.
+        Update, then run <code className={C}>ezz service repair</code>.
+      </p>
+
+      <h3 id="install-stopped-halfway" className="text-base font-bold mt-8 mb-3 text-foreground">
+        An install that stopped half way
+        <span className={badgeAny}>any version</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> The install ended in the middle — a
+        network drop, a refused elevation prompt, or a terminal that was closed.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The step never finished, so the service
+        may be partly registered and the data partly moved.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> Run <code className={C}>ezz service install</code>{" "}
+        again; it resumes. Server mode and the migrated data are kept, and any half-registered service
+        is removed and registered again.
+      </p>
+
+      <h3 id="original-data" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Where the original data went
+        <span className={badgeAny}>any version</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> After moving to Server mode,{" "}
+        <code className={C}>%APPDATA%\easy-devops</code> is no longer where it was and you need the
+        old copy, or you want Personal mode back.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The migration renames the old data
+        directory out of the way. Normally it is{" "}
+        <code className={C}>%APPDATA%\easy-devops.backup-&lt;date-time&gt;</code>; if Windows could not
+        rename it, it was left at <code className={C}>%APPDATA%\easy-devops</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> The install prints the path, and nothing is
+        deleted. To move the data back to <code className={C}>%APPDATA%</code>, run{" "}
+        <code className={C}>ezz service uninstall</code> and choose to move the data back — the
+        default keeps <code className={C}>C:\ProgramData\easy-devops</code>. Personal mode needs the
+        data back in <code className={C}>%APPDATA%</code> first.
+      </p>
+
+      <h3 id="backup-at-null" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The install prints migrated; backup at null
+        <span className={badgeFixed}>fixed in 1.4.1</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> During the move to Server mode, the
+        install says <code className={C}>migrated; backup at null</code> instead of naming a backup
+        directory.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The install process still had the
+        database open, so Windows refused to rename the original to its backup name. The original was
+        always kept — the message simply did not say where.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> Nothing was lost: the data is at{" "}
+        <code className={C}>%APPDATA%\easy-devops</code>, or at the path the entry above describes.
+        1.4.1 closes the database for the move and prints the real backup path, or where the
+        original was left.
+      </p>
+
+      <h3 id="hub-state-not-reported" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Hub says the agent state is not reported yet
+        <span className={badgeFixed}>fixed in 1.4.1</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong>{" "}
+        <code className={C}>ezz hub status</code> or <code className={C}>ezz hub connect</code> says
+        the agent state is <code className={C}>not reported by the background service yet</code>,
+        while the Hub shows the server online.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> In 1.4.0 the CLI could not read the
+        service&apos;s named pipe, which belongs to{" "}
+        <code className={C}>NT SERVICE\EasyDevOps</code>. The connection itself is fine — only the
+        report is missing.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> 1.4.1 also reads the state the service
+        writes to its data directory. If it still says so, check that the service is running and read{" "}
+        <code className={C}>EasyDevOps.out.log</code>.
+      </p>
+
+      <h3 id="cmd-vs-powershell" className="text-base font-bold mt-8 mb-3 text-foreground">
+        cmd versus PowerShell
+        <span className={badgeAny}>any version</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        <strong className="text-foreground">Symptom.</strong> A command that works in cmd does nothing
+        in PowerShell, or an environment variable prints empty.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        <strong className="text-foreground">Cause.</strong> The two shells name the same things
+        differently, and <code className={C}>sc</code> means <code className={C}>Set-Content</code> in
+        PowerShell. Use the form for the shell you are in:
+      </p>
+      <table className="w-full text-sm border-collapse mb-8">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Task</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">cmd</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">PowerShell</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">Query the service</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary">sc query EasyDevOps</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary">sc.exe query EasyDevOps</td>
+          </tr>
+          <tr className="bg-primary/[0.015]">
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">Restart it</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary">sc stop EasyDevOps<br />sc start EasyDevOps</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary">Restart-Service EasyDevOps<br />Get-Service EasyDevOps</td>
+          </tr>
+          <tr>
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">Data directory</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary">%APPDATA%</td>
+            <td className="py-3 px-4 font-mono text-[11px] text-primary">$env:APPDATA</td>
+          </tr>
+          <tr className="bg-primary/[0.015]">
+            <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap">Server mode</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed" colSpan={2}>
+              Run Easy DevOps commands from an <strong className="text-foreground">Administrator PowerShell</strong>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="recover" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        How to recover
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Four commands cover almost every recovery. Run the Windows ones in an Administrator terminal
+        when the service is in Server mode.
+      </p>
+      <CodeBlock lang="bash" filename="terminal">{`ezz service install     # safe to repeat; re-registers the service
+ezz service restart     # stop and start in one step
+ezz service repair      # after nginx/SSL path changes or an update
+ezz service uninstall   # keeps the data by default; nginx and sites untouched`}</CodeBlock>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
+        <li><strong className="text-foreground">Reinstall</strong> — <code className={C}>ezz service install</code> is safe to repeat; it re-registers the service.</li>
+        <li><strong className="text-foreground">Stop, start, restart</strong> — <code className={C}>ezz service stop|start|restart</code>, or services.msc, or <code className={C}>sc.exe stop EasyDevOps</code> and <code className={C}>sc.exe start EasyDevOps</code>. On Linux, <code className={C}>sudo systemctl restart easy-devops</code>.</li>
+        <li><strong className="text-foreground">Repair</strong> — <code className={C}>ezz service repair</code> after changing nginx or SSL paths, or after an update.</li>
+        <li><strong className="text-foreground">Uninstall</strong> — <code className={C}>ezz service uninstall</code> asks whether to keep the data in <code className={C}>C:\ProgramData\easy-devops</code> (the default) or move it back to <code className={C}>%APPDATA%</code>. nginx and your sites are never touched.</li>
+      </ul>
+
+      <h2 id="asking-for-help" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        What to send when asking for help
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Open an issue at{" "}
+        <a href="https://github.com/omar00050/Easy-DevOps/issues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+          github.com/omar00050/Easy-DevOps/issues
+        </a>{" "}
+        and include:
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
+        <li>The full output of <code className={C}>ezz service status</code>.</li>
+        <li>The last ~50 lines of the relevant logs — <code className={C}>ezz service logs</code>, or the files above, or <code className={C}>journalctl</code>.</li>
+        <li><code className={C}>ezz --version</code>, or the banner.</li>
+        <li>Windows edition and build (<code className={C}>winver</code>, or <code className={C}>Get-ComputerInfo -Property OsName,OsVersion</code>), or the Linux distribution (<code className={C}>cat /etc/os-release</code>).</li>
+        <li>The Node version.</li>
+      </ul>
+
+      <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">warning</div>
+        <p className="text-muted leading-relaxed">
+          Remove secrets before posting: Hub connection strings and pairing links, passwords, tokens,
+          webhook URLs, Telegram bot tokens, environment values and private keys.
+        </p>
+      </div>
+
+      <DocsPagination
+        prev={{ title: "Maintenance & Updates", href: "/docs/maintenance", section: "Operations" }}
+        next={{ title: "Dashboard API", href: "/docs/api", section: "Reference" }}
+      />
+    </DocPage>
+  );
+}

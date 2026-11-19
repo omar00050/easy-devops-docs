@@ -184,6 +184,15 @@ ezz runtime update   # move the service to a newer Node, with rollback`}</CodeBl
         </p>
       </div>
 
+      <div className="mt-3 rounded-xl border border-border bg-surface p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-primary">troubleshooting</div>
+        <p className="text-muted leading-relaxed">
+          A stop that was not clean, a crash loop, or an install that failed at the service step —
+          see <a href="/docs/troubleshooting" className="text-primary hover:underline">Troubleshooting</a> for
+          the log to read in each mode and the known fixes.
+        </p>
+      </div>
+
       <DocsPagination
         prev={{ title: "Deployments", href: "/docs/deployments", section: "Using the CLI" }}
         next={{ title: "Easy DevOps Hub", href: "/docs/hub", section: "Operations" }}

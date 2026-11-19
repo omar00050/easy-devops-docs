@@ -160,9 +160,18 @@ ezz cleanup --yes      # in scripts, after reviewing the list`}</CodeBlock>
         </div>
       </div>
 
+      <div className="mb-2 rounded-xl border border-border bg-surface p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-primary">troubleshooting</div>
+        <p className="text-muted leading-relaxed">
+          When an update or repair did not finish, or the service keeps restarting,{" "}
+          <a href="/docs/troubleshooting" className="text-primary hover:underline">Troubleshooting</a> covers
+          the logs, the clean-stop versus crash signals and the recovery commands.
+        </p>
+      </div>
+
       <DocsPagination
         prev={{ title: "Easy DevOps Hub", href: "/docs/hub", section: "Operations" }}
-        next={{ title: "Dashboard API", href: "/docs/api", section: "Reference" }}
+        next={{ title: "Troubleshooting", href: "/docs/troubleshooting", section: "Operations" }}
       />
     </DocPage>
   );

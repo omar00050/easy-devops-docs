@@ -57,6 +57,15 @@ export default function InstallationPage() {
         </ul>
       </div>
 
+      <div className="mt-6 bg-surface border border-border rounded-xl p-6 text-sm">
+        <p className="text-muted">
+          Install stopped half way, or a UAC prompt said{" "}
+          <strong className="text-foreground">Unknown publisher</strong>?{" "}
+          <a href="/docs/troubleshooting" className="text-primary hover:underline font-medium">Troubleshooting</a>{" "}
+          lists the known install problems, each with its cause and fix.
+        </p>
+      </div>
+
       <DocsPagination
         prev={{ title: "Features", href: "/docs/features", section: "Getting Started" }}
         next={{ title: "Quick Start", href: "/docs/quickstart", section: "Getting Started" }}
