@@ -6,8 +6,8 @@ import DocPage from "@/components/DocPage";
 export const metadata: Metadata = {
   title: "Deployments",
   description:
-    "Deploy a project from a git repository with Easy DevOps: built on the server, run under PM2, health-checked, rolled back automatically, and triggered from the dashboard or GitHub Actions. Optional ez.json keeps the commands with the code, and persistent paths keep a database, uploads and logs across deployments.",
-  keywords: ["deploy from GitHub", "GitHub Actions deploy", "PM2 deployment", "ez.json", "persistent data", "persistent files", "SQLite deploy", "automatic rollback", "self-hosted CI/CD", "deploy hook", "Node.js deployment"],
+    "Deploy a project from a git repository with Easy DevOps: built on the server, run under PM2, health-checked, rolled back automatically, and triggered from the dashboard or GitHub Actions. Ordered deploy steps and a runtime are set per app or in ez.json, and persistent paths keep a database, uploads and logs across deployments.",
+  keywords: ["deploy from GitHub", "GitHub Actions deploy", "PM2 deployment", "ez.json", "deploy steps", "runtime", "Node.js presets", "persistent data", "persistent files", "SQLite deploy", "automatic rollback", "self-hosted CI/CD", "deploy hook", "Node.js deployment"],
   alternates: { canonical: "/docs/deployments" },
   openGraph: {
     type: "article",
@@ -39,7 +39,7 @@ export default function DeploymentsPage() {
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
         <li><strong className="text-foreground">Fetch</strong> — a fresh checkout into its own release folder. The running release is never built over.</li>
         <li><strong className="text-foreground">Settings</strong> — read from <code className={C}>ez.json</code>, then <code className={C}>package.json</code>, with anything you set on the app taking precedence.</li>
-        <li><strong className="text-foreground">Pre hook → install → build → migrate</strong> — in the new folder, with the paths listed under <a href="#persistent-data" className="text-primary hover:underline">persistent data</a> linked in first.</li>
+        <li><strong className="text-foreground">Pre hook → steps</strong> — the ordered steps run in the new folder, with the paths listed under <a href="#persistent-data" className="text-primary hover:underline">persistent data</a> linked in first. Install, build, migrate and custom steps run in list order; a disabled step is skipped.</li>
         <li><strong className="text-foreground">Switch</strong> — the old process is stopped and the new one started under PM2, as <code className={C}>ez-&lt;name&gt;</code>. A cluster app that is already running in cluster mode is reloaded instead, with no downtime.</li>
         <li><strong className="text-foreground">Health check</strong> — the app must answer on its port and stay online under PM2 before the deployment counts.</li>
         <li><strong className="text-foreground">Post hook</strong>, then old releases are pruned.</li>
@@ -60,6 +60,68 @@ export default function DeploymentsPage() {
         <li><strong className="text-foreground">Whether the previous release came back</strong> — the run distinguishes &quot;rolled back to the previous release&quot; from &quot;the rollback also failed, the app may be down&quot;. There is nothing to roll back to on a first deployment, and automatic rollback can be switched off per app.</li>
         <li><strong className="text-foreground">The last lines of the new release&apos;s PM2 output</strong>, with every environment value on the app replaced by <code className={C}>***</code>. They are read <em>before</em> the rollback reuses the PM2 name, so they still belong to the release that failed.</li>
       </ul>
+
+      <h2 id="runtime" className="text-xl font-bold mt-10 mb-4 text-foreground">Runtime and presets</h2>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        Every app records the runtime it runs on. <strong className="text-foreground">Node.js</strong> is the only
+        one you can select today; Python, Go and a static site appear on the same card row, disabled and
+        labelled <strong className="text-foreground">Coming soon</strong>, so the plan is visible rather than a
+        field that silently does not exist. The runtime is stored on the app and in <code className={C}>ez.json</code>;
+        cluster mode is available for <code className={C}>node</code> only.
+      </p>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        Under the Node.js card, a <strong className="text-foreground">Preset</strong> fills in a starting set of
+        commands:
+      </p>
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Preset</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Proposes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Default Node app</td><td className="py-3 px-4 text-muted text-xs"><code className={C}>npm ci</code>, then <code className={C}>npm start</code></td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Next.js</td><td className="py-3 px-4 text-muted text-xs"><code className={C}>npm ci</code> and <code className={C}>npm run build</code>, then <code className={C}>npm start</code></td></tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">NestJS</td><td className="py-3 px-4 text-muted text-xs"><code className={C}>npm ci</code> and <code className={C}>npm run build</code>, then <code className={C}>node dist/main.js</code></td></tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Express / Fastify</td><td className="py-3 px-4 text-muted text-xs"><code className={C}>npm ci</code>, then <code className={C}>node server.js</code></td></tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors"><td className="py-3 px-4 text-foreground font-medium">Nuxt</td><td className="py-3 px-4 text-muted text-xs"><code className={C}>npm ci</code> and <code className={C}>npm run build</code>, then the Node server</td></tr>
+        </tbody>
+      </table>
+      <p className="text-muted text-sm leading-relaxed mb-10">
+        A preset only proposes commands. It asks before replacing anything you already wrote, and it never starts a
+        deployment. Check the project&apos;s real start and build commands before relying on one — a preset is a
+        starting point, not a detection.
+      </p>
+
+      <h2 id="steps" className="text-xl font-bold mt-10 mb-4 text-foreground">Steps</h2>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        What a deployment runs is an ordered list of at most <strong className="text-foreground">five steps</strong>.
+        Each one is a command line, a kind, and an on/off switch. It can be set on the app in the dashboard or in
+        the Hub, or in <code className={C}>ez.json</code>.
+      </p>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
+        <li><strong className="text-foreground">Kinds</strong> — <code className={C}>install</code>, <code className={C}>build</code>, <code className={C}>migrate</code> and <code className={C}>custom</code>. The first three keep their old behaviour (a migration still carries the forward-only warning); a custom step is just a command in the list.</li>
+        <li><strong className="text-foreground">Order is the list.</strong> Drag a row, or use its move-up / move-down buttons — the buttons are the keyboard-accessible way and focus follows the moved row.</li>
+        <li><strong className="text-foreground">Disable instead of deleting</strong> when you want to keep a command for later. A disabled step is skipped and the deployment log says so.</li>
+        <li><strong className="text-foreground">A failure stops there.</strong> A non-zero exit aborts the deployment before the switch, so the running release is untouched. The run record&apos;s <code className={C}>step</code> is the kind, or <code className={C}>step N</code> (its 1-based position) for a custom step.</li>
+        <li><strong className="text-foreground">Order warnings, never errors.</strong> A <code className={C}>migrate</code> before <code className={C}>install</code>, a <code className={C}>build</code> before <code className={C}>install</code>, or a <code className={C}>migrate</code> before <code className={C}>build</code> will probably fail — only enabled steps count — and the warning says which step to move. It is shown beside the list, not used to refuse the save.</li>
+      </ul>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        <strong className="text-foreground">Old apps keep working.</strong> The older <code className={C}>install</code>,{" "}
+        <code className={C}>build</code> and <code className={C}>migrate</code> settings are still read as the equivalent
+        steps, so nothing has to be migrated by hand. One catch: an app whose saved settings still use those fields keeps
+        winning over a <code className={C}>steps</code> list in <code className={C}>ez.json</code> — its commands are what
+        deploys — and the app says so. Save the app&apos;s commands as steps to make the choice explicit; saving with
+        steps removes the old fields.
+      </p>
+      <p className="text-muted text-sm leading-relaxed mb-10">
+        When you have not overridden the list, the form cannot show the file&apos;s steps: the API returns what the app
+        overrides, not the resolved <code className={C}>ez.json</code> list. It shows a read-only{" "}
+        <strong className="text-foreground">inherited from ez.json</strong> panel and an{" "}
+        <strong className="text-foreground">Override steps</strong> button instead of guessing. Leave the override empty
+        and the file decides.
+      </p>
 
       <h2 id="requirements" className="text-xl font-bold mt-10 mb-4 text-foreground">Requirements</h2>
       <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-4">
@@ -124,9 +186,12 @@ export default function DeploymentsPage() {
       <h2 id="ez-json" className="text-xl font-bold mt-10 mb-4 text-foreground">ez.json</h2>
       <p className="text-muted text-sm leading-relaxed mb-4">Optional. Put it in the repository to keep the commands with the code. It is looked for at <code className={C}>ez.json</code>, then <code className={C}>deploy/ez.json</code>, then <code className={C}>.deploy/ez.json</code>.</p>
       <CodeBlock lang="json" filename="ez.json">{`{
-  "install": "npm ci",
-  "build": "npm run build",
-  "migrate": "npx prisma migrate deploy",
+  "runtime": "node",
+  "steps": [
+    { "run": "npm ci", "kind": "install" },
+    { "run": "npm run build", "kind": "build" },
+    { "run": "npx prisma migrate deploy", "kind": "migrate" }
+  ],
   "start": "node dist/server.js",
   "port": 3000,
   "health": "/healthz",
@@ -138,6 +203,10 @@ export default function DeploymentsPage() {
     "post": "node scripts/warm-cache.js"
   }
 }`}</CodeBlock>
+      <p className="text-muted text-sm leading-relaxed mb-4">
+        An older file that still uses <code className={C}>install</code>, <code className={C}>build</code> and{" "}
+        <code className={C}>migrate</code> as single fields deploys exactly as before; each one is read as a step.
+      </p>
       <table className="w-full text-sm border-collapse mb-6">
         <thead>
           <tr>
@@ -148,18 +217,28 @@ export default function DeploymentsPage() {
         </thead>
         <tbody>
           <tr className="hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className={C}>runtime</code></td>
+            <td className="py-3 px-4 text-muted text-xs"><code className={C}>&quot;node&quot;</code> — the only one accepted today</td>
+            <td className="py-3 px-4 text-muted text-xs"><code className={C}>node</code></td>
+          </tr>
+          <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
+            <td className="py-3 px-4"><code className={C}>steps</code></td>
+            <td className="py-3 px-4 text-muted text-xs">Up to five ordered <code className={C}>{`{ run, kind, enabled? }`}</code> entries — see <a href="#steps" className="text-primary hover:underline">steps</a></td>
+            <td className="py-3 px-4 text-muted text-xs">The old <code className={C}>install</code>/<code className={C}>build</code>/<code className={C}>migrate</code> fields, then <code className={C}>package.json</code></td>
+          </tr>
+          <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>install</code></td>
-            <td className="py-3 px-4 text-muted text-xs">A command, a list of commands, or <code className={C}>false</code> to skip</td>
+            <td className="py-3 px-4 text-muted text-xs">A command, a list of commands, or <code className={C}>false</code> to skip — still accepted, read as an <code className={C}>install</code> step</td>
             <td className="py-3 px-4 text-muted text-xs"><code className={C}>npm ci</code> with a lockfile (yarn and pnpm are detected), else <code className={C}>npm install</code></td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>build</code></td>
-            <td className="py-3 px-4 text-muted text-xs">Same</td>
+            <td className="py-3 px-4 text-muted text-xs">Same, read as a <code className={C}>build</code> step</td>
             <td className="py-3 px-4 text-muted text-xs">The <code className={C}>build</code> script, if the project has one</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>migrate</code></td>
-            <td className="py-3 px-4 text-muted text-xs">Same, run in the new release after <code className={C}>build</code> and before <code className={C}>start</code></td>
+            <td className="py-3 px-4 text-muted text-xs">Same, read as a <code className={C}>migrate</code> step after <code className={C}>build</code> and before <code className={C}>start</code></td>
             <td className="py-3 px-4 text-muted text-xs">No migration step</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
@@ -247,6 +326,7 @@ export default function DeploymentsPage() {
       <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-6">
         <li>The app needs a port — set on it, or in <code className={C}>ez.json</code> with one deployment done — otherwise the link is refused with what to do.</li>
         <li><strong className="text-foreground">New certificate</strong> — issued over HTTP-01 at the same time (also covering <code className={C}>www</code> when chosen). If it cannot be issued (the DNS does not point here yet) the domain still works over HTTP; the result says why and you can issue it later from the SSL page.</li>
+        <li><strong className="text-foreground">The link shows its stages live</strong> — <code className={C}>domain</code>, the certificate stages, <code className={C}>https</code>, nginx test and reload, then HTTPS verification — in the same dialog, through <code className={C}>ssl:progress</code>. A failed link is reported once, with its cause and what to do next.</li>
         <li><strong className="text-foreground">Existing certificate</strong> — choose one from the server&apos;s suggestion, wildcards included. Only the paths in that suggestion are used; a path typed by the caller is ignored.</li>
         <li><strong className="text-foreground">No certificate</strong> — the link is HTTP only.</li>
         <li><strong className="text-foreground">Redirect HTTP → HTTPS</strong> is on by default whenever a certificate is used, and the <strong className="text-foreground">Behind Cloudflare</strong> option works exactly as it does on the Domains page.</li>

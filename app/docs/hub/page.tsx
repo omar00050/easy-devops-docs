@@ -7,8 +7,8 @@ import { ArrowRight, Cloud, Monitor, Server, ShieldCheck, ExternalLink } from "l
 export const metadata: Metadata = {
   title: "Easy DevOps Hub",
   description:
-    "Pair an Easy DevOps server with the Hub: the outbound agent, the ezops:// connection string, per-permission control that is enforced locally, process control, agent statuses and deployments.",
-  keywords: ["Easy DevOps Hub", "remote server management", "pair server", "hub permissions", "deploy through hub"],
+    "Pair an Easy DevOps server with the Hub from the dashboard or the CLI: the outbound agent, the ezops:// connection string, per-permission control that is enforced locally, process control, agent statuses and deployments.",
+  keywords: ["Easy DevOps Hub", "remote server management", "pair server", "hub pairing CLI", "hub permissions", "deploy through hub"],
   alternates: { canonical: "/docs/hub" },
   openGraph: {
     type: "article",
@@ -113,9 +113,9 @@ export default function HubPage() {
         Pairing a server
       </h2>
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
-        <li>Add the server in the Hub and copy the connection string it issues.</li>
-        <li>Open the dashboard on the server: <strong className="text-foreground">Settings → Hub</strong>.</li>
-        <li>Paste the string and save. The agent connects outbound and the status turns <strong className="text-green-500">connected</strong>.</li>
+        <li>Add the server in the Hub. It offers two pairing methods: a connection string, or a one-time command for the server&apos;s terminal.</li>
+        <li>With the connection string: open the dashboard on the server, <strong className="text-foreground">Settings → Hub</strong>, paste it and save.</li>
+        <li>With the command: run it on the server as it is shown. The string is fetched by the server itself, so nothing is pasted into a dashboard.</li>
       </ol>
       <p className="text-sm text-muted leading-relaxed mb-4">
         The connection string is three pipe-separated fields:{" "}
@@ -136,10 +136,30 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
 #   { hubUrl, serverId, secret }
 # The secret is never returned by an API, never logged,
 # and never sent to the browser.`}</CodeBlock>
-      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
         <li>Re-pairing replaces the existing link; the old secret stops working.</li>
         <li>An unpaired server is a fully local product. Nothing about the Hub is required.</li>
         <li>Monitoring arrives on the same connection — no extra port or agent to install.</li>
+      </ul>
+
+      <h3 id="pairing-cli" className="text-base font-bold mt-8 mb-3 text-foreground">Pairing from the terminal</h3>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The Hub&apos;s Add server page has a <strong className="text-foreground">From the CLI</strong> tab. It creates
+        a command and shows it with a <strong className="text-foreground">five-minute countdown</strong> and a{" "}
+        <strong className="text-foreground">Copy</strong> button:
+      </p>
+      <CodeBlock lang="bash" filename="on the server">{`ezz hub connect https://ez.hub.devxor.team/api/v1/connect/cli/<token>
+
+# The agent reports back:
+#   Linked to https://ez.hub.devxor.team.
+#   Server: a1b2c3d4-...
+#   Connected to https://ez.hub.devxor.team.`}</CodeBlock>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-6">
+        <li><strong className="text-foreground">The link lasts five minutes and works once.</strong> The token in the path is the credential; the Hub deletes it on the first successful fetch. An expired, used, replaced or revoked link says which it is, and a new one is created in the Hub.</li>
+        <li><strong className="text-foreground">Creating it rotates the server&apos;s secret</strong> and disconnects the agent that was connected. If the server was already linked, the Hub asks before doing that — the old agent goes offline and stays offline until it re-pairs.</li>
+        <li><strong className="text-foreground">The command is the only copy of the link.</strong> It is shown in the Hub, copied from there, and fetched by the server over https. The connection string is never in the Hub&apos;s response, its logs or the page.</li>
+        <li><strong className="text-foreground">The tab shows the real outcome.</strong> It waits for the server to report <strong className="text-green-500">connected</strong> rather than assuming the command worked; if the agent is offline it keeps waiting and says so.</li>
+        <li><strong className="text-foreground">From the terminal afterwards:</strong> <code className={C}>ezz hub status</code> prints the Hub origin, the server id, the granted permissions and the agent state, and <code className={C}>ezz hub unlink --yes</code> removes the local link. The Hub keeps the server listed as offline until it is deleted there.</li>
       </ul>
 
       <h2 id="server-page" className="text-xl font-bold mt-10 mb-4 text-foreground">

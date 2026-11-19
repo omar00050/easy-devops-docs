@@ -35,6 +35,7 @@ const groups: CmdGroup[] = [
       { name: "Nginx Manager", description: "Start, stop, reload or restart nginx, test config, view error log, install nginx." },
       { name: "SSL Manager", description: "Create a certificate, renew one, renew everything expiring within 30 days." },
       { name: "Domain Manager", description: "List, add, edit, enable/disable, delete reverse proxy configs." },
+      { name: "Hub", description: "Connect this server to an Easy DevOps Hub, show the agent state, or unlink it." },
       { name: "Open Dashboard", description: "Start the web dashboard (React UI served by the Express + Socket.io server), open it, or stop it." },
       { name: "Settings", description: "Port, auth and listen address, directories, ACME email, auto-renew, deployments folder, Linux permissions." },
       { name: "Check for Updates", description: "Checks the npm registry for a new version of easy-devops and installs it." },
@@ -59,6 +60,9 @@ const groups: CmdGroup[] = [
       { name: "cleanup", description: "List reclaimable files (runtime backups, old logs, stale locks, nginx .bak files, PM2 logs, Node versions) and remove the ones you choose. Use --days N for the log age." },
       { name: "uninstall", description: "Remove Easy DevOps. Needs --purge to do anything; the data directory is exported as a backup first." },
       { name: "dashboard setup-code", description: "Issue a new first-run setup code, printed to the local terminal only." },
+      { name: "hub connect <link>", description: "Pair with a Hub using the command from its \"From the CLI\" option. The one-time link lasts five minutes, works once, and rotates the server's secret." },
+      { name: "hub status", description: "Show the Hub origin, server id, granted permissions and the agent state. Never prints the secret." },
+      { name: "hub unlink", description: "Remove the local pairing. Add --yes in a script. The Hub keeps the server listed as offline until it is deleted there." },
       { name: "system-info", description: "Print detected system info (OS, Node, nginx) and exit." },
     ],
   },
@@ -114,6 +118,14 @@ const groups: CmdGroup[] = [
     ],
   },
   {
+    title: "Hub Sub-commands",
+    commands: [
+      { name: "Connect / re-pair", description: "Paste the one-time command's link (or a full ezops:// string). It is fetched once, saved, and the agent's own state is shown when it reports." },
+      { name: "Status", description: "The Hub origin, server id, how many permissions are granted and the agent state, without any secret." },
+      { name: "Unlink", description: "Remove the pairing on this server. The Hub keeps the server row until it is deleted there." },
+    ],
+  },
+  {
     title: "Settings Sub-commands",
     commands: [
       { name: "Dashboard Port", description: "Set the port the web dashboard listens on (default: 6443)." },
@@ -163,6 +175,7 @@ export default async function CommandsPage() {
   🌐 Nginx Manager
   🔒 SSL Manager
   🔗 Domain Manager
+  🔌 Hub
   🎛️ Open Dashboard
   ⚙️ Settings
   🔄 Check for Updates

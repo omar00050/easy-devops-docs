@@ -16,8 +16,8 @@ import {
 export const metadata: Metadata = {
   title: "CLI Interface",
   description:
-    "The Easy DevOps interactive CLI: the real main menu, its sub-menus, live service status, and every non-interactive command and global flag.",
-  keywords: ["Easy DevOps CLI", "ezz command", "interactive DevOps menu", "terminal UI", "CLI flags"],
+    "The Easy DevOps interactive CLI: the real main menu, its sub-menus, clean pages with a breadcrumb, and every non-interactive command and global flag.",
+  keywords: ["Easy DevOps CLI", "ezz command", "interactive DevOps menu", "terminal UI", "CLI flags", "CLI pairing"],
   alternates: { canonical: "/docs/cli" },
   openGraph: {
     type: "article",
@@ -42,6 +42,7 @@ const menuMap = [
   { icon: Globe, title: "Nginx Manager", desc: "Start, stop, reload or restart nginx, test the config, view the error log, install nginx." },
   { icon: ShieldCheck, title: "SSL Manager", desc: "Create a certificate, renew one, renew everything expiring within 30 days." },
   { icon: Link2, title: "Domain Manager", desc: "List, add, edit, enable/disable and delete reverse-proxy domains." },
+  { icon: Link2, title: "Hub", desc: "Connect this server to an Easy DevOps Hub, check the agent state, or unlink it." },
   { icon: LayoutDashboard, title: "Open Dashboard", desc: "Start the web dashboard, open it in a browser, or stop it." },
   { icon: Settings, title: "Settings", desc: "Port, auth and listen address, directories, ACME email, auto-renew, deployments folder, Linux permissions." },
   { icon: RefreshCw, title: "Check for Updates", desc: "Ask npm for a newer Easy DevOps release and install it." },
@@ -58,6 +59,7 @@ const flags = [
   { flag: "cleanup", desc: "List reclaimable files and remove the ones you choose. Add --days N for the log age." },
   { flag: "uninstall", desc: "Remove Easy DevOps. Needs --purge to do anything." },
   { flag: "dashboard <action>", desc: "Currently setup-code: issue a new first-run setup code." },
+  { flag: "hub <action>", desc: "connect <link>, status or unlink [--yes]. Pair this server with a Hub from the terminal, or inspect and remove the pairing." },
   { flag: "--dash", desc: "Run the dashboard in this terminal and print its URL." },
   { flag: "--dev", desc: "Use an isolated .dev-data directory; combine with --dash." },
   { flag: "--classic-ui", desc: "Serve the legacy EJS dashboard for one run." },
@@ -74,6 +76,7 @@ const subMenus = [
   { name: "Domain Manager", items: "List Domains · Add Domain · Edit Domain · Enable / Disable Domain · Delete Domain" },
   { name: "Node.js Manager", items: "Switch Node version · Manage global packages · Update npm" },
   { name: "Open Dashboard", items: "Start dashboard · Stop dashboard · Open in browser · How to use (the first two depend on whether it is already running)" },
+  { name: "Hub", items: "Connect / re-pair · Status · Unlink (the same as ezz hub connect | status | unlink)" },
   { name: "Settings", items: "Dashboard Port · Dashboard Auth · Listen On · Nginx Directory · SSL Directory · ACME Email · SSL Auto-Renew · Deployments Folder · Setup Linux Permissions" },
 ];
 
@@ -103,6 +106,20 @@ export default function CliPage() {
         <li>Prompts validate as you type: domain names, ports and paths are checked before a config is written.</li>
         <li>The CLI and the dashboard read the same SQLite database, so a domain added in either place appears in both.</li>
         <li>Node.js versions are fetched live from nvm (<code className={C}>nvm ls-remote --lts</code> on Linux, <code className={C}>nvm list available</code> on Windows) — the menu never ships a hard-coded list.</li>
+      </ul>
+
+      <h2 id="pages" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Clean pages, and nothing to scroll back through
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Each screen is drawn from a clean page with a breadcrumb — <code className={C}>Easy DevOps &gt; SSL &gt; Issue</code> —
+        instead of stacking every menu you passed on the way. The screen is cleared only where clearing helps:
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-8">
+        <li><strong className="text-foreground">A real terminal</strong> gets the clear sequence. It also removes the previous page from the scrollback, so an old menu cannot be scrolled back into view by mistake.</li>
+        <li><strong className="text-foreground">A pipe, a file or CI never gets an escape byte.</strong> <code className={C}>ezz hub status | tee log</code> and a CI log stay plain text with every line intact; the same is true of a captured test run.</li>
+        <li><strong className="text-foreground">Long operations hold their result until Enter</strong>, so it does not vanish behind the next repaint. When nobody can press Enter — a pipe or CI — the prompt is skipped rather than hanging the script.</li>
+        <li><strong className="text-foreground">One label for leaving.</strong> Every sub-menu shows <code className={C}>← Back</code>; the main menu shows <code className={C}>✖ Exit</code>. Ctrl+C still leaves from any prompt.</li>
       </ul>
 
       <h2 id="menu-map" className="text-xl font-bold mt-10 mb-4 text-foreground">
