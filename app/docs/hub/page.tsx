@@ -176,6 +176,39 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
         A screen the Hub has no command for is read-only and says <strong className="text-foreground">Managed on the server</strong>, rather than offering a control that cannot work. Settings follows the same rule: it shows what the server reported, and changes are made on the server&apos;s own dashboard.
       </p>
 
+      <h2 id="certificates" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Issuing and deleting certificates from the Hub
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Since 1.4.2 the Hub&apos;s <strong className="text-foreground">SSL certificates</strong> section works like the
+        server&apos;s own: <strong className="text-foreground">Renew</strong>, <strong className="text-foreground">Renew all</strong>,{" "}
+        <strong className="text-foreground">New certificate</strong> and <strong className="text-foreground">Delete</strong>.
+        Each button needs its permission on the server (<code className={C}>ssl.renew</code>, <code className={C}>ssl.renewAll</code>,{" "}
+        <code className={C}>ssl.issue</code>, <code className={C}>ssl.delete</code>); without it the button stays visible,
+        disabled, and says which permission is off.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li><strong className="text-foreground">New certificate uses HTTP-01 only.</strong> The server first runs its
+          preflight (DNS records, IPv6, a public HTTP check) and the Hub shows each check. Then the nine stages arrive live:
+          preflight, account and order, challenge ready, waiting for validation, certificate received, files written,
+          nginx config test, nginx reload, https verified. nginx keeps running.</li>
+        <li><strong className="text-foreground">A failure names the stage.</strong> The failed stage is marked, with the
+          real cause, a one-line fix and what was left behind (for example, that no certificate was requested, so
+          Let&apos;s Encrypt rate limits are untouched).</li>
+        <li><strong className="text-foreground">Wildcards and DNS-01 stay on the server.</strong> They need a TXT record
+          you add by hand while the request waits, so the Hub shows the choice disabled with that reason. Issue them from
+          the server&apos;s dashboard or the CLI.</li>
+        <li><strong className="text-foreground">Delete is refused while the certificate is in use.</strong> If an enabled
+          domain with SSL, or any nginx config, still points at it, nothing is deleted and the Hub lists the domains (and the
+          config file and line). Turn SSL off on those domains, or disable them, then delete.</li>
+        <li><strong className="text-foreground">The domain form creates certificates too.</strong> Saving a domain with
+          SSL on and no certificate on disk is refused by the server with the paths it expected; the form then offers{" "}
+          <strong className="text-foreground">Create certificate</strong>, fills the paths from the result and saves again —
+          the same sequence as the server&apos;s dashboard. Blank paths mean the server&apos;s own certificate folder.</li>
+        <li><strong className="text-foreground">Running one of these once without the permission</strong> (with a PIN
+          entered on the server) is planned for 1.5.0.</li>
+      </ul>
+
       <h2 id="permissions" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Hub permissions
       </h2>
@@ -352,7 +385,9 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
           is <code className={C}>409 AGENT_OFFLINE</code> and nothing was sent; no answer within 15
           seconds is <code className={C}>424 AGENT_TIMEOUT</code> and names the command; the
           server&apos;s own refusal is <code className={C}>422 AGENT_ERROR</code>. The body keeps
-          <code className={C}>error</code> and adds <code className={C}>code</code>. These are
+          <code className={C}>error</code> and adds <code className={C}>code</code>, and a refusal with details
+          (the domains that still use a certificate, missing certificate paths) carries them as{" "}
+          <code className={C}>data</code>. These are
           deliberately not 5xx: the Hub sits behind Cloudflare, which may replace an origin 5xx page
           and hide the reason. None of them leave a spinner up.</li>
         <li><strong className="text-foreground">A result belongs to you.</strong> It is readable only by
