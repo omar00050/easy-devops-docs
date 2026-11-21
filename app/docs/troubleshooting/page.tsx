@@ -31,6 +31,7 @@ const badgeBase =
   "ml-2 inline-flex items-center rounded border px-1.5 py-0.5 align-middle font-mono text-[9px] font-bold uppercase tracking-wider";
 const badgeFixed = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 const badgeAny = `${badgeBase} border-border bg-surface text-muted`;
+const badge143 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 
 export default function TroubleshootingPage() {
   return (
@@ -197,7 +198,10 @@ Scheduled restart job                                  # systemd will try again`
         that changed the behaviour. Every entry carries a label: problems marked{" "}
         <span className={badgeFixed}>fixed in 1.4.1</span> can only be met by people who installed
         1.4.0 — update to 1.4.1 or later; problems marked{" "}
-        <span className={badgeAny}>any version</span> can still happen on the current release.
+        <span className={badgeAny}>any version</span> can still happen on the current release;
+        entries marked <span className={badge143}>new in 1.4.3</span> or{" "}
+        <span className={badge143}>fixed in 1.4.3</span> describe how administrator rights work
+        since 1.4.3.
       </p>
 
       <h3 id="npm-ebusy" className="text-base font-bold mt-8 mb-3 text-foreground">
@@ -339,7 +343,142 @@ Scheduled restart job                                  # systemd will try again`
         <strong className="text-foreground">Fix.</strong> 1.4.1 checks elevation first and stops with{" "}
         <code className={C}>Open PowerShell with Run as administrator and run the command again</code>{" "}
         before copying or migrating anything, so in an elevated terminal no prompt appears. Open an
-        Administrator PowerShell and run the install there.
+        Administrator PowerShell and run the install there. 1.4.3 replaces that stop with the relaunch
+        prompt in the entry below.
+      </p>
+
+      <h3 id="relaunch-as-administrator" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The command says This needs administrator rights
+        <span className={badge143}>new in 1.4.3</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> From a normal PowerShell,{" "}
+        <code className={C}>ezz service install</code> in Server mode,{" "}
+        <code className={C}>ezz service uninstall</code>, <code className={C}>ezz service repair</code>,{" "}
+        <code className={C}>ezz update</code>, <code className={C}>ezz runtime update</code> or{" "}
+        <code className={C}>ezz uninstall --purge</code> stops at{" "}
+        <code className={C}>This needs administrator rights. Relaunch as administrator? (Y/n)</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> Those commands replace the service&apos;s
+        files — the wrapper under <code className={C}>C:\ProgramData\easy-devops\bin</code> and the
+        pinned runtime under <code className={C}>C:\ProgramData\easy-devops\runtime</code> — which only
+        an administrator may write. 1.4.3 checks elevation before the first change, so a refused
+        prompt cannot leave the service half-replaced.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">What happens.</strong>{" "}
+        <code className={C}>Y</code>, the default, opens a new elevated PowerShell window through a
+        single UAC prompt — no password — and runs the same command with the same arguments there.
+        That window prints its own output and stays open at the end; the window you started from says
+        it handed off and changes nothing. <code className={C}>N</code> prints the exact command and
+        changes nothing.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">In a script or CI.</strong> With no terminal to ask,
+        nothing is relaunched: the command is printed and the exit code is 3, which tells a missing
+        elevation from a command that ran and failed.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Commands that never ask.</strong>{" "}
+        <code className={C}>ezz service status</code>,{" "}
+        <code className={C}>ezz service start|stop|restart</code> and the other CLI commands run as the
+        account that installed the service — see{" "}
+        <a href="/docs/service#administrator-rights" className="text-primary hover:underline">
+          Administrator rights in Server mode
+        </a>.
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`PS C:\\> ezz service install
+This needs administrator rights. Relaunch as administrator? (Y/n)
+
+# Y   -> one UAC prompt, then the same command in an elevated window
+# N   -> the command is printed, nothing changes
+# no terminal (script, CI) -> the command is printed, exit code 3`}</CodeBlock>
+
+      <h3 id="service-access-denied" className="text-base font-bold mt-8 mb-3 text-foreground">
+        ezz service start, stop or restart fails with Access is denied
+        <span className={badge143}>fixed in 1.4.3</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> From a normal PowerShell,{" "}
+        <code className={C}>ezz service start</code>, <code className={C}>ezz service stop</code> or{" "}
+        <code className={C}>ezz service restart</code> fails with{" "}
+        <code className={C}>Access is denied</code>, while the same command succeeds in an
+        Administrator PowerShell and the service is installed and running.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> Before 1.4.3 the service belonged to
+        administrators only, so only an elevated terminal could send it a start or stop.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> Install and repair now grant the account that
+        ran them — matched by SID, not by name — start, stop and query on{" "}
+        <code className={C}>EasyDevOps</code>, and nothing else: that account cannot change the
+        service&apos;s configuration and cannot delete it, and the right is never given to{" "}
+        <code className={C}>Users</code> or <code className={C}>Everyone</code>. An install made
+        before 1.4.3 gets it by running <code className={C}>ezz service repair</code> once as
+        administrator; <code className={C}>ezz service status</code> then shows it on its{" "}
+        <code className={C}>Without admin</code> line.
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`# once, in an Administrator PowerShell
+ezz service repair
+
+# then, from a normal PowerShell
+ezz service status    # Without admin: start, stop, query
+ezz service stop`}</CodeBlock>
+
+      <h3 id="readonly-database" className="text-base font-bold mt-8 mb-3 text-foreground">
+        SqliteError: attempt to write a readonly database
+        <span className={badge143}>fixed in 1.4.3</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In Server mode, a command that writes
+        fails from a normal PowerShell with{" "}
+        <code className={C}>SqliteError: attempt to write a readonly database</code> —{" "}
+        <code className={C}>ezz hub status</code>, a domain change, or any other CLI command.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The database lives in{" "}
+        <code className={C}>C:\ProgramData\easy-devops</code>, which before 1.4.3 only administrators
+        and the service account could write. Your account opened it read-only.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> 1.4.3 grants the installing account Modify
+        on <code className={C}>C:\ProgramData\easy-devops</code>, so hub status, domain changes and the
+        other CLI commands work from a normal PowerShell. On an install from before 1.4.3, run{" "}
+        <code className={C}>ezz service repair</code> once as administrator. A 1.4.3 CLI names{" "}
+        <code className={C}>ezz service repair</code> in the message instead of printing a stack trace.
+      </p>
+      <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">note</div>
+        <p className="text-muted leading-relaxed">
+          The data directory is the only part that is shared.{" "}
+          <code className={C}>C:\ProgramData\easy-devops\runtime</code> and{" "}
+          <code className={C}>...\bin</code> stay administrator-only on purpose — replacing{" "}
+          <code className={C}>node.exe</code> would run code as the service account — and they no
+          longer inherit the data directory&apos;s permissions, so this grant does not reach them.
+        </p>
+      </div>
+
+      <h3 id="update-needs-administrator" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Settings &gt; Update says to use an Administrator PowerShell
+        <span className={badge143}>new in 1.4.3</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In Server mode,{" "}
+        <strong className="text-foreground">Settings &gt; Update</strong> does not start an update when
+        the dashboard was not started elevated. It says that updating needs{" "}
+        <code className={C}>ezz update</code> from an Administrator PowerShell, with a copy button.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> An update replaces the wrapper and the
+        pinned runtime, which only an administrator may write, and a dashboard cannot raise UAC for
+        you.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Fix.</strong> Copy the command and run it in an
+        Administrator PowerShell. From a normal PowerShell, <code className={C}>ezz update</code>{" "}
+        offers the relaunch prompt described above and does the same after one UAC consent.
       </p>
 
       <h3 id="slow-first-start" className="text-base font-bold mt-8 mb-3 text-foreground">

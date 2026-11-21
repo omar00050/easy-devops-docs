@@ -97,6 +97,11 @@ ezz service restart`}</CodeBlock>
         <code className={C}>C:\ProgramData</code>. Windows Personal mode (a Startup-folder launcher)
         and everyday CLI use need none. On Linux, systemd unit installation uses{" "}
         <code className={C}>sudo</code> interactively, on your terminal — never through the dashboard.
+        Which commands need it and which do not is set out in{" "}
+        <a href="#administrator-rights" className="text-primary hover:underline">
+          Administrator rights in Server mode
+        </a>{" "}
+        below.
       </p>
 
       <table className="w-full text-sm border-collapse mb-6">
@@ -143,6 +148,95 @@ ezz service restart`}</CodeBlock>
           </tr>
         </tbody>
       </table>
+
+      <h2 id="administrator-rights" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Administrator rights in Server mode
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Since 1.4.3 the commands that replace the service&apos;s files check for an administrator
+        before they touch anything; the rest run from a normal PowerShell as your own account. Which
+        is which:
+      </p>
+      <table className="w-full text-sm border-collapse mb-6">
+        <thead>
+          <tr>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Command</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Needs an administrator</th>
+            <th className="text-left py-2.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted border-b border-border">Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="py-3 px-4 font-mono text-xs font-semibold text-primary whitespace-nowrap">service install<br />service repair</td>
+            <td className="py-3 px-4 text-muted text-xs">yes</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">Registers the service and writes the wrapper and runtime under <code className={C}>C:\ProgramData\easy-devops</code>.</td>
+          </tr>
+          <tr className="bg-primary/[0.015]">
+            <td className="py-3 px-4 font-mono text-xs font-semibold text-primary whitespace-nowrap">service uninstall<br />uninstall --purge</td>
+            <td className="py-3 px-4 text-muted text-xs">yes</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">Removes the service entry, moves the data back and on purge deletes the folder.</td>
+          </tr>
+          <tr>
+            <td className="py-3 px-4 font-mono text-xs font-semibold text-primary whitespace-nowrap">update<br />runtime update</td>
+            <td className="py-3 px-4 text-muted text-xs">yes</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">Replaces the wrapper and the pinned <code className={C}>node.exe</code>, including the native modules built for it.</td>
+          </tr>
+          <tr className="bg-primary/[0.015]">
+            <td className="py-3 px-4 font-mono text-xs font-semibold text-primary whitespace-nowrap">service start<br />service stop<br />service restart</td>
+            <td className="py-3 px-4 text-muted text-xs">no</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The installing account is granted start, stop and query on the EasyDevOps service — and nothing else.</td>
+          </tr>
+          <tr>
+            <td className="py-3 px-4 font-mono text-xs font-semibold text-primary whitespace-nowrap">service status<br />the rest of the CLI</td>
+            <td className="py-3 px-4 text-muted text-xs">no</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The installing account gets Modify on <code className={C}>C:\ProgramData\easy-devops</code>, so the database is writable from a normal PowerShell.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Run an elevated command from a normal PowerShell and it asks first:{" "}
+        <code className={C}>This needs administrator rights. Relaunch as administrator? (Y/n)</code>.
+        Yes opens a new elevated PowerShell window through a single UAC prompt — no password — which
+        runs the same command, shows its own output and stays open at the end; the original window
+        says it handed off and changes nothing. No prints the exact command and changes nothing. In a
+        script or CI there is no terminal to ask, so nothing is relaunched: the command is printed and
+        the exit code is 3.
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`ezz service install
+This needs administrator rights. Relaunch as administrator? (Y/n)
+
+# Y   -> one UAC prompt, then the same command in an elevated window
+# N   -> the command is printed, nothing changes
+# no terminal (script, CI) -> the command is printed, exit code 3`}</CodeBlock>
+
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Both rights go to the account that ran install or repair, matched by SID rather than by name:
+        start, stop and query on the service, and Modify on the data directory. Nothing else is
+        granted — that account still cannot change the service&apos;s configuration or delete it, and
+        the rights are never given to <code className={C}>Users</code> or{" "}
+        <code className={C}>Everyone</code>. <code className={C}>ezz service status</code> shows the
+        start and stop right on its <code className={C}>Without admin</code> line. An install made
+        before 1.4.3 gets both by running <code className={C}>ezz service repair</code> once as
+        administrator.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The runtime directory (<code className={C}>C:\ProgramData\easy-devops\runtime</code>) and the
+        wrapper (<code className={C}>...\bin</code>) stay administrator-only on purpose: replacing{" "}
+        <code className={C}>node.exe</code> there would run code as the service account. They no
+        longer inherit the data directory&apos;s permissions, so the access above does not reach them.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        On <code className={C}>ezz service uninstall</code> the start and stop right goes with the
+        service, and the data-directory access is removed when the data is moved back. If you keep the
+        data in <code className={C}>C:\ProgramData</code> your account keeps access, so the CLI still
+        works; <code className={C}>--purge</code> removes the folder.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        Dashboard <strong className="text-foreground">Settings &gt; Update</strong> in Server mode does
+        not start an update from a non-elevated dashboard. It shows that updating needs{" "}
+        <code className={C}>ezz update</code> from an Administrator PowerShell, with a copy button.
+      </p>
 
       <h2 id="runtime" className="text-xl font-bold mt-10 mb-4 text-foreground">
         The pinned Node runtime
