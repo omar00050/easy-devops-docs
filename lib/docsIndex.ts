@@ -143,6 +143,17 @@ export const docsIndex: DocsIndexEntry[] = [
     ],
   },
   {
+    title: "Security advisories",
+    href: "/docs/security-advisories",
+    section: "Operations",
+    description: "Affected versions, security fixes and required upgrade steps.",
+    headings: [
+      { id: "v1-4-4", text: "1.4.4 security update" },
+      { id: "upgrade", text: "How to upgrade" },
+      { id: "fixes", text: "What changed" },
+    ],
+  },
+  {
     title: "Troubleshooting",
     href: "/docs/troubleshooting",
     section: "Operations",

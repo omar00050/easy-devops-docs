@@ -19,6 +19,7 @@ const ROUTES: Array<{
   { path: "/docs/service", priority: 0.7, changeFrequency: "monthly" },
   { path: "/docs/hub", priority: 0.8, changeFrequency: "monthly" },
   { path: "/docs/maintenance", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/docs/security-advisories", priority: 0.8, changeFrequency: "weekly" },
   { path: "/docs/troubleshooting", priority: 0.7, changeFrequency: "monthly" },
   { path: "/docs/api", priority: 0.7, changeFrequency: "monthly" },
   { path: "/docs/configuration", priority: 0.7, changeFrequency: "monthly" },

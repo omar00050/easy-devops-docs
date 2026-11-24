@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import DocPage from "@/components/DocPage";
+import SecurityUpdateNotice from "@/components/SecurityUpdateNotice";
 import CodeBlock from "@/components/CodeBlock";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default function MaintenancePage() {
       title="Maintenance & Updates"
       description="The routine jobs: staying current, reclaiming disk, keeping a copy of your configuration, and leaving cleanly if you ever need to."
     >
+      <SecurityUpdateNotice />
 
       <h2 id="updates" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Updating Easy DevOps
@@ -171,7 +173,7 @@ ezz cleanup --yes      # in scripts, after reviewing the list`}</CodeBlock>
 
       <DocsPagination
         prev={{ title: "Easy DevOps Hub", href: "/docs/hub", section: "Operations" }}
-        next={{ title: "Troubleshooting", href: "/docs/troubleshooting", section: "Operations" }}
+        next={{ title: "Security advisories", href: "/docs/security-advisories", section: "Operations" }}
       />
     </DocPage>
   );

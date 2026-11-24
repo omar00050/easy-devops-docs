@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import InstallTabs from "@/components/InstallTabs";
 import DocPage from "@/components/DocPage";
+import SecurityUpdateNotice from "@/components/SecurityUpdateNotice";
 
 export const metadata: Metadata = {
   title: "Installation",
@@ -32,6 +33,7 @@ export default function InstallationPage() {
       title="Installation"
       description="Choose the method that fits your setup. The bootstrap installer handles Node.js + Easy DevOps in one pass."
     >
+      <SecurityUpdateNotice />
 
       <InstallTabs />
 

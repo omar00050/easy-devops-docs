@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DocsPagination from "@/components/DocsPagination";
 import DocPage from "@/components/DocPage";
+import SecurityUpdateNotice from "@/components/SecurityUpdateNotice";
 import CodeBlock from "@/components/CodeBlock";
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default function TroubleshootingPage() {
       title="Troubleshooting"
       description="Start with the log for the mode this server runs in, then with what the service manager actually reports. Most problems end there; the rest are listed below with their fix."
     >
+      <SecurityUpdateNotice />
 
       <h2 id="logs" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Logs, per mode
@@ -694,7 +696,7 @@ ezz service uninstall   # keeps the data by default; nginx and sites untouched`}
       </div>
 
       <DocsPagination
-        prev={{ title: "Maintenance & Updates", href: "/docs/maintenance", section: "Operations" }}
+        prev={{ title: "Security advisories", href: "/docs/security-advisories", section: "Operations" }}
         next={{ title: "Dashboard API", href: "/docs/api", section: "Reference" }}
       />
     </DocPage>

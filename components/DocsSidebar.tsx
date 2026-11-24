@@ -54,6 +54,7 @@ const groups: NavGroup[] = [
       { title: "Background Service", href: "/docs/service" },
       { title: "Easy DevOps Hub", href: "/docs/hub" },
       { title: "Maintenance & Updates", href: "/docs/maintenance" },
+      { title: "Security advisories", href: "/docs/security-advisories" },
       { title: "Troubleshooting", href: "/docs/troubleshooting" },
     ],
   },
