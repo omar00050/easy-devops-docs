@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Troubleshooting",
   description:
     "Find the right Easy DevOps log for each service mode, recover a service stopped by an older update, repair a service that runs an older version than the CLI, confirm what the service is really doing, tell a clean stop from a crash, and fix the known install, UAC, runtime and Hub problems.",
-  keywords: ["Easy DevOps troubleshooting", "Easy DevOps service recovery", "Easy DevOps 1.4.7", "Easy DevOps 1.4.6", "ezz service recover", "ezz service repair", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop", "EPERM rename jobs.owner", "version drift"],
+  keywords: ["Easy DevOps troubleshooting", "Easy DevOps service recovery", "Easy DevOps 1.4.7", "Easy DevOps 1.4.6", "ezz service recover", "ezz service repair", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop", "EPERM rename jobs.owner", "version drift", "node.exe is missing from the read-back", "ProgramData is not empty", "daemon-supervisor.cmd"],
   alternates: { canonical: "/docs/troubleshooting" },
   openGraph: {
     type: "article",
@@ -35,6 +35,7 @@ const badgeAny = `${badgeBase} border-border bg-surface text-muted`;
 const badge143 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 const badge145 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 const badge147 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
+const badge147only = `${badgeBase} border-amber-500/30 bg-amber-500/10 text-amber-500`;
 
 export default function TroubleshootingPage() {
   return (
@@ -208,6 +209,390 @@ Scheduled restart job                                  # systemd will try again`
         since 1.4.3. Entries marked <span className={badge147}>fixed in 1.4.7</span> cover the
         upgrade failures found while the 1.4.4–1.4.6 security fixes were being applied, and two
         daemon problems found on the same servers — the version drift and the state-file crash.
+        Entries marked <span className={badge147only}>1.4.7 only</span> are problems in 1.4.7
+        itself, found on real Windows servers after it was published: 1.4.8 will fix them, and until
+        then each entry gives the commands that keep that server running.
+      </p>
+
+      <h3 id="runtime-read-back-1-4-7" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Windows Server, 1.4.7: install or recover stops at &quot;runtime … node.exe is missing from
+        the read-back&quot;
+        <span className={badge147only}>1.4.7 only</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In Server mode,{" "}
+        <code className={C}>ezz service install</code> or <code className={C}>ezz service repair</code>{" "}
+        stops at the runtime step with{" "}
+        <code className={C}>
+          verifying the new permissions failed: C:\ProgramData\easy-devops\runtime\node.exe is
+          missing from the read-back. The previous permissions were restored.
+        </code>{" "}
+        Install then ends with <code className={C}>The service files could not be protected.</code>{" "}
+        <code className={C}>ezz service recover</code> stops at the same check, but says{" "}
+        <code className={C}>The permissions were not changed back automatically.</code>
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> 1.4.7 checks the new permissions by
+        running <code className={C}>icacls &quot;&lt;runtime&gt;\*&quot; /T /C</code> over the
+        whole <code className={C}>runtime</code> tree and looking for{" "}
+        <code className={C}>node.exe</code> in the output it captured — and a command&apos;s
+        captured output is kept only in its last 64 KiB. The tree holds about 10,700 files, so the
+        beginning of the listing, which is where the runtime folder&apos;s own files appear,{" "}
+        <code className={C}>node.exe</code> among them, is gone before the check parses it. A file
+        that was never seen is then reported as missing.{" "}
+        <strong className="text-foreground">Nothing is locked and no permission was lost.</strong>{" "}
+        Install and repair save the previous permissions first and put them back when the check
+        fails; recover has no saved copy, so it leaves the access lists it just wrote in place. On
+        the servers where this happened the real permissions were correct:{" "}
+        <code className={C}>node.exe</code> and <code className={C}>EasyDevOps.exe</code> inherit{" "}
+        <code className={C}>NT AUTHORITY\SYSTEM</code> full control,{" "}
+        <code className={C}>BUILTIN\Administrators</code> full control, <code className={C}>Users</code>{" "}
+        read and execute, and <code className={C}>NT SERVICE\EasyDevOps</code> read and execute;
+        the data folder gives the service account modify.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">How to check, read-only.</strong> From an Administrator
+        PowerShell — none of these commands changes anything:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`icacls "C:\ProgramData\easy-devops\runtime\node.exe"
+icacls "C:\ProgramData\easy-devops\bin\EasyDevOps.exe"
+icacls "C:\ProgramData\easy-devops"
+sc.exe query EasyDevOps`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        A good result looks like this:
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-3">
+        <li>
+          Both files list <code className={C}>NT AUTHORITY\SYSTEM</code> with{" "}
+          <code className={C}>(F)</code> or <code className={C}>(I)(F)</code>,{" "}
+          <code className={C}>BUILTIN\Administrators</code> with <code className={C}>(F)</code>, and{" "}
+          <code className={C}>NT SERVICE\EasyDevOps</code> with <code className={C}>(RX)</code>{" "}
+          (inherited reads <code className={C}>(I)(RX)</code>).
+        </li>
+        <li>
+          <code className={C}>C:\ProgramData\easy-devops</code> lists{" "}
+          <code className={C}>NT SERVICE\EasyDevOps</code> with <code className={C}>(OI)(CI)(M)</code>,
+          next to SYSTEM and Administrators.
+        </li>
+        <li>
+          <code className={C}>sc.exe query EasyDevOps</code> prints{" "}
+          <code className={C}>STATE : 1 STOPPED</code> or{" "}
+          <code className={C}>STATE : 4 RUNNING</code>. The error{" "}
+          <code className={C}>[SC] OpenService FAILED 1060</code> only means the service is not
+          registered.
+        </li>
+      </ul>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        If a file shows no entries at all, or an administrator gets{" "}
+        <code className={C}>Access is denied</code>, then the permissions really are broken: use{" "}
+        <a href="#service-stopped-after-update-1-4-4" className="text-primary hover:underline">
+          the 1.4.4–1.4.6 recovery entry
+        </a>{" "}
+        instead of this one.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">How to run now.</strong> The check that failed runs
+        after registration, so the service exists and only needs starting:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{`sc.exe start EasyDevOps
+ezz service status`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        If <code className={C}>sc.exe query EasyDevOps</code> printed{" "}
+        <code className={C}>1060</code> instead, run <code className={C}>ezz service install</code>{" "}
+        once from the Administrator PowerShell. On 1.4.7 it can stop at this same check, and it
+        registers the service before it gets there — so run{" "}
+        <code className={C}>sc.exe start EasyDevOps</code> afterwards, then{" "}
+        <code className={C}>ezz service status</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        The daemon comes up, connects to the Hub and does its work.{" "}
+        <code className={C}>Service version</code> may name 1.4.7 while{" "}
+        <code className={C}>CLI version</code> names another release — that is the{" "}
+        <a href="#version-drift" className="text-primary hover:underline">version drift</a> entry,
+        and it is not caused by this one.
+      </p>
+      <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">note</div>
+        <p className="text-muted leading-relaxed mb-2">
+          In this state the three warnings <code className={C}>ezz service status</code> prints are
+          false. They come from the install record that the failed step never finished writing, not
+          from the access lists on disk:
+        </p>
+        <ul className="list-disc pl-5 space-y-1 text-muted leading-relaxed">
+          <li>
+            <code className={C}>
+              the service has no access to … — a path in Settings changed since it was installed
+            </code>
+          </li>
+          <li>
+            <code className={C}>
+              The service files have no recorded permission check, so they may be missing or out of
+              date.
+            </code>
+          </li>
+          <li>
+            <code className={C}>
+              Starting and stopping the service, and writing its data, need an Administrator terminal
+              for your account.
+            </code>
+          </li>
+        </ul>
+        <p className="text-muted leading-relaxed mt-2">
+          Each one tells you to run <code className={C}>ezz service repair</code>. The commands
+          above are the answer instead.
+        </p>
+      </div>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">
+          On 1.4.7, do not run <code className={C}>ezz service repair</code> or{" "}
+          <code className={C}>ezz service recover</code>.
+        </strong>{" "}
+        Both run the same check. On a server whose service still runs an older runtime, repair also
+        replaces the runtime copy, fails at the same step, puts the previous copy back and restarts
+        the service on it — the rollback works, and it leaves the server on the old version, so
+        repair can never move that server to 1.4.7.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">When 1.4.8 is out.</strong> From an Administrator
+        PowerShell:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{`npm i -g easy-devops@1.4.8
+ezz service repair`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        1.4.8 will verify the folder, then the required files one by one, and scan the tree only for
+        access lists that are empty — nothing is parsed from a captured, size-limited listing any
+        more — and it will put the previous permissions back whenever a check fails, in install,
+        repair, recover and the post-update step alike. Run repair once after the update; nothing
+        else is needed.
+      </p>
+
+      <h3 id="programdata-not-empty" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Install refuses: C:\ProgramData\easy-devops is not empty
+        <span className={badge147only}>1.4.7 only</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong>{" "}
+        <code className={C}>ezz service install</code> stops before it changes anything with{" "}
+        <code className={C}>
+          C:\ProgramData\easy-devops is not empty. Move or remove its contents first; nothing has
+          been changed.
+        </code>{" "}
+        Meanwhile <code className={C}>ezz service status</code> shows{" "}
+        <code className={C}>Mechanism</code> as{" "}
+        <code className={C}>Startup-folder supervisor</code> and <code className={C}>Installed</code>{" "}
+        as <code className={C}>no</code>, there is no Windows service, and the CLI is clearly using
+        a different, near-empty database.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> An earlier Server-mode install put its
+        data in <code className={C}>C:\ProgramData\easy-devops</code>, and the Server-mode marker —
+        the file <code className={C}>C:\ProgramData\easy-devops\.server-mode</code> — is gone. That
+        marker, not the service&apos;s running state, is what selects ProgramData, so the CLI
+        started a new database in <code className={C}>%APPDATA%\easy-devops</code> with four keys:{" "}
+        <code className={C}>config</code>, <code className={C}>system-detection</code>,{" "}
+        <code className={C}>update-pre-dashboard</code> and <code className={C}>service-state</code>.
+        Install then tries to move <code className={C}>%APPDATA%</code> into a ProgramData folder
+        that already has content, and refuses. The refusal is correct — but do not remove the
+        folder: it holds the real data.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Step 1 — find which database holds the real data.</strong>{" "}
+        This is read-only. It prints the key count, the key <em>names</em> only, the file size and
+        the modified time for both databases; it never prints a value, and it opens each file with{" "}
+        <code className={C}>readonly: true, fileMustExist: true</code> through the{" "}
+        <code className={C}>better-sqlite3</code> module of the installed package — not the copy
+        under <code className={C}>runtime</code>, whose files may be unreadable in this state:
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{String.raw`$module = Join-Path (npm root -g) 'easy-devops\node_modules\better-sqlite3'
+$files  = @('C:\ProgramData\easy-devops\easy-devops.sqlite',
+            (Join-Path $env:APPDATA 'easy-devops\easy-devops.sqlite'))
+$code = @'
+const D = require(process.argv[1]);
+const fs = require('fs');
+for (const file of process.argv.slice(2)) {
+  if (!fs.existsSync(file)) { console.log(file + '\n  not present'); continue; }
+  const db = new D(file, { readonly: true, fileMustExist: true });
+  const keys = db.prepare('SELECT key FROM gooddb ORDER BY key').all().map((r) => r.key);
+  const stat = fs.statSync(file);
+  console.log(file);
+  console.log('  keys: ' + keys.length);
+  console.log('  names: ' + keys.join(', '));
+  console.log('  size: ' + stat.size + ' bytes');
+  console.log('  modified: ' + stat.mtime.toISOString());
+  db.close();
+}
+'@
+& node -e $code $module @files`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        The table is <code className={C}>gooddb</code> and there are only two columns,{" "}
+        <code className={C}>key</code> and <code className={C}>value</code>, so selecting{" "}
+        <code className={C}>key</code> cannot print a setting, a token or a password. More keys
+        means the real data: on the affected server ProgramData held 15 keys —{" "}
+        <code className={C}>domains</code>, <code className={C}>hub-link</code>,{" "}
+        <code className={C}>hub-permissions</code>, <code className={C}>sslAutoRenewState</code> and
+        the rest — while <code className={C}>%APPDATA%</code> held the four listed above.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Step 2 — stop everything that uses the data.</strong> A
+        Windows service, if one is registered, then any open <code className={C}>ezz</code> window
+        and the dashboard:
+      </p>
+      <CodeBlock lang="powershell" filename="Administrator PowerShell">{`sc.exe query EasyDevOps   # 1060 means it is not registered
+sc.exe stop EasyDevOps    # only when it is registered and running
+ezz service status        # the daemon lock must say no daemon is running`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Step 3 — back up the data only.</strong> This copies
+        everything except the code folders — <code className={C}>runtime</code>,{" "}
+        <code className={C}>runtime.prev</code> and <code className={C}>bin</code> — for
+        ProgramData, and everything for <code className={C}>%APPDATA%</code>. Robocopy exit codes 0
+        to 7 mean success; 8 or more is a failure:
+      </p>
+      <CodeBlock lang="powershell" filename="Administrator PowerShell">{String.raw`$date = Get-Date -Format yyyy-MM-dd
+robocopy "C:\ProgramData\easy-devops" "C:\easy-devops-backup-$date\programdata" /E /COPY:DAT /XD runtime runtime.prev bin
+if ($LASTEXITCODE -ge 8) { "the ProgramData copy failed with $LASTEXITCODE — stop here" }
+robocopy "$env:APPDATA\easy-devops" "C:\easy-devops-backup-$date\appdata" /E /COPY:DAT
+if ($LASTEXITCODE -ge 8) { "the %APPDATA% copy failed with $LASTEXITCODE — stop here" }`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        Check that each copied database is the same size as the original before you go on, in the
+        same PowerShell window:
+      </p>
+      <CodeBlock lang="powershell" filename="Administrator PowerShell">{String.raw`Get-Item "C:\easy-devops-backup-$date\programdata\easy-devops.sqlite",
+                "C:\easy-devops-backup-$date\appdata\easy-devops.sqlite",
+                "C:\ProgramData\easy-devops\easy-devops.sqlite",
+                "$env:APPDATA\easy-devops\easy-devops.sqlite" |
+  Select-Object FullName, Length, LastWriteTime`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Step 4a — ProgramData holds the real data</strong> (the
+        server above: 15 keys against 4). Rename the near-empty per-user folder aside — never
+        delete it — restore the marker, and install:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`Rename-Item "$env:APPDATA\easy-devops" "easy-devops.unused-$(Get-Date -Format yyyy-MM-dd)"
+
+$marker = [ordered]@{
+  enabledAt    = (Get-Date).ToUniversalTime().ToString('o')
+  migratedFrom = "$env:APPDATA\easy-devops"
+  backup       = $null
+}
+Set-Content -Path 'C:\ProgramData\easy-devops\.server-mode' -Value (ConvertTo-Json -InputObject $marker -Compress) -Encoding ascii
+Get-Content 'C:\ProgramData\easy-devops\.server-mode'   # one JSON line
+
+ezz service install`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <code className={C}>.server-mode</code> is the exact name and location 1.4.7 expects, and
+        one JSON line with <code className={C}>enabledAt</code>,{" "}
+        <code className={C}>migratedFrom</code> and <code className={C}>backup</code> is the content
+        its install writes. 1.4.7 only checks that the file exists and is a regular file, so the
+        content is for your own reference and for later releases. With the marker back, install no
+        longer migrates: it uses <code className={C}>C:\ProgramData\easy-devops</code> as it is and
+        never touches the renamed folder. On 1.4.7 it can then still stop at the runtime read-back
+        in the entry above — the data is already in place, so start the service with{" "}
+        <code className={C}>sc.exe start EasyDevOps</code> and follow that entry.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">
+          Step 4b — <code className={C}>%APPDATA%</code> holds the real data
+        </strong>{" "}
+        (it has the more keys). Rename ProgramData aside and let install migrate the per-user data:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`Rename-Item "C:\ProgramData\easy-devops" "easy-devops.old-$(Get-Date -Format yyyy-MM-dd)"
+ezz service install`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        Install copies and verifies <code className={C}>%APPDATA%</code>, keeps the original as{" "}
+        <code className={C}>%APPDATA%\easy-devops.backup-&lt;date-time&gt;</code>, writes the
+        marker, protects <code className={C}>bin</code> and <code className={C}>runtime</code>, and
+        starts the service. If it stops at the runtime step, the entry above applies.
+      </p>
+      <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">warning</div>
+        <p className="text-muted leading-relaxed">
+          Never delete either folder, and never copy one database over the other by hand while a
+          process may have it open. Keep <code className={C}>C:\easy-devops-backup-&lt;date&gt;</code>{" "}
+          until the service has run for a few days. 1.4.8 will do this automatically: it will detect
+          a ProgramData folder that holds an Easy DevOps database while the marker is missing, show
+          both databases — key count, size, modified time and key names only — and offer these same
+          two choices, with the folder with more keys as the default.
+        </p>
+      </div>
+
+      <h3 id="personal-launcher-on-server" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Repair installed the Startup launcher on Windows Server
+        <span className={badge147only}>1.4.7 only</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> On a Windows Server with no service
+        registered (<code className={C}>sc.exe query EasyDevOps</code> says{" "}
+        <code className={C}>1060</code>), <code className={C}>ezz service repair</code> reports
+        success and <code className={C}>ezz service status</code> then shows{" "}
+        <code className={C}>Mechanism</code> as{" "}
+        <code className={C}>Startup-folder supervisor</code>. Nothing starts at boot on
+        that server: the daemon it set up runs only while the user who ran repair is signed in.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> 1.4.7 chooses the mechanism from the
+        recorded mode, not from the Windows edition, and with no Server-mode marker nothing says
+        Server. With no service registered, repair therefore finishes by setting up the Personal
+        launcher, which is the right answer on a Windows desktop and the wrong one on a Server
+        edition. It writes exactly two files:
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-3">
+        <li>
+          The supervisor, <code className={C}>%APPDATA%\easy-devops\daemon-supervisor.cmd</code>,
+          which runs the daemon and restarts it.
+        </li>
+        <li>
+          The Startup entry,{" "}
+          <code className={C}>
+            %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\easy-devops-daemon.cmd
+          </code>
+          , which starts that supervisor when you sign in.
+        </li>
+      </ul>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">1. Find a running supervisor or daemon, read-only:</strong>
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*easy-devops*' } | Select-Object ProcessId, Name, CommandLine`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        Stop <strong className="text-foreground">only</strong> the Easy DevOps processes it
+        lists — the <code className={C}>cmd.exe</code> running{" "}
+        <code className={C}>daemon-supervisor.cmd</code> and the <code className={C}>node.exe</code>{" "}
+        running <code className={C}>daemon</code> from it:
+      </p>
+      <CodeBlock lang="powershell" filename="PowerShell">{`Stop-Process -Id <ProcessId>`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <code className={C}>ezz service stop</code> does the same thing in this mode: it writes the
+        stop request the supervisor and the daemon both watch, the daemon exits and the supervisor
+        does not restart it. It leaves the two files in place, so continue below.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">2. Copy both files to a backup folder, then remove only those two:</strong>
+      </p>
+      <CodeBlock lang="powershell" filename="Administrator PowerShell">{String.raw`$backup = "C:\easy-devops-launcher-backup-$(Get-Date -Format yyyy-MM-dd)"
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+Copy-Item "$env:APPDATA\easy-devops\daemon-supervisor.cmd" $backup
+Copy-Item "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\easy-devops-daemon.cmd" $backup
+
+Remove-Item "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\easy-devops-daemon.cmd"
+Remove-Item "$env:APPDATA\easy-devops\daemon-supervisor.cmd"`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        Nothing else in the data folder is removed: the database, the settings,{" "}
+        <code className={C}>daemon-supervisor.log</code> and every other file stay where they are.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">3. Install the real service</strong> from an
+        Administrator PowerShell:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{`ezz service install
+ezz service status      # Mechanism      Windows Service (WinSW)`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        If <code className={C}>C:\ProgramData\easy-devops</code> is not empty, read{" "}
+        <a href="#programdata-not-empty" className="text-primary hover:underline">
+          the entry above
+        </a>{" "}
+        first: install refuses that folder until the database question is settled, and on 1.4.7 it
+        can then stop at the runtime read-back. 1.4.8 will never set up the Personal launcher on a
+        Server edition: with no service registered it will say the service is not installed and
+        offer <code className={C}>ezz service install</code>, and an install or repair that finds
+        these two files on a Server edition will copy them to a backup folder and remove them.
       </p>
 
       <h3 id="service-stopped-after-update-1-4-4" className="text-base font-bold mt-8 mb-3 text-foreground">
