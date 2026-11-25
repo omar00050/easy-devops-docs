@@ -7,8 +7,8 @@ import CodeBlock from "@/components/CodeBlock";
 export const metadata: Metadata = {
   title: "Troubleshooting",
   description:
-    "Find the right Easy DevOps log for each service mode, confirm what the service is really doing, tell a clean stop from a crash, and fix the known install, UAC, runtime and Hub problems.",
-  keywords: ["Easy DevOps troubleshooting", "Easy DevOps logs", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop"],
+    "Find the right Easy DevOps log for each service mode, recover a service stopped by an older update, repair a service that runs an older version than the CLI, confirm what the service is really doing, tell a clean stop from a crash, and fix the known install, UAC, runtime and Hub problems.",
+  keywords: ["Easy DevOps troubleshooting", "Easy DevOps service recovery", "Easy DevOps 1.4.7", "Easy DevOps 1.4.6", "ezz service recover", "ezz service repair", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop", "EPERM rename jobs.owner", "version drift"],
   alternates: { canonical: "/docs/troubleshooting" },
   openGraph: {
     type: "article",
@@ -34,6 +34,7 @@ const badgeFixed = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 const badgeAny = `${badgeBase} border-border bg-surface text-muted`;
 const badge143 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 const badge145 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
+const badge147 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 
 export default function TroubleshootingPage() {
   return (
@@ -204,7 +205,255 @@ Scheduled restart job                                  # systemd will try again`
         <span className={badgeAny}>any version</span> can still happen on the current release;
         entries marked <span className={badge143}>new in 1.4.3</span> or{" "}
         <span className={badge143}>fixed in 1.4.3</span> describe how administrator rights work
-        since 1.4.3.
+        since 1.4.3. Entries marked <span className={badge147}>fixed in 1.4.7</span> cover the
+        upgrade failures found while the 1.4.4–1.4.6 security fixes were being applied, and two
+        daemon problems found on the same servers — the version drift and the state-file crash.
+      </p>
+
+      <h3 id="service-stopped-after-update-1-4-4" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The service stopped after updating to 1.4.4–1.4.6
+        <span className={badge147}>fixed in 1.4.7</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> The update finishes or exits part way
+        through and the background service does not come back. On Windows Server, repair can then
+        report <code className={C}>EPERM</code> while reading{" "}
+        <code className={C}>C:\ProgramData\easy-devops\bin\EasyDevOps.exe</code>, or Windows can say
+        that starting the service was refused for this account. On Linux, systemd can remain in a
+        restart loop after an update from 1.4.3. The daemon reports that it cannot initialize{" "}
+        <code className={C}>/root/.config/easy-devops/easy-devops.sqlite</code> and suggests checking
+        write access even though it runs as root.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The affected upgrades could leave a mixed
+        package, pinned runtime and service definition. On Windows Server, file protection could
+        leave files beneath <code className={C}>bin</code> and <code className={C}>runtime</code> with
+        empty access-control lists, so even an elevated administrator could not read the service
+        binary. The recorded service descriptor still granted SYSTEM and Administrators full control,
+        so the recorded failure was in the file DACLs. On Linux, the database startup message hid the
+        operating-system or native-module error that actually stopped the daemon.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        Read the{" "}
+        <a href="/docs/security-advisories" className="text-primary hover:underline">
+          security advisory and upgrade steps
+        </a>{" "}
+        before changing anything. Install 1.4.7 first. If the CLI runs, recovery is one command on
+        each platform:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{`ezz --version
+ezz service status
+ezz service recover
+ezz service status`}</CodeBlock>
+      <CodeBlock lang="bash" filename="Linux">{`ezz --version
+ezz service status
+ezz service recover
+ezz service status`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-3">
+        On Windows, 1.4.7 first restores access to the code folders, then runs the normal repair. On
+        Linux, it repairs the pinned runtime link, regenerates the unit and restarts it. Check that
+        the service manager reports running, the daemon heartbeat advances, and{" "}
+        <code className={C}>ezz service status</code> shows the same version on{" "}
+        <code className={C}>Service version</code> and <code className={C}>CLI version</code>. On
+        Windows Server, <code className={C}>EasyDevOps.out.log</code> must start with{" "}
+        <code className={C}>Easy DevOps daemon v1.4.7</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">If <code className={C}>ezz</code> cannot start on
+        Windows,</strong> open PowerShell as Administrator. First record the descriptor and the two
+        code-folder ACLs:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`whoami /groups
+sc.exe qc EasyDevOps
+sc.exe sdshow EasyDevOps
+icacls "C:\ProgramData\easy-devops\bin"
+icacls "C:\ProgramData\easy-devops\runtime"
+icacls "C:\ProgramData\easy-devops\bin\EasyDevOps.exe"
+icacls "C:\ProgramData\easy-devops\runtime\node.exe"
+icacls "C:\ProgramData\easy-devops\runtime\app\src\cli\index.js"`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        If <code className={C}>icacls</code> shows no entries for a file, reset only the files beneath{" "}
+        <code className={C}>bin</code> and <code className={C}>runtime</code>, then give the service
+        account read and execute access on both folders:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`icacls "C:\ProgramData\easy-devops\bin\*" /reset /T /C /Q
+icacls "C:\ProgramData\easy-devops\runtime\*" /reset /T /C /Q
+icacls "C:\ProgramData\easy-devops\bin" /grant "NT SERVICE\EasyDevOps:(OI)(CI)RX"
+icacls "C:\ProgramData\easy-devops\runtime" /grant "NT SERVICE\EasyDevOps:(OI)(CI)RX"
+sc.exe start EasyDevOps`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        If a reset is denied, take ownership of those files for Administrators and repeat
+        the reset and the two grants:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`icacls "C:\ProgramData\easy-devops\bin\*" /setowner *S-1-5-32-544 /T /C /Q
+icacls "C:\ProgramData\easy-devops\runtime\*" /setowner *S-1-5-32-544 /T /C /Q`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        If even that is denied — the elevated token itself is refused — run the same reset
+        and grant blocks as LocalSystem. This is the fallback{" "}
+        <code className={C}>ezz service recover</code> prints for that case: a SYSTEM
+        PowerShell from a PsExec that is already on the machine, or a one-shot scheduled
+        task whose user is SYSTEM. <code className={C}>whoami</code> must print{" "}
+        <code className={C}>nt authority\system</code>. Leave the SYSTEM session as soon as
+        the ACLs are repaired, and do not use it to edit the database or the service
+        settings.
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{String.raw`psexec -s -i powershell.exe
+whoami   # nt authority\system`}</CodeBlock>
+      <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-5 text-sm">
+        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-500">warning</div>
+        <p className="text-muted leading-relaxed">
+          Never run a recursive ACL reset on the whole{" "}
+          <code className={C}>C:\ProgramData\easy-devops</code> tree. The database, settings,
+          certificates, deployments and logs are user data. These commands touch only the separate
+          code folders. Do not guess a replacement for the service descriptor shown by{" "}
+          <code className={C}>sc.exe sdshow</code>.
+        </p>
+      </div>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">If <code className={C}>ezz</code> cannot start on
+        Linux,</strong> preserve the unit and journal, then test the pinned runtime and database
+        without changing them:
+      </p>
+      <CodeBlock lang="bash" filename="Linux">{`sudo systemctl cat easy-devops.service
+sudo systemctl show easy-devops.service -p User -p ExecStart -p FragmentPath -p DropInPaths
+sudo journalctl -u easy-devops.service -b -n 100 --no-pager
+sudo ls -la /root/.config/easy-devops/
+
+cd /usr/lib/node_modules/easy-devops
+sudo npm ls better-sqlite3 good.db
+sudo ls -la node_modules/better-sqlite3/build/Release/
+
+sudo /root/.config/easy-devops/runtime/node -e 'const D=require("better-sqlite3");const db=new D("/root/.config/easy-devops/easy-devops.sqlite",{readonly:true,fileMustExist:true});console.log(db.prepare("select name from sqlite_master").all())'
+
+sudo cp /root/.config/easy-devops/easy-devops.sqlite /tmp/ez-copy.sqlite && sudo node -e 'const D=require("better-sqlite3");new D("/tmp/ez-copy.sqlite").exec("create table if not exists _t(x)");console.log("write OK")'
+
+sudo fuser -v /root/.config/easy-devops/easy-devops.sqlite*`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        Then follow the answer, not a guess. Each result has one safe fix:
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-3">
+        <li>
+          <strong className="text-foreground">The module does not load</strong> —{" "}
+          <code className={C}>npm ls</code> fails, the <code className={C}>build/Release</code>{" "}
+          folder has no <code className={C}>better_sqlite3.node</code>, or the error names{" "}
+          <code className={C}>NODE_MODULE_VERSION</code> or a different Node: rebuild it in the
+          package folder with the Node the service runs:{" "}
+          <code className={C}>cd /usr/lib/node_modules/easy-devops &amp;&amp; sudo npm rebuild better-sqlite3</code>.
+        </li>
+        <li>
+          <strong className="text-foreground">
+            The read-only open fails with <code className={C}>SQLITE_CORRUPT</code> or{" "}
+            <code className={C}>SQLITE_NOTADB</code>
+          </strong>{" "}
+          — stop. Keep the database and its <code className={C}>-wal</code> and{" "}
+          <code className={C}>-shm</code> files, take a copy, and report it with the exact
+          error. Do not delete or recreate it.
+        </li>
+        <li>
+          <strong className="text-foreground">
+            <code className={C}>fuser</code> names a process
+          </strong>{" "}
+          — a leftover process from the failed update still holds the database. Identify it,
+          stop only that confirmed leftover Easy DevOps process, then start the service again.
+        </li>
+        <li>
+          <strong className="text-foreground">
+            The read-only open and the copy both succeed
+          </strong>{" "}
+          — the database is fine. Install 1.4.7 and run{" "}
+          <code className={C}>ezz service recover</code>: it rewrites the unit from a valid
+          template and restarts the service.
+        </li>
+      </ul>
+      <p className="text-sm text-muted leading-relaxed mb-3">
+        A malformed unit is the other half of this failure. If{" "}
+        <code className={C}>systemctl cat</code> shows <code className={C}>Environment=</code>{" "}
+        lines in <code className={C}>[Unit]</code>, or a line that ends in a comment, the unit
+        was written by 1.4.4–1.4.6. 1.4.7 builds it from a template and puts every{" "}
+        <code className={C}>Environment=</code> line in <code className={C}>[Service]</code>, so{" "}
+        <code className={C}>ezz service recover</code> replaces it. Do not edit the installed
+        unit by hand and expect the next repair to keep the edit. Read{" "}
+        <a href="/docs/security-advisories" className="text-primary hover:underline">
+          the advisory
+        </a>{" "}
+        and the{" "}
+        <a href="/docs/maintenance" className="text-primary hover:underline">update guide</a>, and
+        ask for help with the collected output if the database check fails.
+      </p>
+
+      <h3 id="version-drift" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The service runs an older version than the CLI
+        <span className={badge147}>fixed in 1.4.7</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In Windows Server mode,{" "}
+        <code className={C}>ezz --version</code> reports one version while{" "}
+        <code className={C}>ezz service status</code> shows a different{" "}
+        <code className={C}>Service version</code>, or{" "}
+        <code className={C}>C:\ProgramData\easy-devops\logs\EasyDevOps.out.log</code> starts
+        with an older <code className={C}>Easy DevOps daemon v…</code> line. Since 1.4.7{" "}
+        <code className={C}>ezz</code> prints a warning naming both versions on every command
+        except <code className={C}>daemon</code> and the repair and recover commands themselves.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The service does not run the package
+        you type. It runs its own copy under{" "}
+        <code className={C}>C:\ProgramData\easy-devops\runtime</code>, which only an
+        administrator may replace. A plain{" "}
+        <code className={C}>npm install -g easy-devops</code> updates the CLI and nothing else,
+        so before 1.4.7 the service kept running the old code — including the security problems
+        it was supposed to fix — and nothing said so. This check is Windows Server only: on Linux
+        and in Windows Personal mode the service runs the package the CLI runs, so there is no
+        second copy to compare.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> From an Administrator PowerShell:
+      </p>
+      <CodeBlock lang="powershell" filename="Windows Server, Administrator PowerShell">{`ezz service status      # Service version and CLI version
+ezz service repair      # copies the installed package to the runtime
+ezz service status      # both versions now match`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-3">
+        Nothing repairs itself on purpose: a repair replaces the code the service runs, so it
+        stays a decision you make. In an interactive terminal the warning also offers the
+        existing &quot;Relaunch as administrator?&quot; flow; from a script or CI it only warns.
+        If the versions still differ afterwards, the runtime copy could not be replaced — read{" "}
+        <code className={C}>ezz service status</code> for the reason and the wrapper log.
+      </p>
+
+      <h3 id="daemon-eperm-rename" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The daemon crashed with EPERM renaming jobs.owner
+        <span className={badge147}>fixed in 1.4.7</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> On Windows,{" "}
+        <code className={C}>EasyDevOps.err.log</code> contains{" "}
+        <code className={C}>[daemon] uncaught exception</code> with{" "}
+        <code className={C}>EPERM: operation not permitted, rename &apos;…\jobs.owner.&lt;pid&gt;.tmp&apos; -&gt; &apos;…\jobs.owner&apos;</code>{" "}
+        and the service restarts in a loop, so monitoring, notifications and the Hub keep
+        dropping.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> Every small state file is written by
+        renaming a temporary file over the old one. On Windows that rename is refused while
+        another process has the target open, even for a moment — the CLI reading the lock, the
+        dashboard reading the marker. 1.4.6 treated that refusal as fatal.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> Update to 1.4.7 and restart the
+        service. Each write now retries briefly on <code className={C}>EPERM</code>,{" "}
+        <code className={C}>EBUSY</code> and <code className={C}>EACCES</code>; a heartbeat that
+        still cannot write is logged once as{" "}
+        <code className={C}>[state] could not write …</code> and retried on the next beat
+        instead of ending the process.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-3">
+        If the message keeps appearing after the update, the data directory itself is not
+        writable or another program holds those files. Check{" "}
+        <code className={C}>icacls &quot;C:\ProgramData\easy-devops&quot;</code> and run{" "}
+        <code className={C}>ezz service repair</code> as administrator. Do not delete{" "}
+        <code className={C}>daemon.lock</code>, <code className={C}>jobs.owner</code> or{" "}
+        <code className={C}>daemon-state.json</code> while the service is running — that is how
+        two processes end up believing they own the same work.
       </p>
 
       <h3 id="npm-ebusy" className="text-base font-bold mt-8 mb-3 text-foreground">
@@ -463,7 +712,7 @@ ezz service stop`}</CodeBlock>
 
       <h3 id="service-wrapper-eperm" className="text-base font-bold mt-8 mb-3 text-foreground">
         Service repair or status fails with EPERM beside EasyDevOps.exe
-        <span className={badge145}>fixed in 1.4.5</span>
+        <span className={badge147}>fixed in 1.4.7</span>
       </h3>
       <p className="text-sm text-muted leading-relaxed mb-2">
         <strong className="text-foreground">Symptom.</strong> In Windows Server mode,{" "}
@@ -473,17 +722,26 @@ ezz service stop`}</CodeBlock>
         <code className={C}>ezz service status</code> reports <code className={C}>spawn EPERM</code>.
       </p>
       <p className="text-sm text-muted leading-relaxed mb-2">
-        <strong className="text-foreground">Cause.</strong> Versions before 1.4.5 tried to inspect or
-        replace the existing wrapper before restoring the service in a state where Windows denied
-        access. The repair could end with the service stopped and the wrapper still unreadable.
+        <strong className="text-foreground">Cause.</strong> Two different faults produce this, and{" "}
+        <code className={C}>icacls</code> tells them apart. Before 1.4.5, repair could try to
+        inspect or replace the wrapper while Windows denied access and end with the service
+        stopped. On 1.4.4–1.4.6 a repair or update could leave the files under{" "}
+        <code className={C}>bin</code> and <code className={C}>runtime</code> with an access list
+        that has no entries at all — run{" "}
+        <code className={C}>icacls "C:\ProgramData\easy-devops\bin\EasyDevOps.exe"</code> and look
+        for empty output. That is the lock-out described in the entry above.
       </p>
-      <p className="text-sm text-muted leading-relaxed mb-2">
-        <strong className="text-foreground">Fix.</strong> Update to 1.4.5, open PowerShell as
-        Administrator, run <code className={C}>ezz service repair</code>, and confirm{" "}
-        <code className={C}>ezz service start</code> and <code className={C}>ezz service status</code>{" "}
-        work from the installing account. The repaired path recovers the service first, leaves an
-        unreadable wrapper in place instead of attempting a destructive replacement, and reports the
-        wrapper problem as an explicit error.
+      <p className="text-sm leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> Update to 1.4.7, open PowerShell as
+        Administrator, and run <code className={C}>ezz service recover</code> (then{" "}
+        <code className={C}>ezz service status</code>). Recovery repairs the code-tree permissions
+        and verifies them before it runs the normal repair; if{" "}
+        <code className={C}>icacls</code> shows empty DACLs and <code className={C}>ezz</code>{" "}
+        cannot run at all, use the manual steps in{" "}
+        <a href="#service-stopped-after-update-1-4-4" className="text-primary hover:underline">
+          the 1.4.4–1.4.6 recovery entry
+        </a>
+        .
       </p>
 
       <h3 id="readonly-database" className="text-base font-bold mt-8 mb-3 text-foreground">
@@ -712,17 +970,19 @@ ezz service stop`}</CodeBlock>
         How to recover
       </h2>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        Four commands cover almost every recovery. Run the Windows ones in an Administrator terminal
+        Five commands cover almost every recovery. Run the Windows ones in an Administrator terminal
         when the service is in Server mode.
       </p>
       <CodeBlock lang="bash" filename="terminal">{`ezz service install     # safe to repeat; re-registers the service
 ezz service restart     # stop and start in one step
 ezz service repair      # after nginx/SSL path changes or an update
+ezz service recover     # repairs a service broken by an earlier upgrade
 ezz service uninstall   # keeps the data by default; nginx and sites untouched`}</CodeBlock>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
         <li><strong className="text-foreground">Reinstall</strong> — <code className={C}>ezz service install</code> is safe to repeat; it re-registers the service.</li>
         <li><strong className="text-foreground">Stop, start, restart</strong> — <code className={C}>ezz service stop|start|restart</code>, or services.msc, or <code className={C}>sc.exe stop EasyDevOps</code> and <code className={C}>sc.exe start EasyDevOps</code>. On Linux, <code className={C}>sudo systemctl restart easy-devops</code>.</li>
         <li><strong className="text-foreground">Repair</strong> — <code className={C}>ezz service repair</code> after changing nginx or SSL paths, or after an update.</li>
+        <li><strong className="text-foreground">Recover</strong> — <code className={C}>ezz service recover</code> after a 1.4.4–1.4.6 upgrade, or whenever the files under <code className={C}>bin</code> or <code className={C}>runtime</code> are unreadable. Windows Server mode only on Windows; Linux uses sudo.</li>
         <li><strong className="text-foreground">Uninstall</strong> — <code className={C}>ezz service uninstall</code> asks whether to keep the data in <code className={C}>C:\ProgramData\easy-devops</code> (the default) or move it back to <code className={C}>%APPDATA%</code>. nginx and your sites are never touched.</li>
       </ul>
 

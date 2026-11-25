@@ -4,28 +4,82 @@ import DocsPagination from "@/components/DocsPagination";
 
 export const metadata: Metadata = {
   title: "Security advisories",
-  description: "Affected versions, fixes and upgrade instructions for Easy DevOps security releases.",
+  description: "Affected versions, security fixes and upgrade instructions for Easy DevOps security releases, including the 1.4.7 recovery for servers broken by the 1.4.4–1.4.6 upgrades.",
   alternates: { canonical: "/docs/security-advisories" },
 };
 
 export default function SecurityAdvisoriesPage() {
   return (
     <DocPage section="Operations" title="Security advisories" description="Check which installations are affected and what to do on each server.">
-      <h2 id="v1-4-5" className="text-xl font-bold mb-4">1.4.5 security update</h2>
+      <h2 id="v1-4-7" className="text-xl font-bold mb-4">1.4.7: the security fixes, with an upgrade that works</h2>
       <p className="text-sm leading-relaxed mb-4">
-        <strong>1.4.4 and earlier are affected by the remaining issues fixed in 1.4.5. Versions 1.4.3 and 1.4.4 are not recommended.</strong>{" "}
+        <strong>1.4.4, 1.4.5 and 1.4.6 are not recommended.</strong> They contain real security fixes, and every one
+        of them stays in 1.4.7. But they also broke upgrades. On Windows Server, the service-file protection could
+        leave the files under <code>bin</code> and <code>runtime</code> with empty access-control lists, so an
+        administrator could no longer read <code>EasyDevOps.exe</code> and the service would not start. On Linux the
+        service could stop with a database error and never start again, and the rollback did not bring it back.
+        1.4.7 repairs those failures without undoing one security change: a security fix that breaks install,
+        update, repair or an administrator&apos;s access is a failed fix, so availability and security are both
+        requirements now.
+      </p>
+      <p className="text-sm leading-relaxed mb-4">
+        For an npm installation, update with <code>npm install -g easy-devops@1.4.7</code> (on Windows Server, from
+        an Administrator PowerShell). A source installation updates the checkout that runs the service to the 1.4.7
+        release. Confirm <code>ezz --version</code> reports 1.4.7.
+      </p>
+      <h3 id="recover-1-4-7" className="text-lg font-bold mt-8 mb-3">If you updated to 1.4.4, 1.4.5 or 1.4.6</h3>
+      <ol className="list-decimal pl-5 space-y-2 text-sm leading-relaxed">
+        <li>
+          Install 1.4.7 as above, then recover the service. Windows Server, in an Administrator PowerShell:{" "}
+          <code>ezz service recover</code> and <code>ezz service status</code>. <code>ezz service status</code> must
+          show the same version on <code>Service version</code> and <code>CLI version</code>, and{" "}
+          <code>C:\ProgramData\easy-devops\logs\EasyDevOps.out.log</code> must start with{" "}
+          <code>Easy DevOps daemon v1.4.7</code>.
+        </li>
+        <li>
+          Linux: <code>ezz service recover</code>, which asks for sudo unless you are root, then{" "}
+          <code>ezz service status</code>. <code>systemctl status easy-devops</code> must report active, and{" "}
+          <code>journalctl -u easy-devops -n 50</code> must not repeat <code>Failed to initialize database</code>.
+        </li>
+        <li>
+          If <code>ezz</code> itself cannot run, use the manual recovery — the Windows <code>icacls</code> reset and
+          the SYSTEM fallback, or the Linux read-only database check with the safe fix for each result. It is in{" "}
+          <a href="/docs/troubleshooting#service-stopped-after-update-1-4-4" className="text-primary hover:underline">
+            Troubleshooting: the service stopped after updating to 1.4.4–1.4.6
+          </a>
+          , and in the 1.4.7 changelog.
+        </li>
+      </ol>
+      <p className="text-sm leading-relaxed mt-4">
+        Nothing else is needed: do not reinstall, do not delete the database, and do not re-run the update to
+        &quot;make sure&quot;. If the CLI was updated with npm but the service still reports the older version, that
+        is version drift — run <code>ezz service repair</code> as administrator and see{" "}
+        <a href="/docs/troubleshooting#version-drift" className="text-primary hover:underline">
+          the service runs an older version than the CLI
+        </a>
+        . A daemon that crashes with <code>EPERM</code> while renaming <code>jobs.owner</code> is fixed in 1.4.7 as
+        well.
+      </p>
+
+      <h2 id="v1-4-5" className="text-xl font-bold mt-10 mb-4">The 1.4.5 and 1.4.6 security update</h2>
+      <p className="text-sm leading-relaxed mb-4">
+        <strong>1.4.4 and earlier are affected by the remaining issues fixed in 1.4.5.</strong>{" "}
         The security audit covered 1.4.3. Version 1.4.4 fixed the deployment, Windows permission,
         private-key and runtime findings in its advisory. Version 1.4.5 completes the audit and also
         fixes Windows Server repair and status failures when the existing wrapper cannot be opened.
+        Version 1.4.6 finished the uninstall work described below. All of these fixes are in 1.4.7, which
+        replaces their upgrade instructions with the recovery steps above.
       </p>
-      <h3 id="upgrade" className="text-lg font-bold mt-8 mb-3">How to upgrade</h3>
-      <ol className="list-decimal pl-5 space-y-2 text-sm leading-relaxed">
-        <li>For an npm installation, run <code>ezz update</code>. For a source installation, update the checkout that runs the service to the 1.4.5 release. Confirm <code>ezz --version</code> reports 1.4.5 or later.</li>
-        <li>In Windows Server mode, after updating, open PowerShell as Administrator and run <code>ezz service repair</code>. This applies the runtime protections and repairs private-key and service permissions.</li>
-        <li>Use the dashboard directly on the server or through a local HTTPS reverse proxy or secure tunnel. The dashboard no longer listens on a network interface. Pair remote Hubs over <code>https</code>.</li>
-      </ol>
-      <p className="text-sm leading-relaxed mt-4">For a custom Windows nginx or SSL directory, an administrator must also set the matching machine environment variable, <code>EASY_DEVOPS_APPROVED_NGINX_DIR</code> or <code>EASY_DEVOPS_APPROVED_SSL_DIR</code>, to its existing absolute directory before repair.</p>
-      <p className="text-sm leading-relaxed mt-4">On Linux, custom certificate or nginx configuration paths must be inside the supported Easy DevOps roots. If this server used paths outside those roots, move the files and update the dashboard settings before the next certificate operation or update. The <code>nginx -t</code> check and managed-certificate inventory report any path that is still unsupported.</p>
+      <h3 id="requirements" className="text-lg font-bold mt-8 mb-3">What the security update requires</h3>
+      <p className="text-sm leading-relaxed mb-4">
+        Use the dashboard directly on the server or through a local HTTPS reverse proxy or secure tunnel. The
+        dashboard no longer listens on a network interface; remote access goes through a local HTTPS proxy or an SSH
+        tunnel. Pair remote Hubs over <code>https</code>. Hub permissions are stricter: certificate paths and raw
+        Advanced nginx content need <code>nginx.config.view</code>, deployment diagnostics need{" "}
+        <code>deploy.logs</code>, and raw Advanced nginx edits need <code>nginx.config.edit</code>.
+      </p>
+      <p className="text-sm leading-relaxed mb-4">For a custom Windows nginx or SSL directory, an administrator must also set the matching machine environment variable, <code>EASY_DEVOPS_APPROVED_NGINX_DIR</code> or <code>EASY_DEVOPS_APPROVED_SSL_DIR</code>, to its existing absolute directory before a repair.</p>
+      <p className="text-sm leading-relaxed mb-4">On Linux, custom certificate or nginx configuration paths must be inside the supported Easy DevOps roots. If this server used paths outside those roots, move the files and update the dashboard settings before the next certificate operation or update. The <code>nginx -t</code> check and managed-certificate inventory report any path that is still unsupported.</p>
       <h3 id="fixes" className="text-lg font-bold mt-8 mb-3">What changed</h3>
       <ul className="list-disc pl-5 space-y-2 text-sm leading-relaxed">
         <li>Deployment-generated PM2 configuration, launchers and release metadata now live in an engine-owned directory outside the app checkout. They use exclusive temporary files and atomic replacement, so links in a repository cannot redirect those writes.</li>
@@ -56,6 +110,7 @@ export default function SecurityAdvisoriesPage() {
         <li>Windows service and access-control operations pass values as separate executable arguments. Elevated commands rebuild their environment from Windows and machine values, so inherited paths and Node loader settings cannot choose the tools, service locations, or modules used after elevation. Approved dedicated Easy DevOps directories beneath <code>ProgramData</code> remain supported, while system trees and container roots are refused. The data root is normalized to Administrators ownership before service and installing-account access is applied.</li>
         <li>Dashboard updates reserve one run before checking the registry and use an atomic per-run worker claim. Persisted status, version, process ID and port fields are bounded and validated, a status file that grows after it is opened is rejected, and concurrent requests cannot launch overlapping updates.</li>
         <li>Windows Server repair stops the service before checking its wrapper, reports an unreadable wrapper without replacing it, restores the service, and no longer ends with <code>EPERM</code>. Access-denied service files appear as unknown rather than as an absent installation. Service status reports each probe failure as a warning, and deletion waits until Windows has released the service registration.</li>
+        <li>1.4.7 adds no new restriction to the list above. It repairs delivery: Windows code-tree protection keeps every file readable by SYSTEM and Administrators and verifies it after writing, the Linux unit is generated from a template with <code>Environment=</code> in <code>[Service]</code>, the newly installed version runs its own setup before its service starts, and a rollback restores the package, the unit or XML and the runtime together, verified by the daemon heartbeat.</li>
       </ul>
       <DocsPagination
         prev={{ title: "Maintenance & Updates", href: "/docs/maintenance", section: "Operations" }}

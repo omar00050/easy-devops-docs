@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { latestVersion } from "@/lib/version";
 
@@ -8,16 +8,22 @@ import "./globals.css";
 const SITE_URL = "https://easy-devops.devxor.team/";
 const SITE_NAME = "Easy DevOps";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const geist = localFont({
+  src: "./fonts/geist-latin.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
+  display: "swap",
   preload: true,
+  fallback: ["system-ui", "sans-serif"],
 });
 
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
+const geistMono = localFont({
+  src: "./fonts/geist-mono-latin.woff2",
   variable: "--font-mono",
+  weight: "100 900",
+  display: "swap",
   preload: true,
+  fallback: ["ui-monospace", "monospace"],
 });
 
 export const metadata: Metadata = {
@@ -159,7 +165,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }}
         />
       </head>
-      <body className={`${inter.variable} ${jetbrains.variable} antialiased`} style={{ fontFamily: 'var(--font-inter)' }}>
+      <body className={`${geist.variable} ${geistMono.variable} antialiased`} style={{ fontFamily: "var(--font-geist)" }}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>

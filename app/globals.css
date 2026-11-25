@@ -82,7 +82,7 @@ html:not(.dark) {
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-family: var(--font-geist), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 200ms ease, color 200ms ease;
@@ -134,7 +134,7 @@ pre[class*="language-"] {
   background: transparent !important;
 }
 pre[class*="language-"] code {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: var(--font-mono), 'Geist Mono', monospace !important;
   font-size: 13.5px !important;
   line-height: 1.7 !important;
 }
@@ -295,7 +295,7 @@ pre[class*="language-"] code {
   justify-content: center;
   min-width: 1.4rem;
   padding: 0.1rem 0.3rem;
-  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-family: var(--font-mono), 'Geist Mono', monospace;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.2;
@@ -369,7 +369,7 @@ pre[class*="language-"] code {
 .doc-content li { line-height: 1.7; }
 
 .doc-content code:not(pre code) {
-  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-family: var(--font-mono), 'Geist Mono', monospace;
   font-size: 0.82em;
   padding: 0.12em 0.38em;
   border-radius: 5px;
@@ -460,7 +460,7 @@ pre[class*="language-"] code {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -491,7 +491,7 @@ pre[class*="language-"] code {
 }
 
 .d-chip {
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 9.5px;
   letter-spacing: 0.04em;
   color: var(--color-muted);
@@ -518,14 +518,14 @@ pre[class*="language-"] code {
 }
 
 .d-num {
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 9px;
   letter-spacing: 0.08em;
   color: var(--color-primary);
 }
 
 .d-label {
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -625,7 +625,7 @@ pre[class*="language-"] code {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 8.5px;
   color: var(--color-muted);
   opacity: 0.65;
@@ -745,7 +745,7 @@ pre[class*="language-"] code {
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface);
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 9px;
   letter-spacing: 0.05em;
   color: var(--color-muted);
@@ -784,7 +784,7 @@ pre[class*="language-"] code {
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-bg);
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 9.5px;
   color: var(--color-muted);
 }
@@ -846,7 +846,7 @@ pre[class*="language-"] code {
 }
 
 .d-tag {
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 8.5px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -875,7 +875,7 @@ pre[class*="language-"] code {
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
-  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-family: var(--font-mono), "Geist Mono", monospace;
   font-size: 10.5px;
   color: var(--color-text);
 }

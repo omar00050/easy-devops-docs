@@ -50,19 +50,19 @@ export default function InstallTabs() {
           <div>
             <p className="text-sm text-muted mb-4">If you already have Node.js 18+, one command is all it takes:</p>
             <CodeBlock lang="bash" filename="terminal">npm install -g easy-devops && easy-devops</CodeBlock>
-            <p className="text-sm text-muted">No Node.js? Install a reviewed Node.js release, then return to the command above. The bootstrap installers do not download unverified runtimes or helper scripts.</p>
+            <p className="text-sm text-muted">No Node.js? Run the Linux or Windows one-line installer instead. It downloads the pinned, hash-verified helper files and refuses anything that does not match.</p>
           </div>
         )}
 
         {/* Linux */}
         {active === "linux" && (
           <div className="space-y-6">
-            <InstallStep number={1} title="Clone the release-pinned installer" desc="The tagged checkout includes the reviewed helper bundle; nothing is downloaded from a mutable branch.">
-              <CodeBlock lang="bash" filename="bash">git clone --branch v1.4.5 --depth 1 https://github.com/omar00050/Easy-DevOps.git
-cd Easy-DevOps
-bash install.sh</CodeBlock>
+            <InstallStep number={1} title="Run the one-line installer" desc="It downloads the reviewed helper files into a private 0700 directory, checks every SHA-256 pinned in install.sh, and runs only verified copies.">
+              <CodeBlock lang="bash" filename="bash">curl -fsSL https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh -o install.sh && bash install.sh</CodeBlock>
+              <p className="text-sm text-muted mt-3 mb-1">Or with wget:</p>
+              <CodeBlock lang="bash" filename="bash">wget -qO install.sh https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh && bash install.sh</CodeBlock>
             </InstallStep>
-            <InstallStep number={2} title="Follow the interactive prompts" desc="Use --keep-node when Node.js 18+ is already installed. If nvm is required but missing, the installer stops with reviewed release instructions instead of fetching mutable code." />
+            <InstallStep number={2} title="Follow the interactive prompts" desc="Already have Node.js 18+? Add the --keep-node hint to skip Node.js management. If nvm is required but missing, the installer prints the exact manual commands instead of fetching nvm." />
             <p className="text-sm text-muted"><strong>Installer flags:</strong> <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--version X</code> to skip the picker, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--keep-node</code> to skip Node.js management.</p>
           </div>
         )}
@@ -75,17 +75,10 @@ bash install.sh</CodeBlock>
               <strong className="text-foreground">Server mode</strong> for the background service,
               Windows will ask for UAC consent for that one step — not for a password.
             </div>
-            <InstallStep number={1} title="Clone and run the reviewed installer" desc="The tagged checkout includes the installer. With Node.js 18+ already installed, use -KeepNode.">
-              <CodeBlock lang="powershell" filename="PowerShell">git clone --branch v1.4.5 --depth 1 https://github.com/omar00050/Easy-DevOps.git
-Set-Location Easy-DevOps
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -KeepNode</CodeBlock>
+            <InstallStep number={1} title="Run the one-line installer" desc="With Node.js 18+ already installed, add -KeepNode: ./install.ps1 -KeepNode.">
+              <CodeBlock lang="powershell" filename="PowerShell">Invoke-WebRequest -Uri "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.ps1" -OutFile "install.ps1"; ./install.ps1</CodeBlock>
             </InstallStep>
-            <InstallStep number={2} title="From Command Prompt" >
-              <CodeBlock lang="bat" filename="CMD">git clone --branch v1.4.5 --depth 1 https://github.com/omar00050/Easy-DevOps.git
-cd Easy-DevOps
-powershell -ExecutionPolicy Bypass -File install.ps1 -KeepNode</CodeBlock>
-            </InstallStep>
-            <p className="text-sm text-muted">Automatic nvm-windows installation is disabled because this release has no reviewed executable digest. If Node.js is missing, install a reviewed Node.js or nvm-windows release first, then rerun the installer.</p>
+            <p className="text-sm text-muted">Automatic nvm-windows installation is disabled because this release has no reviewed executable digest. If Node.js is missing, the installer offers the official LTS package (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">winget install --id OpenJS.NodeJS.LTS -e</code>, after asking) or points you to the nodejs.org LTS installer, then continues.</p>
           </div>
         )}
 
@@ -93,7 +86,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1 -KeepNode</CodeBlock>
         {active === "source" && (
           <div className="space-y-6">
             <InstallStep number={1} title="Clone the repository">
-              <CodeBlock lang="bash" filename="bash">git clone --branch v1.4.5 --depth 1 https://github.com/omar00050/Easy-DevOps.git
+              <CodeBlock lang="bash" filename="bash">git clone https://github.com/omar00050/Easy-DevOps.git
 cd Easy-DevOps</CodeBlock>
             </InstallStep>
             <InstallStep number={2} title="Install dependencies and run">

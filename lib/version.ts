@@ -1,14 +1,14 @@
 /**
  * The published Easy DevOps version behind every "v…" in the docs.
  *
- * The npm registry is the source of truth — it is exactly what `ezz update`
- * installs. GitHub's package.json is the fallback for a build machine that
- * cannot reach npm, and a failed lookup hides the badge rather than showing a
- * stale number: the docs must build offline.
+ * Online builds treat the npm registry as the source of truth, with GitHub's
+ * package.json as a fallback. The offline build supplies the version from this
+ * repository's root package.json and skips both requests.
  */
 
 const NPM_LATEST = "https://registry.npmjs.org/easy-devops/latest";
 const GITHUB_PACKAGE = "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/package.json";
+const OFFLINE_BUILD = process.env.EASY_DEVOPS_DOCS_OFFLINE === "1";
 
 /** Where the browser fallback looks, in order. */
 export const VERSION_SOURCES = [NPM_LATEST, GITHUB_PACKAGE] as const;
@@ -36,5 +36,8 @@ async function read(url: string, revalidate?: number): Promise<string | null> {
  * hour, so a fresh publish shows up without a redeploy.
  */
 export async function latestVersion(): Promise<string | null> {
+  if (OFFLINE_BUILD) {
+    return parseVersion({ version: process.env.NEXT_PUBLIC_EASY_DEVOPS_PACKAGE_VERSION });
+  }
   return (await read(NPM_LATEST, 3600)) ?? (await read(GITHUB_PACKAGE, 3600));
 }

@@ -67,7 +67,7 @@ export default function CodeBlock({ children, lang, filename }: CodeBlockProps) 
           language={lang}
           style={atomOneDark as Record<string, React.CSSProperties>}
           customStyle={{ margin: 0, padding: "18px 20px", background: "transparent" }}
-          codeTagProps={{ style: { fontFamily: "var(--font-mono), 'JetBrains Mono', monospace" } }}
+          codeTagProps={{ style: { fontFamily: "var(--font-mono), 'Geist Mono', monospace" } }}
           showLineNumbers={false}
           wrapLongLines
         >
