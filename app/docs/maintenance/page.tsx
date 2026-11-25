@@ -126,6 +126,15 @@ ezz cleanup --yes      # in scripts, after reviewing the list`}</CodeBlock>
 # removes: the service definition, the pinned Node runtime,
 #          the data directory (after exporting a backup)
 # keeps:   nginx, your sites and their configs, every certificate`}</CodeBlock>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        In Windows Server mode, <code className={C}>ezz service uninstall</code> shows each
+        operation and limits it to five minutes. <strong className="text-foreground">Keep data</strong>{" "}
+        leaves the database and Server-mode marker in place. <strong className="text-foreground">Move
+        data</strong> copies and verifies user files, leaves runtime and wrapper folders out of the
+        copy, and keeps a backup. A copy, verification, activation, or deadline failure restores the
+        live source before the database is reopened. If Windows blocks a rollback, the error names both
+        paths. If a stage reaches its limit, the command names that stage and returns an error.
+      </p>
       <p className="text-sm text-muted leading-relaxed mb-10">
         <code className={C}>--yes</code> answers the confirmations for scripted use;{" "}
         <code className={C}>uninstall --purge</code> still prints what it is about to do before doing

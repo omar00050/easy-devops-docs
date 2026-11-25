@@ -430,6 +430,37 @@ ezz service repair
 ezz service status    # Without admin: start, stop, query
 ezz service stop`}</CodeBlock>
 
+      <h3 id="service-uninstall-hang" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Windows Server uninstall stalls while removing permissions
+        <span className={badge145}>fixed in 1.4.5</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong>{" "}
+        <code className={C}>ezz service uninstall</code> remains at{" "}
+        <code className={C}>Removing the service account grants…</code> or{" "}
+        <code className={C}>Removing service-account permissions…</code> for either data choice.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> Versions before 1.4.5 started one
+        permissions command for every object in the data directory, and the move path also copied the
+        large runtime and wrapper folders. A large tree could leave the uninstall spinner running for
+        a very long time.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> Stop the stalled command with{" "}
+        <kbd>Ctrl+C</kbd>, update to 1.4.5, and run <code className={C}>ezz service uninstall</code>{" "}
+        again from an Administrator PowerShell. The operation now names each stage, limits each one to
+        five minutes, and returns a nonzero error naming the stage when the limit is reached.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        <strong className="text-foreground">Data behavior.</strong> Keeping data performs no copy or
+        move. Moving data copies and verifies user files only, excludes{" "}
+        <code className={C}>runtime</code>, <code className={C}>runtime.prev</code>, and{" "}
+        <code className={C}>bin</code>, and keeps a backup. A copy, verification, activation, or
+        deadline failure restores the live source before the database is reopened. If Windows blocks
+        a rollback, the error names both paths.
+      </p>
+
       <h3 id="service-wrapper-eperm" className="text-base font-bold mt-8 mb-3 text-foreground">
         Service repair or status fails with EPERM beside EasyDevOps.exe
         <span className={badge145}>fixed in 1.4.5</span>
