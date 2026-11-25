@@ -69,8 +69,8 @@ export default function ConfigurationPage() {
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>dashboardBindAddress</code></td>
             <td className="py-3 px-4 text-foreground font-mono text-xs">127.0.0.1</td>
-            <td className="py-3 px-4 text-foreground font-mono text-xs">0.0.0.0</td>
-            <td className="py-3 px-4 text-muted">Which interface the dashboard listens on. Linux installs default to this machine only; Windows installs default to every interface. Takes effect on restart.</td>
+            <td className="py-3 px-4 text-foreground font-mono text-xs">127.0.0.1</td>
+            <td className="py-3 px-4 text-muted">The dashboard listener is loopback-only. This compatibility field is normalized to <code className={C}>127.0.0.1</code>. Remote access uses a local HTTPS reverse proxy or authenticated tunnel.</td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4"><code className={C}>dashboardPasswordHash</code></td>
@@ -172,16 +172,18 @@ export default function ConfigurationPage() {
 
       <h2 id="listen-address" className="text-xl font-bold mt-10 mb-4 text-foreground">Listen address</h2>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        <code className={C}>dashboardBindAddress</code> decides who can reach the dashboard:{" "}
-        <code className={C}>127.0.0.1</code> (this machine only) or <code className={C}>0.0.0.0</code>{" "}
-        (every interface). It is in the dashboard under Settings → Access and authentication
-        (&quot;Listen on&quot;) and in the CLI under{" "}
-        <strong className="text-foreground">Settings → Listen On</strong>, and takes effect on restart.
+        The dashboard process always listens on <code className={C}>127.0.0.1</code>. A remote
+        operator reaches it through an HTTPS reverse proxy or authenticated tunnel running on the
+        same machine. The compatibility field <code className={C}>dashboardBindAddress</code> is
+        shown in the dashboard under Settings → Access and authentication and in the CLI under{" "}
+        <strong className="text-foreground">Settings → Listen On</strong>, but it cannot expose the
+        plain-HTTP listener on a network interface.
       </p>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
-        <li>No-password mode is impossible on <code className={C}>0.0.0.0</code>: opening the listener while there is no password is refused, and so is removing the password from a network-bound dashboard.</li>
-        <li>An install that predates the setting is left on <code className={C}>0.0.0.0</code> rather than being silently moved to loopback and cut off.</li>
-        <li>The dashboard still checks <code className={C}>Host</code>, <code className={C}>Origin</code> and <code className={C}>X-EZ-Request</code> in both modes — see <a href="/docs/api#transport" className="text-primary hover:underline">the API transport rules</a>.</li>
+        <li>No-password mode is offered only for a direct local request with no forwarding headers. A request through a local HTTPS proxy or tunnel requires a session.</li>
+        <li>Installs that previously stored a public bind are migrated to loopback. A legacy passwordless choice on a public bind is changed to require a password.</li>
+        <li>A trusted proxy qualifies only when its TCP connection reaches the dashboard from loopback, forwarding declares HTTPS and a single forwarded host, and the request has a same-origin HTTPS <code className={C}>Origin</code>.</li>
+        <li>The dashboard checks <code className={C}>Host</code>, <code className={C}>Origin</code>, forwarding headers and <code className={C}>X-EZ-Request</code> in both auth modes — see <a href="/docs/api#transport" className="text-primary hover:underline">the API transport rules</a>.</li>
       </ul>
 
       <h2 id="database-keys" className="text-xl font-bold mt-10 mb-4 text-foreground">Database Keys</h2>

@@ -28,7 +28,7 @@ const steps = [
   {
     num: 1,
     title: "Install Easy DevOps",
-    desc: "Run `npm install -g easy-devops`, or use the one-line installer on the Installation page.",
+    desc: "Run `npm install -g easy-devops`, or use the release-pinned bootstrap checkout on the Installation page.",
   },
   {
     num: 2,
@@ -48,7 +48,7 @@ const steps = [
   {
     num: 5,
     title: "Start the Dashboard (optional)",
-    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://127.0.0.1:6443 (the Linux default bind; Windows defaults to every interface). There is no default password: the first visit shows a setup screen, where you either set a password using the one-time setup code printed in the server terminal or service log (`ezz dashboard setup-code` issues a fresh one), or choose no-password mode — offered only when the dashboard listens on this machine only.',
+    desc: 'Select "Open Dashboard" from the CLI menu, then browse to http://127.0.0.1:6443 (the loopback-only listener on Linux and Windows). Remote access uses a local HTTPS reverse proxy or authenticated tunnel. There is no default password: the first visit shows a setup screen, where you either set a password using the one-time setup code printed in the server terminal or service log (`ezz dashboard setup-code` issues a fresh one), or choose no-password mode — offered only for a direct local request with no proxy headers.',
     code: { lang: "bash", text: "easy-devops\n# or the short alias:\nezz" },
   },
 ];

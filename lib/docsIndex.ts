@@ -148,7 +148,7 @@ export const docsIndex: DocsIndexEntry[] = [
     section: "Operations",
     description: "Affected versions, security fixes and required upgrade steps.",
     headings: [
-      { id: "v1-4-4", text: "1.4.4 security update" },
+      { id: "v1-4-5", text: "1.4.5 security update" },
       { id: "upgrade", text: "How to upgrade" },
       { id: "fixes", text: "What changed" },
     ],
@@ -167,6 +167,7 @@ export const docsIndex: DocsIndexEntry[] = [
       { id: "winsw-xml-not-found", text: "Server-mode install fails: WinSW-x64.xml not found" },
       { id: "stray-sc-files", text: "Stray files named query, qc, stop, start or delete" },
       { id: "status-unknown", text: "Status says Running: no (unknown), or calls a restart a crash loop" },
+      { id: "service-wrapper-eperm", text: "Service repair or status fails with EPERM" },
       { id: "uac-unknown-publisher", text: "A UAC prompt says Unknown publisher" },
       { id: "slow-first-start", text: "The first start looks stuck" },
       { id: "repair-while-running", text: "Repair fails while the service is running" },

@@ -17,7 +17,7 @@ const steps: Step[] = [
     num: "00",
     title: "Install Easy DevOps",
     tag: "2 min",
-    desc: "Install globally, or use the one-line installer for your platform. Node.js 18+ is the requirement; nginx can be installed by the tool.",
+    desc: "Install globally, or run the release-pinned bootstrap checkout for your platform. Node.js 18+ is required; nginx can be installed by the tool.",
     cmd: "npm install -g easy-devops",
   },
   {

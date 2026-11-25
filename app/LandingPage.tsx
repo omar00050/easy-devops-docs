@@ -345,7 +345,7 @@ const features = [
   { icon: <Package className="w-5 h-5" />, title: "Node.js Manager", desc: "Switch versions via nvm/nvm-windows, with versions fetched live. Install/uninstall global packages. Update npm automatically." },
   { icon: <Zap className="w-5 h-5" />, title: "Real-time Updates", desc: "Socket.io powered status updates. Nginx status streams live in the dashboard." },
   { icon: <Database className="w-5 h-5" />, title: "SQLite Storage", desc: "Persistent config in a single SQLite file. No separate database server needed." },
-  { icon: <Download className="w-5 h-5" />, title: "Bootstrap Installer", desc: "One-line installers for Linux and Windows. Auto-detects Node.js, installs nvm if needed." },
+  { icon: <Download className="w-5 h-5" />, title: "Bootstrap Installer", desc: "Release-pinned installer bundles verify their helper files and fail closed when a reviewed Node runtime manager is missing." },
   { icon: <Palette className="w-5 h-5" />, title: "Themed Dashboard", desc: "Dark and light modes with 5 accent colors. Settings persist in localStorage." },
 ];
 

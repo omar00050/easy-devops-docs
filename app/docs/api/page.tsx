@@ -67,12 +67,12 @@ export default function APIPage() {
         <tbody>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 font-mono text-xs text-primary">Host</td>
-            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The port must match the dashboard&apos;s. On a loopback bind the hostname must be <code className={C}>localhost</code>, <code className={C}>127.0.0.1</code> or <code className={C}>[::1]</code>; on a public bind any hostname is accepted.</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">The port must match the dashboard&apos;s. A direct request must use <code className={C}>localhost</code>, <code className={C}>127.0.0.1</code> or <code className={C}>[::1]</code>. A trusted local HTTPS proxy may supply the public host through exactly one <code className={C}>X-Forwarded-Host</code> header.</td>
             <td className="py-3 px-4 text-muted text-xs">403</td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 font-mono text-xs text-primary">Origin</td>
-            <td className="py-3 px-4 text-muted text-xs leading-relaxed">When present, its port must match. On a loopback bind its hostname must be a loopback name; on a public bind it must equal the <code className={C}>Host</code> hostname (same-origin).</td>
+            <td className="py-3 px-4 text-muted text-xs leading-relaxed">When present, a direct request must use the direct HTTP protocol, matching port and a loopback hostname. A trusted local HTTPS proxy request must use HTTPS and the effective forwarded host and port.</td>
             <td className="py-3 px-4 text-muted text-xs">403</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
@@ -100,7 +100,7 @@ export default function APIPage() {
       </p>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
         <li>There is no default password. First-run setup requires a one-time code printed in the server&apos;s terminal or service log, or the choice of no-password mode when the dashboard listens on loopback only.</li>
-        <li>In <strong className="text-foreground">none</strong> mode no session is required, but only while the bind address is loopback. A stored <code className={C}>none</code> with a public bind falls back to requiring a password.</li>
+        <li>In <strong className="text-foreground">none</strong> mode no session is required for a direct loopback request with no forwarding headers. Requests through a local HTTPS proxy or tunnel require a session.</li>
         <li>The transport checks above are never relaxed in <code className={C}>none</code> mode. They are the only defence left.</li>
         <li>Failed logins are rate limited per IP: 10 attempts per 15 minutes, answered with <code className={C}>429</code> and a <code className={C}>Retry-After</code> header.</li>
       </ul>

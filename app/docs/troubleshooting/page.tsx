@@ -33,6 +33,7 @@ const badgeBase =
 const badgeFixed = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 const badgeAny = `${badgeBase} border-border bg-surface text-muted`;
 const badge143 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
+const badge145 = `${badgeBase} border-primary/25 bg-primary/10 text-primary`;
 
 export default function TroubleshootingPage() {
   return (
@@ -428,6 +429,31 @@ ezz service repair
 # then, from a normal PowerShell
 ezz service status    # Without admin: start, stop, query
 ezz service stop`}</CodeBlock>
+
+      <h3 id="service-wrapper-eperm" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Service repair or status fails with EPERM beside EasyDevOps.exe
+        <span className={badge145}>fixed in 1.4.5</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> In Windows Server mode,{" "}
+        <code className={C}>ezz service repair</code> reports{" "}
+        <code className={C}>EPERM: operation not permitted</code> for{" "}
+        <code className={C}>C:\ProgramData\easy-devops\bin\EasyDevOps.exe</code>, or{" "}
+        <code className={C}>ezz service status</code> reports <code className={C}>spawn EPERM</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> Versions before 1.4.5 tried to inspect or
+        replace the existing wrapper before restoring the service in a state where Windows denied
+        access. The repair could end with the service stopped and the wrapper still unreadable.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fix.</strong> Update to 1.4.5, open PowerShell as
+        Administrator, run <code className={C}>ezz service repair</code>, and confirm{" "}
+        <code className={C}>ezz service start</code> and <code className={C}>ezz service status</code>{" "}
+        work from the installing account. The repaired path recovers the service first, leaves an
+        unreadable wrapper in place instead of attempting a destructive replacement, and reports the
+        wrapper problem as an explicit error.
+      </p>
 
       <h3 id="readonly-database" className="text-base font-bold mt-8 mb-3 text-foreground">
         SqliteError: attempt to write a readonly database

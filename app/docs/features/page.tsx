@@ -35,7 +35,7 @@ const features = [
   { icon: "📦", title: "Node.js Manager", desc: "Switch Node.js versions via nvm or nvm-windows, with the available versions fetched live. Install/uninstall global npm packages. Update npm automatically." },
   { icon: "📋", title: "Log Viewer", desc: "Stream nginx error.log and access.log in real time via Socket.io. Toggle between logs, auto-scroll, pause/resume, and colour-coded output." },
   { icon: "💾", title: "SQLite Storage", desc: "Persistent configuration stored in a single SQLite database file in your user directory (ProgramData in Windows Server mode). Survives npm updates. No separate database server required." },
-  { icon: "🛡️", title: "Bootstrap Installer", desc: "One-line installers for Linux and Windows that auto-detect Node.js, install nvm if needed, and register the global command." },
+  { icon: "🛡️", title: "Bootstrap Installer", desc: "Release-pinned installer bundles verify their helper files and fail closed when a reviewed Node runtime manager is missing. They register the global command without downloading mutable scripts." },
   { icon: "✨", title: "Themed Dashboard", desc: "Dark and light modes with 5 accent colors (teal, violet, amber, rose, cyan). Settings persist in localStorage." },
   { icon: "🔄", title: "Real-time Updates", desc: "Socket.io powered live updates: nginx status every 5 s, domain health badges every 60 s, cert expiry on connect and every 12 hours." },
 ];

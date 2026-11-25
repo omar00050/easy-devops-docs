@@ -37,7 +37,7 @@ const groups: CmdGroup[] = [
       { name: "Domain Manager", description: "List, add, edit, enable/disable, delete reverse proxy configs." },
       { name: "Hub", description: "Connect this server to an Easy DevOps Hub, show the agent state, or unlink it." },
       { name: "Open Dashboard", description: "Start the web dashboard (React UI served by the Express + Socket.io server), open it, or stop it." },
-      { name: "Settings", description: "Port, auth and listen address, directories, ACME email, auto-renew, deployments folder, Linux permissions." },
+      { name: "Settings", description: "Port, authentication, listener compatibility information, directories, ACME email, auto-renew, deployments folder and Linux permissions." },
       { name: "Check for Updates", description: "Checks the npm registry for a new version of easy-devops and installs it." },
       { name: "Exit", description: "Exit the CLI gracefully. Press Ctrl+C at any time." },
     ],
@@ -130,7 +130,7 @@ const groups: CmdGroup[] = [
     commands: [
       { name: "Dashboard Port", description: "Set the port the web dashboard listens on (default: 6443)." },
       { name: "Dashboard Auth", description: "Require a password, or run without one when the dashboard listens on this machine only." },
-      { name: "Listen On", description: "127.0.0.1 (this machine only) or 0.0.0.0 (all interfaces)." },
+      { name: "Listen On", description: "Shows that the dashboard is loopback-only. Remote access uses a local HTTPS reverse proxy or authenticated tunnel." },
       { name: "Nginx Directory", description: "Set the nginx installation path (nginxDir)." },
       { name: "SSL Directory", description: "Set the SSL certificate storage root (sslDir)." },
       { name: "ACME Email", description: "Set the email used for Let's Encrypt account registration. Required before a certificate can be issued." },

@@ -7,7 +7,7 @@ import SecurityUpdateNotice from "@/components/SecurityUpdateNotice";
 export const metadata: Metadata = {
   title: "Installation",
   description:
-    "Install Easy DevOps on Linux or Windows. One-line installers, bootstrap scripts, and npm global install instructions.",
+    "Install Easy DevOps on Linux or Windows with npm or a release-pinned bootstrap checkout.",
   keywords: ["Easy DevOps install", "install DevOps CLI", "npm install easy-devops", "DevOps installer Linux", "DevOps installer Windows"],
   alternates: { canonical: "/docs/installation" },
   openGraph: {
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     siteName: "Easy DevOps",
     title: "Installation",
     description:
-      "Install on Linux or Windows via one-line installer, bootstrap script, or npm global install.",
+      "Install on Linux or Windows with npm or a release-pinned bootstrap checkout.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Installation",
     description:
-      "Install on Linux or Windows via one-line installer, bootstrap script, or npm global install.",
+      "Install on Linux or Windows with npm or a release-pinned bootstrap checkout.",
   },
 };
 
@@ -31,7 +31,7 @@ export default function InstallationPage() {
     <DocPage
       section="Getting Started"
       title="Installation"
-      description="Choose the method that fits your setup. The bootstrap installer handles Node.js + Easy DevOps in one pass."
+      description="Use npm when Node.js is ready, or run the reviewed bootstrap from a release-pinned checkout."
     >
       <SecurityUpdateNotice />
 
@@ -54,7 +54,7 @@ export default function InstallationPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-500 mt-0.5">➕</span>
-            <span>Optional: Nginx, nvm (installed separately or via the tool)</span>
+            <span>Bootstrap installs require <strong className="text-foreground">git</strong> and do not download mutable helper scripts. If a Node runtime change is needed, nvm or nvm-windows must already be installed from a reviewed release.</span>
           </li>
         </ul>
       </div>
