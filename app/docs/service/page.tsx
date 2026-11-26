@@ -149,6 +149,16 @@ ezz service restart`}</CodeBlock>
         </tbody>
       </table>
 
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        The native service is not a PM2 app and does not start your apps at boot. On Windows Server
+        it runs as <code className={C}>NT SERVICE\EasyDevOps</code>, a different account from the one
+        that owns PM2, so it reports that PM2 rather than using it — see{" "}
+        <a href="/docs/pm2-windows-server" className="text-primary hover:underline">
+          PM2 on Windows Server
+        </a>{" "}
+        for what the Hub then shows, what still manages the apps, and the reboot behaviour.
+      </p>
+
       <h2 id="administrator-rights" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Administrator rights in Server mode
       </h2>
@@ -289,7 +299,7 @@ ezz runtime update   # move the service to a newer Node, with rollback`}</CodeBl
 
       <DocsPagination
         prev={{ title: "Deployments", href: "/docs/deployments", section: "Using the CLI" }}
-        next={{ title: "Easy DevOps Hub", href: "/docs/hub", section: "Operations" }}
+        next={{ title: "PM2 on Windows Server", href: "/docs/pm2-windows-server", section: "Operations" }}
       />
     </DocPage>
   );

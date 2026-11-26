@@ -62,6 +62,7 @@ app/
     ssl/                  SSL manager
     deployments/          git deployments
     service/              background service and pinned runtime
+    pm2-windows-server/   PM2 in Windows Server mode: the operator's PM2, the Hub, reboots
     hub/                  Easy DevOps Hub
     maintenance/          updates, cleanup, backup, setup codes
     api/                  dashboard API introduction (links to the contract)

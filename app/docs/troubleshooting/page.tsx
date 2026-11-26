@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Troubleshooting",
   description:
     "Find the right Easy DevOps log for each service mode, recover a service stopped by an older update, repair a service that runs an older version than the CLI, confirm what the service is really doing, tell a clean stop from a crash, and fix the known install, UAC, runtime and Hub problems.",
-  keywords: ["Easy DevOps troubleshooting", "Easy DevOps service recovery", "Easy DevOps 1.4.7", "Easy DevOps 1.4.6", "ezz service recover", "ezz service repair", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop", "EPERM rename jobs.owner", "version drift", "node.exe is missing from the read-back", "ProgramData is not empty", "daemon-supervisor.cmd"],
+  keywords: ["Easy DevOps troubleshooting", "Easy DevOps service recovery", "Easy DevOps 1.4.7", "Easy DevOps 1.4.9", "Easy DevOps 1.4.6", "ezz service recover", "ezz service repair", "WinSW service", "sc.exe query EasyDevOps", "systemctl easy-devops", "service crash loop", "EPERM rename jobs.owner", "version drift", "node.exe is missing from the read-back", "ProgramData is not empty", "daemon-supervisor.cmd", "Hub says PM2 not installed"],
   alternates: { canonical: "/docs/troubleshooting" },
   openGraph: {
     type: "article",
@@ -1310,6 +1310,73 @@ ezz service stop`}</CodeBlock>
         <strong className="text-foreground">Fix.</strong> 1.4.1 also reads the state the service
         writes to its data directory. If it still says so, check that the service is running and read{" "}
         <code className={C}>EasyDevOps.out.log</code>.
+      </p>
+
+      <h3 id="hub-service-pm2-1-4-8" className="text-base font-bold mt-8 mb-3 text-foreground">
+        The Hub says the service or PM2 is not installed while the dashboard shows it
+        <span className={badgeFixed}>fixed in 1.4.9</span>
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Symptom.</strong> A Windows Server in Server mode, service
+        RUNNING as <code className={C}>NT SERVICE\EasyDevOps</code>. The local dashboard (running as
+        the administrator) shows the truth on its Processes page:{" "}
+        <code className={C}>Installed Yes</code>, mode Windows service (WinSW,{" "}
+        <code className={C}>NT SERVICE\EasyDevOps</code>), <code className={C}>Starts At boot</code>,
+        data directory <code className={C}>C:\ProgramData\easy-devops</code>, and{" "}
+        <code className={C}>Your PM2 apps: 14 apps</code>. The Hub, for the same server, shows{" "}
+        <code className={C}>Installed: No</code>, <code className={C}>Starts: Not set up</code>,{" "}
+        <code className={C}>PM2: not installed</code>, the warning{" "}
+        <em>Easy DevOps is not running as a background service here… Run ezz service install</em>, and{" "}
+        <code className={C}>Waiting for the process list…</code> for ever.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Cause.</strong> The 1.4.8 agent computed both answers from
+        inside the service account. Nothing in the daemon ran the live service-registration check the
+        dashboard runs, so &quot;not measured yet&quot; was reported as &quot;not registered&quot; —
+        and <code className={C}>installed: false</code> is also what produced STARTS &quot;Not set
+        up&quot; and that warning. PM2 was looked up as the service account: its{" "}
+        <code className={C}>where.exe pm2</code> finds nothing because the npm global prefix is
+        per-user, and its <code className={C}>PM2_HOME</code> is the service profile, not{" "}
+        <code className={C}>C:\Users\admin\.pm2</code>. A <code className={C}>pm2</code> run there
+        could even start a second daemon, so the agent reported &quot;not installed&quot; and pushed
+        an empty process list with nothing to explain it.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">Fixed in 1.4.9.</strong> The service now reports from the
+        inside: it holds the daemon lock and the service manager started it, so it reports{" "}
+        <code className={C}>installed: true</code>, Windows service mode, <code className={C}>starts
+        at boot</code>, the account it runs as, its version and its data directory. When the live
+        registration check has not run, the WinSW wrapper and definition in{" "}
+        <code className={C}>C:\ProgramData</code> answer, and an unreadable file is unknown — never{" "}
+        <code className={C}>false</code>. PM2 now travels as its own record on every push{" "}
+        (<code className={C}>state</code>, <code className={C}>reason</code>,{" "}
+        <code className={C}>message</code>, <code className={C}>fix</code>,{" "}
+        <code className={C}>user</code>), the process list is sent every cycle, and an empty list
+        always carries a reason. So the Hub shows <code className={C}>Installed: Yes</code>,{" "}
+        <code className={C}>Starts: at boot</code> and{" "}
+        <code className={C}>PM2 runs under the user admin; the Easy DevOps service
+        (NT SERVICE\EasyDevOps) cannot see it.</code> Process actions and Hub deploys are refused
+        with that reason before anything is spawned or written. A missing field still means unknown,
+        never <code className={C}>false</code>.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-2">
+        <strong className="text-foreground">What to do on 1.4.8.</strong> Update the server:{" "}
+        <code className={C}>ezz update</code> in an Administrator PowerShell (a Server-mode update
+        needs it), or <code className={C}>npm i -g easy-devops@1.4.9</code> followed by{" "}
+        <code className={C}>ezz service repair</code>. Then run{" "}
+        <code className={C}>ezz service repair</code> once in an Administrator PowerShell signed in
+        as the user who runs PM2, so the Hub can name that user. Until the Hub itself is updated to
+        read the 1.4.9 fields it may still show its old labels (<code className={C}>No</code>,{" "}
+        <code className={C}>Not set up</code>, <code className={C}>not installed</code>) while the
+        server already sends the correct ones; the local dashboard is authoritative meanwhile.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-8">
+        Nothing is broken in the installation itself: do not reinstall the service, move the data or
+        create a PM2 home under <code className={C}>C:\ProgramData</code>. The supported model is on{" "}
+        <a href="/docs/pm2-windows-server" className="text-primary hover:underline">
+          PM2 on Windows Server
+        </a>
+        .
       </p>
 
       <h3 id="cmd-vs-powershell" className="text-base font-bold mt-8 mb-3 text-foreground">

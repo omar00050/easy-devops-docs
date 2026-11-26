@@ -52,7 +52,9 @@ const groups: NavGroup[] = [
     icon: <Activity className="w-3.5 h-3.5" />,
     items: [
       { title: "Background Service", href: "/docs/service" },
+      { title: "PM2 on Windows Server", href: "/docs/pm2-windows-server" },
       { title: "Easy DevOps Hub", href: "/docs/hub" },
+      { title: "Hub Teams", href: "/docs/teams" },
       { title: "Maintenance & Updates", href: "/docs/maintenance" },
       { title: "Security advisories", href: "/docs/security-advisories" },
       { title: "Troubleshooting", href: "/docs/troubleshooting" },

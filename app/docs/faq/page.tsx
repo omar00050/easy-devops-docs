@@ -72,7 +72,7 @@ const faqSchemaData = [
   },
   {
     question: "Why does the dashboard warn that PM2 is not installed?",
-    answer: "PM2 runs your deployed apps, and Easy DevOps does not install it. There is no PM2 install button in the dashboard: install it yourself with npm install -g pm2. The Processes page reports whether PM2 is present and lists its apps; the Deployments page links there and tells you the command when it is missing.",
+    answer: "PM2 runs your deployed apps and the apps you start yourself; Easy DevOps itself is a native service and works without it. Install it with npm install -g pm2, accept the installer's offer, or press Install PM2 on the dashboard's Deployments page — the same command in every case, into your own npm prefix and default PM2_HOME. On a Windows Server the service runs as NT SERVICE\\EasyDevOps and cannot use your PM2; see PM2 on Windows Server for what the Hub shows and what still manages the apps.",
   },
 ];
 

@@ -147,6 +147,57 @@ export default function APIPage() {
         </p>
       </div>
 
+      <h2 id="hub-teams" className="text-xl font-bold mt-10 mb-4 text-foreground">The Hub&apos;s Teams API</h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        This page covers the API served by a server&apos;s own dashboard. The Hub has a second API, at{" "}
+        <code className={C}>/api/v1</code> on the Hub itself, where servers and teams live; its reference is{" "}
+        <code className={C}>hub_backend/ARCHITECTURE.md</code>. Teams are Hub-only: people are added by the email of an
+        existing account (nothing is emailed), the Owner grants permissions one by one from the server&apos;s own list,
+        and roles are presets and ceilings. Exactly one person owns a team, servers can move between a personal space
+        and teams, and each server has its own action log at{" "}
+        <code className={C}>GET /api/v1/servers/:id/actions</code>. The team endpoints, the fields they add to server
+        responses and the filtered socket events are described for users in{" "}
+        <a href="/docs/teams" className="text-primary hover:underline font-medium">Hub Teams</a>.
+      </p>
+
+      <h3 id="team-notices" className="text-base font-bold mt-8 mb-3 text-foreground">Team notices</h3>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Being added to a team is immediate and leaves a notice for the signed-in account — the bar the Hub shows at the
+        top of the page. Two endpoints drive it:
+      </p>
+      <CodeBlock lang="json" filename="GET /api/v1/teams/notices">{`[
+  {
+    "teamId": "a1b2c3d4-...",
+    "teamName": "Platform",
+    "role": "member",
+    "addedAt": "2026-11-26T10:00:00.000Z",
+    "ownerName": "Omar"
+  }
+]`}</CodeBlock>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          <code className={C}>GET /api/v1/teams/notices</code> lists the notices for your account, one per team that
+          added you and whose notice you have not dismissed. <code className={C}>role</code> is the role you were
+          given, <code className={C}>ownerName</code> the person who added you.
+        </li>
+        <li>
+          <code className={C}>POST /api/v1/teams/:id/notice/dismiss</code> dismisses the notice for that team. It
+          changes nothing else: the membership and its permissions stay as they are. Leaving is done from the team
+          itself (Settings → Leave team), not by dismissing the notice.
+        </li>
+        <li>
+          A permission verdict carries <code className={C}>code</code> as well as <code className={C}>reason</code>,
+          including when it is allowed — for example <code className={C}>APP_ID_REQUIRED</code>. Read{" "}
+          <code className={C}>code</code> when branching, and show <code className={C}>reason</code> to the person.
+        </li>
+        <li>
+          A staff <code className={C}>DELETE</code> on a server that belongs to a team answers{" "}
+          <code className={C}>409 TEAM_SERVER</code> unless the body carries{" "}
+          <code className={C}>teamOverride: true</code>. The override is the same explicit choice the management page
+          asks for, and the removal is written to the team&apos;s audit log and the staff action log.
+        </li>
+      </ul>
+
       <DocsPagination
         prev={{ title: "Maintenance & Updates", href: "/docs/maintenance", section: "Operations" }}
         next={{ title: "Configuration", href: "/docs/configuration", section: "Reference" }}

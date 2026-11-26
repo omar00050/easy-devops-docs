@@ -109,6 +109,12 @@ export default function HubPage() {
         </div>
       </div>
 
+      <p className="mt-8 text-sm text-muted leading-relaxed">
+        Working with other people? <a href="/docs/teams" className="text-primary hover:underline font-medium">Hub Teams</a>{" "}
+        shares your servers with roles, per-app limits and an audit log, while the server&apos;s own permissions still
+        decide what anyone can do.
+      </p>
+
       <h2 id="pairing" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Pairing a server
       </h2>
@@ -175,6 +181,31 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
       <p className="text-sm text-muted leading-relaxed mb-10">
         A screen the Hub has no command for is read-only and says <strong className="text-foreground">Managed on the server</strong>, rather than offering a control that cannot work. Settings follows the same rule: it shows what the server reported, and changes are made on the server&apos;s own dashboard.
       </p>
+
+      <h3 id="not-reported" className="text-base font-bold mt-8 mb-3 text-foreground">Fields the agent does not report</h3>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-10">
+        <li>
+          <strong className="text-foreground">An unreported field shows &quot;Unknown&quot;, never &quot;No&quot;.</strong>{" "}
+          An older agent that does not send a field leaves it unknown, and the Hub says so rather than guessing that
+          the feature is off. Upgrade the server&apos;s Easy DevOps to have it report the field.
+        </li>
+        <li>
+          <strong className="text-foreground">On Windows Server in Server mode the Hub shows</strong>{" "}
+          <em>&quot;PM2 is not visible to the Easy DevOps service&quot;</em>, with the fix the agent sends — usually
+          managing those apps on the server as the user who runs PM2, or running{" "}
+          <code className={C}>ezz service repair</code> as that user so the message can name the account. Process
+          actions and deploys from the Hub are refused there, before anything runs. The{" "}
+          <a href="/docs/pm2-windows-server" className="text-primary hover:underline">
+            PM2 on Windows Server
+          </a>{" "}
+          page explains why.
+        </li>
+        <li>
+          <strong className="text-foreground">An app-scoped team member sees only their own apps&apos; processes.</strong>{" "}
+          The Processes area lists the PM2 processes of the apps they were given; every other process on the server is
+          absent, not merely read-only.
+        </li>
+      </ul>
 
       <h2 id="certificates" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Issuing and deleting certificates from the Hub
@@ -267,6 +298,15 @@ ezops://ez.hub.devxor.team|a1b2c3d4-...|<shown-once>
         <li>Only a process PM2 actually knows is acted on, so a typo cannot be reported as success.</li>
         <li>A process owned by a different OS user is refused with that user&apos;s name — PM2 keeps one process list per user.</li>
         <li>Easy DevOps&apos; own background service is not a PM2 app and is never in that list.</li>
+        <li>
+          On a Windows Server in Server mode the service account and the owner of PM2 are different
+          accounts, so process actions and Hub deploys are refused with the reason and the account
+          named; the{" "}
+          <a href="/docs/pm2-windows-server" className="text-primary hover:underline">
+            PM2 on Windows Server
+          </a>{" "}
+          page explains why and what to use instead.
+        </li>
       </ul>
 
       <h2 id="agent-status" className="text-xl font-bold mt-10 mb-4 text-foreground">

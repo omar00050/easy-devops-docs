@@ -63,7 +63,7 @@ export default function InstallTabs() {
               <CodeBlock lang="bash" filename="bash">wget -qO install.sh https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.sh && bash install.sh</CodeBlock>
             </InstallStep>
             <InstallStep number={2} title="Follow the interactive prompts" desc="Already have Node.js 18+? Add the --keep-node hint to skip Node.js management. If nvm is required but missing, the installer prints the exact manual commands instead of fetching nvm." />
-            <p className="text-sm text-muted"><strong>Installer flags:</strong> <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--version X</code> to skip the picker, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--keep-node</code> to skip Node.js management.</p>
+            <p className="text-sm text-muted"><strong>Installer flags:</strong> <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--version X</code> to skip the picker, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--keep-node</code> to skip Node.js management, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--pm2</code> to install PM2 when it is missing, <code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">--no-pm2</code> to leave it alone.</p>
           </div>
         )}
 
@@ -75,7 +75,7 @@ export default function InstallTabs() {
               <strong className="text-foreground">Server mode</strong> for the background service,
               Windows will ask for UAC consent for that one step — not for a password.
             </div>
-            <InstallStep number={1} title="Run the one-line installer" desc="With Node.js 18+ already installed, add -KeepNode: ./install.ps1 -KeepNode.">
+            <InstallStep number={1} title="Run the one-line installer" desc="With Node.js 18+ already installed, add -KeepNode: ./install.ps1 -KeepNode. Use -Pm2 to install PM2 when it is missing, or -NoPm2 to skip the offer.">
               <CodeBlock lang="powershell" filename="PowerShell">Invoke-WebRequest -Uri "https://raw.githubusercontent.com/omar00050/Easy-DevOps/main/install.ps1" -OutFile "install.ps1"; ./install.ps1</CodeBlock>
             </InstallStep>
             <p className="text-sm text-muted">Automatic nvm-windows installation is disabled because this release has no reviewed executable digest. If Node.js is missing, the installer offers the official LTS package (<code className="font-mono text-xs bg-primary/[0.08] text-primary px-1.5 py-0.5 rounded">winget install --id OpenJS.NodeJS.LTS -e</code>, after asking) or points you to the nodejs.org LTS installer, then continues.</p>
