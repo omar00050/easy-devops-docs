@@ -798,10 +798,17 @@ sudo fuser -v /root/.config/easy-devops/easy-devops.sqlite*`}</CodeBlock>
 ezz service repair      # copies the installed package to the runtime
 ezz service status      # both versions now match`}</CodeBlock>
       <p className="text-sm text-muted leading-relaxed mb-3">
-        Nothing repairs itself on purpose: a repair replaces the code the service runs, so it
-        stays a decision you make. In an interactive terminal the warning also offers the
-        existing &quot;Relaunch as administrator?&quot; flow; from a script or CI it only warns.
-        If the versions still differ afterwards, the runtime copy could not be replaced — read{" "}
+        After a plain <code className={C}>npm i -g easy-devops</code>, the next ordinary
+        command — <code className={C}>ezz service status</code>, for example — notices that
+        the two versions differ and offers the fix: <code className={C}>Y</code> relaunches
+        as administrator and runs <code className={C}>ezz service repair</code>; on Linux
+        the <code className={C}>sudo ezz service repair</code> command is printed. A script,
+        a pipe or CI gets the warning and the exact command only. Nothing repairs itself on
+        purpose: a repair replaces the code the service runs, so it stays a decision you
+        make. The background service cannot update its own files — it runs its own copy as
+        the service account, and replacing that copy needs an administrator — so that
+        command has to be run once, by a person. If the versions still differ afterwards,
+        the runtime copy could not be replaced — read{" "}
         <code className={C}>ezz service status</code> for the reason and the wrapper log.
       </p>
 
