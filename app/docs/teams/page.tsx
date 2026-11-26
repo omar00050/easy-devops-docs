@@ -6,8 +6,8 @@ import { ArrowRight, Cloud, Server, ShieldCheck, Users } from "lucide-react";
 export const metadata: Metadata = {
   title: "Hub Teams",
   description:
-    "Share servers through the Easy DevOps Hub: role presets and per-permission grants, per-app access, the permission ceiling the server still enforces, server transfer and the audit log.",
-  keywords: ["Easy DevOps Hub teams", "team roles", "per-app access", "team permissions", "team audit log", "transfer server to team"],
+    "Share servers through the Easy DevOps Hub: invitations people accept, role presets and per-permission grants, per-app access, the permission ceiling the server still enforces, sharing an app, Shared with me, New deploy and the sidebar tree.",
+  keywords: ["Easy DevOps Hub teams", "team invitations", "invite a person", "share an app", "shared with me", "team roles", "per-app access", "team audit log", "transfer server to team"],
   alternates: { canonical: "/docs/teams" },
   openGraph: {
     type: "article",
@@ -257,8 +257,8 @@ const errors: Array<{ code: string; status: string; meaning: string; next: strin
   {
     code: "NO_ACCOUNT",
     status: "404",
-    meaning: "No Hub account uses that email address.",
-    next: "The person must register first, with that exact address. Nothing is emailed and no invitation is created; add them again once the account exists.",
+    meaning: "No Hub account matches that email address or username.",
+    next: "The person must register first, with that exact address or username. Nothing is emailed and no invitation is created; invite them again once the account exists.",
   },
   {
     code: "ALREADY_MEMBER",
@@ -269,7 +269,7 @@ const errors: Array<{ code: string; status: string; meaning: string; next: strin
   {
     code: "USE_TRANSFER",
     status: "400",
-    meaning: "Owner was chosen as a role in the add or edit form. Ownership is never assigned like a role.",
+    meaning: "Owner was chosen as a role in the invite or edit form. Ownership is never assigned like a role.",
     next: "Team settings → Ownership → Transfer ownership. The chosen member becomes the only Owner and you become Admin.",
   },
   {
@@ -328,7 +328,7 @@ export default function TeamsPage() {
     <DocPage
       section="Operations"
       title="Hub Teams"
-      description="A team lets several Hub accounts share the same servers. The Owner adds people by the email of an existing account — nothing is emailed — and sets each person's permissions one by one from the server's own list. Roles are presets and ceilings, and the server's permissions still apply on top: the Hub can only narrow them."
+      description="A team lets several Hub accounts share the same servers. The Owner invites a person by the email or username of an existing account — nothing is granted until that person accepts in the Hub — and then sets each person's permissions one by one from the server's own list. Roles are presets and ceilings, and the server's permissions still apply on top: the Hub can only narrow them."
     >
       <div className="my-8 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
         <div className="flex-1 rounded-xl border border-border bg-surface/60 p-4">
@@ -372,10 +372,10 @@ export default function TeamsPage() {
           is in a team.
         </li>
         <li>
-          <strong className="text-foreground">Adding a person is immediate.</strong> The Owner types the email of an
-          existing Hub account; the membership is created there and then. Nothing is emailed, there is no link and no
-          acceptance step — the team appears in that person&apos;s switcher at once. An address with no account is
-          refused.
+          <strong className="text-foreground">A person joins only by accepting.</strong> The Owner invites an
+          existing Hub account by email address or username. The Hub emails a single-use link that expires after
+          24 hours and shows the same invitation in the person&apos;s sidebar; the membership is created only when
+          they accept. The Owner can resend or revoke a pending invitation at any time.
         </li>
         <li>
           <strong className="text-foreground">Nothing moves into a team by itself.</strong> Creating a team moves no
@@ -393,32 +393,50 @@ export default function TeamsPage() {
       </p>
 
       <h2 id="joining-a-team" className="text-xl font-bold mt-10 mb-4 text-foreground">
-        When the Owner adds you
+        Being invited
       </h2>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        You are a member the moment the Owner adds your email — there is nothing to accept. The Hub puts a notice at
-        the top of the page, and it stays until you act on it:
+        You become a member only by accepting an invitation. The Owner invites an existing Hub account by email
+        address or username; the Hub sends an email and shows the same invitation in your sidebar under{" "}
+        <strong className="text-foreground">Shared with me → Invitations</strong>. Until you accept, you are not in
+        the team and none of its servers exist for you:
       </p>
       <div className="mb-4 rounded-xl border border-border bg-surface p-4">
-        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">Notice</div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary">Invitation</div>
         <p className="mt-1 font-mono text-xs text-foreground">
-          &lt;Owner&gt; added you to &lt;team&gt; as &lt;role&gt;
+          &lt;Owner&gt; invited you to &lt;team&gt; as &lt;role&gt;
         </p>
         <p className="mt-2 text-xs leading-relaxed text-muted">
-          <strong className="text-foreground">Open team</strong> switches to it,{" "}
-          <strong className="text-foreground">Leave team</strong> removes your membership there and then, and{" "}
-          <strong className="text-foreground">Dismiss</strong> only hides the notice — you stay a member.
+          <strong className="text-foreground">Accept</strong> joins the team, makes its servers appear and switches
+          the Hub to it. <strong className="text-foreground">Decline</strong> answers the invitation for good; the
+          Owner has to invite you again.
         </p>
       </div>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
         <li>
-          <strong className="text-foreground">You can leave at any time yourself.</strong> Open the team and use{" "}
-          <strong className="text-foreground">Settings → Leave team</strong>; the same action as the notice&apos;s
-          Leave team. Your access to its servers goes at once.
+          <strong className="text-foreground">The email link is single-use and lasts 24 hours.</strong> It opens the
+          Hub at <code className={C}>/invite#&lt;token&gt;</code>; the token is in the URL fragment, so it never
+          reaches a server log or a <code className={C}>Referer</code>. An expired, revoked or already used link says
+          which it is and what to do next.
         </li>
         <li>
-          <strong className="text-foreground">Only the Owner can add you again.</strong> There is no invitation to
-          accept or re-send: if you leave, ask the Owner to add your email a second time.
+          <strong className="text-foreground">The email and the in-Hub invitation are the same invitation.</strong>{" "}
+          Accept or decline either one; the other disappears. A mail failure never invalidates the in-Hub invitation.
+        </li>
+        <li>
+          <strong className="text-foreground">An invitation belongs to one account.</strong> Opening the link signed
+          in as someone else is refused with <code className={C}>WRONG_ACCOUNT</code>; sign in as the invited
+          account. Accepting after you became a member meanwhile answers{" "}
+          <code className={C}>ALREADY_MEMBER</code>.
+        </li>
+        <li>
+          <strong className="text-foreground">You can leave at any time yourself.</strong> Open the team and use{" "}
+          <strong className="text-foreground">Settings → Leave team</strong>. Your access to its servers goes at
+          once.
+        </li>
+        <li>
+          <strong className="text-foreground">Only the Owner can invite you again.</strong> Ask the Owner to send a
+          new invitation; a revoked or declined one cannot be reused.
         </li>
         <li>
           <strong className="text-foreground">The Owner cannot leave.</strong> A team always keeps exactly one Owner,
@@ -426,8 +444,8 @@ export default function TeamsPage() {
           leave as an Admin.
         </li>
       </ul>
-      {/* SCREENSHOT: the notice bar at the top of the Hub with Open team, Leave team and Dismiss */}
-      <Screenshot caption="The notice after being added, with Open team, Leave team and Dismiss." />
+      {/* SCREENSHOT: the invitation under Shared with me, and the /invite page the email link opens */}
+      <Screenshot caption="An invitation under Shared with me, and the /invite page the email link opens, with Accept invitation and Decline." />
 
       <h2 id="ceiling" className="text-xl font-bold mt-10 mb-4 text-foreground">
         The permission ceiling
@@ -779,6 +797,230 @@ export default function TeamsPage() {
         If someone needs one app only, Member or Viewer is the role to use.
       </p>
 
+      <h2 id="invite-a-person" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Invite a person
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Only the team Owner manages people (<code className={C}>members.manage</code>). An invitation names one
+        existing Hub account, a role, its permissions and a scope; the person joins only when they accept it.
+      </p>
+      <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          Open the team&apos;s <strong className="text-foreground">Members</strong> area and choose{" "}
+          <strong className="text-foreground">Invite a person</strong>.
+        </li>
+        <li>
+          Type the person&apos;s <strong className="text-foreground">email address</strong> or{" "}
+          <strong className="text-foreground">username</strong> (with or without a leading{" "}
+          <code className={C}>@</code>). The form looks the account up and shows the display name and username before
+          it will send — never an id and never an email address back. A miss answers{" "}
+          <code className={C}>NO_ACCOUNT</code> with the same sentence for every reason: &quot;No Hub account
+          matches. The person must create a Hub account first.&quot;
+        </li>
+        <li>
+          Pick a <strong className="text-foreground">role</strong> — Admin, Member or Viewer, never Owner — and
+          adjust the permission boxes. They start from the role&apos;s preset and can only be narrowed, exactly as
+          in the Access editor.
+        </li>
+        <li>
+          For a Member or Viewer, choose <strong className="text-foreground">All servers</strong> or{" "}
+          <strong className="text-foreground">Selected servers</strong>, and per server All apps or Selected apps.
+          Admins always hold the whole team.
+        </li>
+        <li>
+          Choose <strong className="text-foreground">Send invitation</strong>. Nothing is granted yet: the Hub emails
+          a single-use link valid for 24 hours and shows the same invitation in the person&apos;s sidebar. The
+          response says whether the email left (<code className={C}>emailSent</code>); a mail failure keeps the
+          in-Hub invitation usable.
+        </li>
+        <li>
+          Follow it in <strong className="text-foreground">Pending invitations</strong>, above the member table:
+          person, role, status, expiry, <strong className="text-foreground">Resend</strong> and{" "}
+          <strong className="text-foreground">Revoke</strong>.
+        </li>
+      </ol>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          <strong className="text-foreground">Resend</strong> mints a new token and a new 24-hour expiry; the
+          previous link stops working. <strong className="text-foreground">Revoke</strong> kills a pending
+          invitation, and its link stops working too. Both are Owner-only and both are audited.
+        </li>
+        <li>
+          <strong className="text-foreground">Refusals:</strong> <code className={C}>NO_ACCOUNT</code>,{" "}
+          <code className={C}>ALREADY_MEMBER</code>, <code className={C}>INVITE_PENDING</code> (a second invitation
+          for the same person; resend the existing one), <code className={C}>USE_TRANSFER</code> for Owner, and{" "}
+          <code className={C}>CANNOT_INVITE</code> when the caller may not add people at all.
+        </li>
+        <li>
+          <strong className="text-foreground">Looking a person up needs a right to invite.</strong> The caller must
+          own a team or a personal server; otherwise <code className={C}>CANNOT_INVITE</code>. The lookup never
+          reveals whether an address exists beyond the one generic answer.
+        </li>
+        <li>
+          <strong className="text-foreground">One shared budget.</strong> Lookups, invitations and shares share 30
+          requests per account per hour — every attempt counts, misses included — plus a per-IP limit; the answer is{" "}
+          <code className={C}>429</code> with a <code className={C}>Retry-After</code>.
+        </li>
+      </ul>
+      {/* SCREENSHOT: the Invite a person form with the lookup result, role preset, permissions and server scope */}
+      <Screenshot caption="Invite a person: the email or username lookup result, the role preset, its permission boxes and the server scope." />
+
+      <h2 id="share-an-app" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Share an app
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Sharing an app is an invitation scoped to one app and the actions you tick. It uses the same team model as
+        everything else: an app share is a <code className={C}>TeamInvite</code> whose scope names that one app, and
+        only the team Owner may create one.
+      </p>
+      <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          Open <strong className="text-foreground">Deployments</strong>, open the app and choose its{" "}
+          <strong className="text-foreground">Sharing</strong> tab. The tab exists only for the team Owner; anyone
+          else does not see it.
+        </li>
+        <li>
+          Type the person&apos;s email address or username and confirm the account, as in Invite a person.
+        </li>
+        <li>
+          Tick at least one action: <strong className="text-foreground">Deploy</strong>,{" "}
+          <strong className="text-foreground">Roll back</strong> or <strong className="text-foreground">Logs</strong>
+          . Logs alone makes the person a Viewer; anything else makes them a Member holding exactly those deploy
+          grants.
+        </li>
+        <li>
+          On a <strong className="text-foreground">personal server</strong>, choose the team the server moves into —
+          one you own — or type a new team name. Sharing moves the server there in the same step. Read the notice
+          first: you stay its owner, nothing on the server changes, and people see only what you grant.
+        </li>
+        <li>
+          One confirmation names the move and the invitation; then send. The app appears for them under{" "}
+          <strong className="text-foreground">Shared with me</strong> after they accept.
+        </li>
+      </ol>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          <strong className="text-foreground">Refusals:</strong>{" "}
+          <code className={C}>ALREADY_MEMBER</code> (give them the app from the team&apos;s Members tab instead),{" "}
+          <code className={C}>INVITE_PENDING</code> (the same app is already pending for that person),{" "}
+          <code className={C}>UNKNOWN_APP</code> (open the server once so the Hub learns its apps),{" "}
+          <code className={C}>NO_ACCOUNT</code> and <code className={C}>CANNOT_INVITE</code>.
+        </li>
+        <li>
+          <strong className="text-foreground">Shared with</strong> lists pending and accepted people with their
+          actions and expiry. <strong className="text-foreground">Revoke</strong> cancels a pending invitation, or
+          removes a member&apos;s grant for this one app; when that membership then reaches nothing it is removed
+          too. Open pages and Shared with me update at once.
+        </li>
+      </ul>
+      {/* SCREENSHOT: the app's Sharing tab with the person, Deploy / Roll back / Logs and the Shared with list */}
+      <Screenshot caption="The app's Sharing tab: the person, the three actions, and the people the app is already shared with." />
+
+      <h2 id="shared-with-me" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        Shared with me
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Everything another team gives you personally is collected under <strong className="text-foreground">Shared
+        with me</strong> in the sidebar, so a one-app grant never means hunting through teams for the server.
+      </p>
+      <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          Open <code className={C}>/dashboard</code> and find <strong className="text-foreground">Shared with
+          me</strong> under Personal and the teams (on a server page it sits under SERVERS).
+        </li>
+        <li>
+          <strong className="text-foreground">Invitations come first</strong>: team, who invited you, your role, the
+          app and server for a share, and the expiry. <strong className="text-foreground">Accept</strong> or{" "}
+          <strong className="text-foreground">Decline</strong> there — the same answer as the email link.
+        </li>
+        <li>
+          Accepted app shares follow, grouped by server name, one row per app. Choosing one opens that server&apos;s
+          Deployments section at the app.
+        </li>
+        <li>
+          With nothing shared the block is hidden on a server page and the dashboard tree says &quot;Nothing shared
+          with you yet&quot;.
+        </li>
+      </ol>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        The list is live. When an Owner changes your access, revokes a share or invites you, the Hub sends{" "}
+        <code className={C}>me:changed</code> and the sidebar, Shared with me and the invitations refetch without a
+        reload. A server page you already have open is re-checked too; if that access was removed the page says so
+        and the server leaves your tree.
+      </p>
+      {/* SCREENSHOT: Shared with me in the sidebar with pending invitations first, then apps grouped by server */}
+      <Screenshot caption="Shared with me: pending invitations first, then the apps grouped by server name." />
+
+      <h2 id="the-sidebar" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        The sidebar
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        On the fleet page the sidebar is a tree: <strong className="text-foreground">Personal</strong>, every team you
+        belong to, then <strong className="text-foreground">Shared with me</strong>. Expanding a node lists its
+        servers, and expanding a server shows only the sections you may open — overview, deployments and settings
+        always; domains, ssl, nginx, notifications and processes for the whole server; logs and the action log only
+        when your grants allow them. The list is the server&apos;s own <code className={C}>sections</code> field, so
+        the tree never guesses a rule from a role.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          <strong className="text-foreground">Keyboard and search.</strong> Arrows move and open or close, Home and
+          End jump, Enter opens, Space toggles; search appears above eight servers and filters by name.
+        </li>
+        <li>
+          <strong className="text-foreground">Switching stays smooth.</strong> The tree, the switcher and the open
+          server page stay in step, a direct link to a server outside the chosen context still opens, and the open
+          nodes are remembered per account.
+        </li>
+        <li>
+          <strong className="text-foreground">Motion is optional.</strong> Expands, fades and the server-switch fade
+          use the Hub&apos;s short transitions; with <code className={C}>prefers-reduced-motion: reduce</code> they
+          are instant.
+        </li>
+      </ul>
+      {/* SCREENSHOT: the dashboard sidebar tree, a team expanded to servers and one server expanded to its sections */}
+      <Screenshot caption="The dashboard sidebar tree: Personal and teams expanded to servers, and one server showing only the sections this account may open." />
+
+      <h2 id="new-deploy" className="text-xl font-bold mt-10 mb-4 text-foreground">
+        New deploy
+      </h2>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        <strong className="text-foreground">New deploy</strong> starts from the fleet header, beside Add server, and
+        asks for the server first. Every server you can see is listed with its team; one that cannot take a deploy
+        stays visible, disabled, with the Hub&apos;s reason under its name.
+      </p>
+      <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>Choose <strong className="text-foreground">New deploy</strong>.</li>
+        <li>
+          Choose a server. A server that cannot take the deploy carries the first matching reason: the Hub policy
+          refuses the create for your role, grant or scope (the same sentence the create command would answer, for
+          example <code className={C}>ROLE_TOO_LOW</code> or <code className={C}>NOT_GRANTED</code>); the server
+          itself has Deployments switched off in its Settings → Hub; it is offline; or it runs as a Windows service
+          and refuses Hub deploys.
+        </li>
+        <li>
+          Continue opens the existing create form at{" "}
+          <code className={C}>/dashboard/servers/&lt;id&gt;?section=deployments&amp;create=1</code>. When only one
+          server can take the deploy, the Hub goes straight there.
+        </li>
+      </ol>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          <strong className="text-foreground">Server-side reasons come from the server:</strong> &quot;This server
+          does not allow Hub deploys. Turn on Deployments in the server&apos;s Settings → Hub.&quot; and &quot;The
+          server is offline.&quot; The service-account case says Easy DevOps runs as a Windows service there, that
+          since 1.4.9 it refuses Hub deploys, and to deploy from the server itself. An older agent that does not
+          report the state is treated as unknown, not refused.
+        </li>
+        <li>
+          <strong className="text-foreground">The dialog never decides.</strong> The selectable flag and the reason
+          come from <code className={C}>GET /servers/deploy-targets</code>; the UI does not derive either from the
+          online badge or from a role.
+        </li>
+      </ul>
+      {/* SCREENSHOT: New deploy → Choose a server, one server disabled with its reason shown under the name */}
+      <Screenshot caption="New deploy: Choose a server, with a server that cannot take one disabled and its reason under the name." />
+
       <h2 id="steps" className="text-xl font-bold mt-10 mb-4 text-foreground">
         Setting it up, step by step
       </h2>
@@ -801,24 +1043,25 @@ export default function TeamsPage() {
       <Screenshot caption="The team switcher, with Create team at the bottom of the list." />
 
       <h3 id="step-2-add-a-person" className="text-base font-bold mt-8 mb-3 text-foreground">
-        2. Add a person by email
+        2. Invite a person
       </h3>
       <p className="text-sm text-muted leading-relaxed mb-4">
         In the team&apos;s <strong className="text-foreground">Members</strong> area, open{" "}
-        <strong className="text-foreground">Add a person</strong> and type the email address of someone who already has
-        a Hub account. Pick a role and the permission boxes fill from its preset. Choose{" "}
-        <strong className="text-foreground">Add person</strong> and the membership exists immediately.
+        <strong className="text-foreground">Invite a person</strong> and type the email address or username of
+        someone who already has a Hub account. The form confirms the account before it will send. Pick a role and the
+        permission boxes fill from its preset, then choose <strong className="text-foreground">Send invitation</strong>{" "}
+        — the person joins only when they accept.
       </p>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
         <li>
-          <strong className="text-foreground">There is no invitation.</strong> Nothing is emailed, no link is
-          generated and there is no acceptance step. The team appears in that person&apos;s switcher on their next
-          request, and their live sessions are re-checked.
+          <strong className="text-foreground">It is an invitation, not an add.</strong> The Hub emails a single-use
+          link that expires after 24 hours and shows the same invitation in the person&apos;s sidebar under Shared
+          with me. Nothing is granted until they accept; you can resend or revoke it from Pending invitations.
         </li>
         <li>
-          <strong className="text-foreground">The account must already exist.</strong> An address with no Hub account
-          is refused with <code className={C}>NO_ACCOUNT</code>; ask the person to register with that exact address,
-          then add them again.
+          <strong className="text-foreground">The account must already exist.</strong> An address or username with no
+          Hub account is refused with <code className={C}>NO_ACCOUNT</code>; ask the person to register first, then
+          invite them again.
         </li>
         <li>
           <strong className="text-foreground">Owner is not in the role list.</strong> A team has exactly one Owner, so
@@ -826,14 +1069,20 @@ export default function TeamsPage() {
           <code className={C}>USE_TRANSFER</code>. Use Transfer ownership instead.
         </li>
         <li>
-          <strong className="text-foreground">They start visible but not acting.</strong> A new Member or Viewer sees
-          all of the team&apos;s servers and apps, but can act on no app until you grant it in step 4. Their preset
-          permissions only take effect on the apps you grant.
+          <strong className="text-foreground">Already in the team, or already invited.</strong>{" "}
+          <code className={C}>ALREADY_MEMBER</code> means the person is a member;{" "}
+          <code className={C}>INVITE_PENDING</code> names the invitation already waiting, so resend that one instead
+          of sending a second.
         </li>
-        <li>Adding people is limited to 30 per account and 100 per team per hour; only successful additions count.</li>
+        <li>
+          <strong className="text-foreground">They start visible but not acting.</strong> Once they accept, a new
+          Member or Viewer sees all of the team&apos;s servers and apps, but can act on no app until you grant it in
+          step 4. Their preset permissions only take effect on the apps you grant.
+        </li>
+        <li>Lookups, invitations and shares share a budget of 30 per account per hour, every attempt counted, plus a per-IP limit.</li>
       </ul>
-      {/* SCREENSHOT: the Add a person form with Email, Role, and the preset permission groups */}
-      <Screenshot caption="The Add a person form: email, role, and the preset permissions the Owner may adjust." />
+      {/* SCREENSHOT: the Invite a person form with the lookup result, Role, and the preset permission groups */}
+      <Screenshot caption="The Invite a person form: the confirmed account, role, and the preset permissions the Owner may adjust." />
 
       <h3 id="step-3-choose-permissions" className="text-base font-bold mt-8 mb-3 text-foreground">
         3. Choose a role preset and adjust permissions one by one
@@ -1006,7 +1255,7 @@ export default function TeamsPage() {
         entries at a time, up to 200 per request, with an older-page cursor.
       </p>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
-        <li>Recorded: team create, rename and delete; a person added, updated, removed or leaving; ownership transfers; server transfers in and out; every command dispatched and every refusal; and the automatic grant of an app to its creator.</li>
+        <li>Recorded: team create, rename and delete; invitations sent, resent, revoked, accepted, declined and expired; a person updated, removed or leaving; ownership transfers; server transfers in and out; every command dispatched and every refusal; and the automatic grant of an app to its creator.</li>
         <li>
           <strong className="text-foreground">Commands are recorded by name</strong> — command, action, app id, request
           id, whether it was dispatched or refused, and the refusal code. Never the payload, never an environment
