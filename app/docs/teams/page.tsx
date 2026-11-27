@@ -56,7 +56,7 @@ const builtinRoles: Array<{ role: string; keys: string; note: string }> = [
   },
   {
     role: "@everyone",
-    keys: "server.view, app.view, domains.view, ssl.view, nginx.view, processes.view, notifications.view",
+    keys: "server.view, app.view, stats.view, domains.view, ssl.view, nginx.view, processes.view, notifications.view",
     note: "Every member holds it implicitly; it sits at position 0 and cannot be renamed, moved or deleted. Its keys can be edited, and it is the usual target for a private server or app. logs.view is not in the default: the Logs section stays closed until a role or an override grants it.",
   },
 ];
@@ -81,8 +81,8 @@ const grantGroups: Array<{ group: string; view: string | null; viewLabel: string
     group: "General",
     view: "server.view",
     viewLabel: "See the server and its overview.",
-    grants: ["server.manage"],
-    note: "See a team server, open its overview, rename a server or move a personal server into the team.",
+    grants: ["stats.view", "server.manage"],
+    note: "See a team server and open its overview; See server stats (stats.view) adds its live service state, CPU and memory (resources), metrics and the agent's permission state; server.manage renames a server or moves a personal server into the team. Someone limited to chosen apps gets the live stats only if stats.view is granted to them.",
   },
   {
     group: "Deployments",
@@ -654,10 +654,30 @@ export default function TeamsPage() {
           </tbody>
         </table>
       </div>
-      <p className="text-sm text-muted leading-relaxed mb-10">
+      <p className="text-sm text-muted leading-relaxed mb-4">
         Read it as the defaults, not as a ceiling. A custom role may hold any key directly, and an override may add or
         remove one on a single server or app. What never changes: nothing can rise above the server&apos;s own
         permissions, and the Owner-only actions cannot be granted at all.
+      </p>
+      <h3 id="legacy-roles" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Roles from before roles
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        A team that already existed when roles replaced the old fixed model may still hold{" "}
+        <strong className="text-foreground">Admin (before roles)</strong> roles. The backfill translated each old admin
+        grant set into a real role so that every resolved decision stayed identical, so one role can exist per distinct
+        grant set — <strong className="text-foreground">Admin (before roles)</strong>,{" "}
+        <strong className="text-foreground">Admin (before roles) 2</strong>, and so on. They are ordinary roles carrying
+        the keys those admins actually held, and they carry no <code className={C}>administrator</code>: old admins never
+        had it. The Roles tab marks each one &quot;Legacy role from before roles — review it&quot;.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-10">
+        <strong className="text-foreground">Move its members to Admin</strong> gives the built-in Admin role to everyone
+        holding the legacy role and takes the legacy role away from them, in one transaction: each of them gains{" "}
+        <code className={C}>administrator</code>, and the legacy role stays in the list, now empty. Only the Owner sees
+        the button; a confirmation names how many people gain <code className={C}>administrator</code> before anything
+        is written, and the move is audited as <code className={C}>role.move-to-admin</code> with that count. Reviewing
+        or editing the role, or deleting it, works as for any other role.
       </p>
 
       <h2 id="permissions-and-overrides" className="text-xl font-bold mt-10 mb-4 text-foreground">
@@ -746,7 +766,10 @@ export default function TeamsPage() {
       <p className="text-sm text-muted leading-relaxed mb-4">
         A group&apos;s other keys only work while its view key is on. The editor greys them out while the view switch is
         off, and turning an action on turns the view switch on with it; when the view key itself is not held at server
-        level, the rest of its group has no effect. The group master switch sets a whole group at once and reads{" "}
+        level, the rest of its group has no effect. While a group&apos;s view is off, the editor shows a single hint under
+        that group&apos;s header — &quot;Turning on any permission here also turns on &lt;view label&gt;&quot; — and each
+        row&apos;s own explanation only on hover or focus, still announced to screen readers through{" "}
+        <code className={C}>aria-describedby</code>. The group master switch sets a whole group at once and reads{" "}
         <strong className="text-foreground">All</strong> / <strong className="text-foreground">None</strong> /{" "}
         <strong className="text-foreground">Mixed</strong> in a role and <strong className="text-foreground">Allow
         all</strong> / <strong className="text-foreground">Deny all</strong> /{" "}
@@ -757,10 +780,12 @@ export default function TeamsPage() {
         deployment progress and in process entries only with it, and deploy log lines still need{" "}
         <code className={C}>deploy.logs</code>. It does not hide the server&apos;s other sections — each follows its own
         view key above. Someone limited to chosen apps holds <code className={C}>server.view</code> but no server-level{" "}
-        <code className={C}>app.view</code>; exactly two limits then remain: the Processes frame lists only their
-        apps&apos; entries (other processes need <code className={C}>processes.view</code> without the app limit), and
-        the Overview&apos;s live data — service, resources, permissions and metrics — stays hidden. Where data is
-        withheld this way the page says{" "}
+        <code className={C}>app.view</code>. The automatic limit is the Processes frame: it lists only their apps&apos;
+        entries (other processes need <code className={C}>processes.view</code> without the app limit). The
+        Overview&apos;s live service state, CPU and memory (resources), metrics and the agent permission state follow
+        their own key, <code className={C}>stats.view</code> (See server stats): someone limited to chosen apps gets them
+        only when it is granted, and it is granted or denied like any other key. Where data is withheld this way the page
+        says{" "}
         <strong className="text-foreground">&quot;Not available with your permissions&quot;</strong>, never
         &quot;Unknown&quot; or &quot;Degraded&quot;.
       </p>
@@ -846,7 +871,7 @@ export default function TeamsPage() {
             <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
               <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap align-top">Server</td>
               <td className="py-3 px-4 text-xs text-muted leading-relaxed align-top">Roles and server overrides.</td>
-              <td className="py-3 px-4 font-mono text-xs text-muted leading-relaxed align-top">server.view, server.manage, deploy.create, deploy.ci ★, domains.view, domains.create / edit / toggle / delete ★, ssl.view, ssl.issue / renew / renewAll / delete ★, nginx.view, nginx.config.view, nginx.config.edit ★, nginx.logs.view, nginx.reload / restart / start / stop / test, processes.view, process.start / stop / restart, logs.view, notifications.view</td>
+              <td className="py-3 px-4 font-mono text-xs text-muted leading-relaxed align-top">server.view, stats.view, server.manage, deploy.create, deploy.ci ★, domains.view, domains.create / edit / toggle / delete ★, ssl.view, ssl.issue / renew / renewAll / delete ★, nginx.view, nginx.config.view, nginx.config.edit ★, nginx.logs.view, nginx.reload / restart / start / stop / test, processes.view, process.start / stop / restart, logs.view, notifications.view</td>
             </tr>
             <tr className="hover:bg-primary/[0.03] transition-colors">
               <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap align-top">App</td>
@@ -1108,8 +1133,9 @@ export default function TeamsPage() {
           <code className={C}>notifications.view</code> too — each is that section&apos;s view switch, and leaving one on
           leaves that section visible, read-only. Keep <code className={C}>processes.view</code>: the Processes frame
           then shows only their apps, which is the other half of being limited to chosen apps (deny it as well to close
-          the section). Keep <code className={C}>server.view</code>, so the server is listed and its Overview opens
-          (without live data). Do not touch <code className={C}>@everyone</code>: this override applies to Frontend
+          the section). Keep <code className={C}>server.view</code>, so the server is listed and its Overview opens;
+          deny <code className={C}>stats.view</code> as well if they should not see its live service state, CPU, memory
+          and metrics. Do not touch <code className={C}>@everyone</code>: this override applies to Frontend
           only.
         </li>
         <li>
@@ -1131,7 +1157,8 @@ export default function TeamsPage() {
         <li>
           <strong className="text-foreground">Check it with View as.</strong> Permissions →{" "}
           <strong>View as</strong> → one frontend developer: server visible, the sections exactly as the override left
-          them, the Processes frame holding only their apps and the Overview live data hidden. Then app A: visible,{" "}
+          them, the Processes frame holding only their apps and the Overview live stats absent unless{" "}
+          <code className={C}>stats.view</code> is granted. Then app A: visible,{" "}
           <code className={C}>deploy.run</code> and <code className={C}>deploy.logs</code> present, rollback and env
           absent. App C: invisible. That is exactly what their account gets on the next request, and any change saved
           here reaches their open pages at once.
@@ -1286,8 +1313,9 @@ export default function TeamsPage() {
       <p className="text-sm text-muted leading-relaxed mb-4">
         To give someone one app only, deny <code className={C}>app.view</code> at server level for their role, then
         allow <code className={C}>app.view</code> and the actions on that one app. They are then limited to chosen apps:
-        the server is listed, the section views they hold still apply, the Processes frame shows only their apps and the
-        Overview&apos;s live data stays hidden. That is the worked example above, with a role that carries no keys.
+        the server is listed, the section views they hold still apply, the Processes frame shows only their apps, and
+        the Overview&apos;s live stats appear only if <code className={C}>stats.view</code> is granted (deny it to keep
+        them closed too). That is the worked example above, with a role that carries no keys.
       </p>
       <p className="text-sm text-muted leading-relaxed mb-4">
         What this changes in practice, for a member whose extra keys are app overrides:
@@ -1301,12 +1329,12 @@ export default function TeamsPage() {
         </thead>
         <tbody>
           <tr className="hover:bg-primary/[0.03] transition-colors">
-            <td className="py-3 px-4 text-xs text-muted leading-relaxed">The server, its name and whether it is online; the sections whose view keys they hold; the apps they hold <code className={C}>app.view</code> on.</td>
+            <td className="py-3 px-4 text-xs text-muted leading-relaxed">The server, its name and, with <code className={C}>stats.view</code>, whether it is online; the sections whose view keys they hold; the apps they hold <code className={C}>app.view</code> on.</td>
             <td className="py-3 px-4 text-xs text-muted leading-relaxed">Servers without <code className={C}>server.view</code>, sections without their view key, apps without <code className={C}>app.view</code> — not an empty list, a missing server or app (404). Where data is withheld, the page says &quot;Not available with your permissions&quot;.</td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-xs text-muted leading-relaxed">Status and deployment progress for those apps; log lines only with <code className={C}>deploy.logs</code> on that app; nginx configs and logs only with <code className={C}>nginx.config.view</code> / <code className={C}>nginx.logs.view</code>.</td>
-            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Server-wide sections without their own view keys; for someone limited to chosen apps, the other apps, their process entries and the Overview&apos;s live data (service, resources, permissions, metrics).</td>
+            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Server-wide sections without their own view keys; for someone limited to chosen apps, the other apps and their process entries, and — without <code className={C}>stats.view</code> — the Overview&apos;s live data (service, resources, permissions, metrics).</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-xs text-muted leading-relaxed">Their own command results, and the progress of a command they started.</td>

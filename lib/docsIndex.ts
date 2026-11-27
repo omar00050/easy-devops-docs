@@ -159,6 +159,7 @@ export const docsIndex: DocsIndexEntry[] = [
       { id: "joining-a-team", text: "Being invited" },
       { id: "ceiling", text: "The permission ceiling" },
       { id: "roles", text: "Roles" },
+      { id: "legacy-roles", text: "Roles from before roles" },
       { id: "permissions-and-overrides", text: "Permissions and overrides" },
       { id: "section-views", text: "Section views and group switches" },
       { id: "resolution", text: "How a decision is made" },
