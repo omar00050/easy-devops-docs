@@ -52,18 +52,20 @@ const builtinRoles: Array<{ role: string; keys: string; note: string }> = [
   {
     role: "Viewer",
     keys: "No keys of its own",
-    note: "View only, from @everyone: server.view and app.view. Assign it alone and the person can look and do nothing.",
+    note: "View only, from @everyone: the view keys below. Assign it alone and the person can look and do nothing.",
   },
   {
     role: "@everyone",
-    keys: "server.view, app.view",
-    note: "Every member holds it implicitly; it sits at position 0 and cannot be renamed, moved or deleted. Its keys can be edited, and it is the usual target for a private server or app.",
+    keys: "server.view, app.view, domains.view, ssl.view, nginx.view, processes.view, notifications.view",
+    note: "Every member holds it implicitly; it sits at position 0 and cannot be renamed, moved or deleted. Its keys can be edited, and it is the usual target for a private server or app. logs.view is not in the default: the Logs section stays closed until a role or an override grants it.",
   },
 ];
 
 /** The starting capability table: what the built-in role defaults reach at most. */
 const roles: Array<{ capability: string; viewer: string; member: string; admin: string; owner: string }> = [
-  { capability: "See servers, apps, status", viewer: "✓", member: "✓", admin: "✓", owner: "✓" },
+  { capability: "See servers, apps and their deployments", viewer: "✓", member: "✓", admin: "✓", owner: "✓" },
+  { capability: "See a section's data (domains, SSL, nginx, processes, notifications)", viewer: "✓", member: "✓", admin: "✓", owner: "✓" },
+  { capability: "Open Logs and the Action log", viewer: "if granted", member: "if granted", admin: "✓", owner: "✓" },
   { capability: "Deploy, roll back, start/stop", viewer: "—", member: "if granted", admin: "✓", owner: "✓" },
   { capability: "Read deployment logs", viewer: "if granted", member: "if granted", admin: "✓", owner: "✓" },
   { capability: "Create / edit apps", viewer: "—", member: "if granted", admin: "✓", owner: "✓" },
@@ -73,20 +75,40 @@ const roles: Array<{ capability: string; viewer: string; member: string; admin: 
   { capability: "Remove a server, rotate its secret", viewer: "—", member: "—", admin: "—", owner: "✓" },
 ];
 
-/** The catalog, grouped the way the editor shows it. */
-const grantGroups: Array<{ group: string; grants: string[]; note: string }> = [
+/** The catalog, grouped the way the editor shows it; the group's view key comes first. */
+const grantGroups: Array<{ group: string; view: string | null; viewLabel: string; grants: string[]; note: string }> = [
   {
     group: "General",
-    grants: ["server.view", "app.view", "server.manage", "audit.view"],
-    note: "See a team server, see an app on it, rename a server or move a personal server into the team, read a server's action log.",
+    view: "server.view",
+    viewLabel: "See the server and its overview.",
+    grants: ["server.manage"],
+    note: "See a team server, open its overview, rename a server or move a personal server into the team.",
   },
   {
     group: "Deployments",
-    grants: ["deploy.create", "deploy.ci", "deploy.run", "deploy.rollback", "deploy.logs", "deploy.manage", "deploy.env"],
-    note: "Create an app through the Hub, accept a CI deploy, deploy, roll back, read logs, edit an app and its deploy key, read or change environment variables. deploy.ci and deploy.env are dangerous.",
+    view: "app.view",
+    viewLabel: "See apps and deployments.",
+    grants: ["deploy.create", "deploy.ci", "deploy.run", "deploy.rollback", "deploy.logs", "deploy.manage", "deploy.admin", "deploy.env"],
+    note: "Create an app through the Hub, accept a CI deploy, deploy, roll back, read logs, edit or delete an app and its deploy key, read or change environment variables. deploy.ci, deploy.admin and deploy.env are dangerous.",
+  },
+  {
+    group: "Domains",
+    view: "domains.view",
+    viewLabel: "See domains.",
+    grants: ["domains.create", "domains.edit", "domains.toggle", "domains.delete"],
+    note: "Create, edit, enable/disable and delete domains. domains.delete is dangerous.",
+  },
+  {
+    group: "SSL",
+    view: "ssl.view",
+    viewLabel: "See SSL certificates.",
+    grants: ["ssl.issue", "ssl.renew", "ssl.renewAll", "ssl.delete"],
+    note: "Issue, renew and delete certificates. ssl.delete is dangerous.",
   },
   {
     group: "Nginx",
+    view: "nginx.view",
+    viewLabel: "See nginx.",
     grants: [
       "nginx.start",
       "nginx.stop",
@@ -95,27 +117,41 @@ const grantGroups: Array<{ group: string; grants: string[]; note: string }> = [
       "nginx.test",
       "nginx.config.view",
       "nginx.config.edit",
-      "nginx.logs.view",
     ],
-    note: "Control nginx, read or edit its configuration files, read its logs. nginx.config.edit is dangerous.",
-  },
-  {
-    group: "Domains",
-    grants: ["domains.create", "domains.edit", "domains.toggle", "domains.delete"],
-    note: "Create, edit, enable/disable and delete domains. domains.delete is dangerous.",
-  },
-  {
-    group: "SSL",
-    grants: ["ssl.issue", "ssl.renew", "ssl.renewAll", "ssl.delete"],
-    note: "Issue, renew and delete certificates. ssl.delete is dangerous.",
+    note: "Control nginx, read or edit its configuration files. nginx.config.edit is dangerous.",
   },
   {
     group: "Processes",
+    view: "processes.view",
+    viewLabel: "See processes.",
     grants: ["process.start", "process.stop", "process.restart"],
     note: "Start, stop and restart a process by name.",
   },
   {
+    group: "Logs",
+    view: "logs.view",
+    viewLabel: "See logs.",
+    grants: ["nginx.logs.view"],
+    note: "Open the Logs section and read the nginx error log. logs.view is the one view key @everyone does not start with.",
+  },
+  {
+    group: "Notifications",
+    view: "notifications.view",
+    viewLabel: "See notifications.",
+    grants: [],
+    note: "See the server's notification channels. The view switch is the only key in the group.",
+  },
+  {
+    group: "Action log",
+    view: "audit.view",
+    viewLabel: "See the action log — a team key, so roles only.",
+    grants: [],
+    note: "Read the team audit log and each server's Action log. It never appears in a server or app override.",
+  },
+  {
     group: "Team",
+    view: null,
+    viewLabel: "",
     grants: ["administrator", "members.manage", "roles.manage"],
     note: "Everything at once, manage people, and manage roles. All three are dangerous and team-level: they never appear in a server or app override.",
   },
@@ -519,7 +555,8 @@ export default function TeamsPage() {
         <li>
           Open a role to edit its <strong className="text-foreground">name</strong>, its{" "}
           <strong className="text-foreground">colour</strong> and its <strong className="text-foreground">keys</strong>.
-          Keys are ticked from the catalog, grouped General, Deployments, Nginx, Domains, SSL, Processes and Team; a
+          Keys are ticked from the catalog, grouped General, Deployments, Domains, SSL, Nginx, Processes, Logs,
+          Notifications, Action log and Team; the first switch of a group is that section&apos;s view permission, and a
           dangerous key carries a warning.
         </li>
         <li>
@@ -541,6 +578,25 @@ export default function TeamsPage() {
           and the overrides written for that role go with it. A member with no roles left is back to @everyone.
         </li>
       </ol>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Every section has its own view permission, and it is the{" "}
+        <strong className="text-foreground">first switch of its group</strong>:{" "}
+        <code className={C}>server.view</code> for the server and its overview, <code className={C}>app.view</code> for
+        apps and deployments, then <code className={C}>domains.view</code>, <code className={C}>ssl.view</code>,{" "}
+        <code className={C}>nginx.view</code>, <code className={C}>processes.view</code>,{" "}
+        <code className={C}>logs.view</code>, <code className={C}>notifications.view</code> and{" "}
+        <code className={C}>audit.view</code> for the action log. The rest of a group only works while its view
+        permission is on: the editor greys those switches out, and turning one of them on turns its view switch on with
+        it.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Each group also has a master switch that reads{" "}
+        <strong className="text-foreground">All</strong>, <strong className="text-foreground">None</strong> or{" "}
+        <strong className="text-foreground">Mixed</strong> and sets every key in the group at once.{" "}
+        <code className={C}>app.view</code> decides only which apps and deployments someone sees; the server-wide
+        sections follow their own view keys, not it. A saved role reaches everyone who holds it at once, on the pages
+        they already have open.
+      </p>
       <Screenshot caption="The Roles tab: name, colour, position and key count per role, @everyone pinned at the bottom, and New role." />
       <p className="text-sm text-muted leading-relaxed mb-4">
         The four roles created with every team are ordinary roles — rename, recolour, edit, reorder or delete any of
@@ -641,10 +697,78 @@ export default function TeamsPage() {
         </li>
         <li>
           Every write is audited (<code className={C}>override.set</code>,{" "}
-          <code className={C}>override.delete</code>) and open pages re-authorise at once.
+          <code className={C}>override.delete</code>) and reaches every open page of the team at once — nobody has to
+          refresh.
         </li>
       </ol>
       <Screenshot caption="The Permissions editor on a team server: the target picker, the grouped keys, and allow / inherit / deny on one row." />
+
+      <h3 id="section-views" className="text-base font-bold mt-8 mb-3 text-foreground">
+        Section views and group switches
+      </h3>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Every section has its own view permission, and it is the first switch of its group:
+      </p>
+      <ul className="list-disc pl-5 space-y-1.5 text-sm text-muted leading-relaxed mb-4">
+        <li>
+          <strong className="text-foreground">Overview</strong> — <code className={C}>server.view</code> (See the server
+          and its overview)
+        </li>
+        <li>
+          <strong className="text-foreground">Deployments</strong> — <code className={C}>app.view</code> (See apps and
+          deployments)
+        </li>
+        <li>
+          <strong className="text-foreground">Domains</strong> — <code className={C}>domains.view</code> (See domains)
+        </li>
+        <li>
+          <strong className="text-foreground">SSL</strong> — <code className={C}>ssl.view</code> (See SSL certificates)
+        </li>
+        <li>
+          <strong className="text-foreground">Nginx</strong> — <code className={C}>nginx.view</code> (See nginx)
+        </li>
+        <li>
+          <strong className="text-foreground">Processes</strong> — <code className={C}>processes.view</code> (See
+          processes)
+        </li>
+        <li>
+          <strong className="text-foreground">Logs</strong> — <code className={C}>logs.view</code> (See logs)
+        </li>
+        <li>
+          <strong className="text-foreground">Notifications</strong> — <code className={C}>notifications.view</code>{" "}
+          (See notifications)
+        </li>
+        <li>
+          <strong className="text-foreground">Action log</strong> — <code className={C}>audit.view</code> (See the action
+          log; a team key, so roles only)
+        </li>
+      </ul>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        A group&apos;s other keys only work while its view key is on. The editor greys them out while the view switch is
+        off, and turning an action on turns the view switch on with it; when the view key itself is not held at server
+        level, the rest of its group has no effect. The group master switch sets a whole group at once and reads{" "}
+        <strong className="text-foreground">All</strong> / <strong className="text-foreground">None</strong> /{" "}
+        <strong className="text-foreground">Mixed</strong> in a role and <strong className="text-foreground">Allow
+        all</strong> / <strong className="text-foreground">Deny all</strong> /{" "}
+        <strong className="text-foreground">Inherit all</strong> in an override.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        <code className={C}>app.view</code> decides only <em>which apps</em> someone sees: an app appears in lists, in
+        deployment progress and in process entries only with it, and deploy log lines still need{" "}
+        <code className={C}>deploy.logs</code>. It does not hide the server&apos;s other sections — each follows its own
+        view key above. Someone limited to chosen apps holds <code className={C}>server.view</code> but no server-level{" "}
+        <code className={C}>app.view</code>; exactly two limits then remain: the Processes frame lists only their
+        apps&apos; entries (other processes need <code className={C}>processes.view</code> without the app limit), and
+        the Overview&apos;s live data — service, resources, permissions and metrics — stays hidden. Where data is
+        withheld this way the page says{" "}
+        <strong className="text-foreground">&quot;Not available with your permissions&quot;</strong>, never
+        &quot;Unknown&quot; or &quot;Degraded&quot;.
+      </p>
+      <p className="text-sm text-muted leading-relaxed mb-4">
+        Changes to roles, overrides and member roles reach everyone&apos;s open pages at once: the Hub pushes the change
+        and each page re-authorises and refetches without a reload. A page whose access was removed says so and the
+        server leaves the sidebar tree.
+      </p>
 
       <h3 id="resolution" className="text-base font-bold mt-8 mb-3 text-foreground">
         How a decision is made
@@ -676,8 +800,9 @@ export default function TeamsPage() {
         </li>
         <li>
           <strong className="text-foreground">Visibility is a key too.</strong> Without{" "}
-          <code className={C}>server.view</code> the server is invisible and nothing on it works (the API answers 404).
-          For an app, without <code className={C}>app.view</code> the app is invisible and nothing on it works.
+          <code className={C}>server.view</code> the server is invisible and nothing on it works (the API answers 404);
+          with it, each section still needs its own view key. For an app, without{" "}
+          <code className={C}>app.view</code> on that app the app is invisible and nothing on it works.
         </li>
         <li>
           <strong className="text-foreground">Then the server decides.</strong> A command runs only if the key it needs
@@ -687,13 +812,14 @@ export default function TeamsPage() {
       <p className="text-sm text-muted leading-relaxed mb-4">
         Team keys (members.manage, roles.manage, audit.view) come from the roles only — an override cannot add them.
         Visibility follows the same result: the server is listed and subscribable only with{" "}
-        <code className={C}>server.view</code>; Overview, Domains, SSL, Nginx, Notifications and Processes (and their
-        live events) need it too; nginx configs and logs additionally need{" "}
+        <code className={C}>server.view</code>; Domains, SSL, Nginx, Processes, Logs, Notifications and the Action log
+        each need their own view key, and nginx configs and logs separately need{" "}
         <code className={C}>nginx.config.view</code> / <code className={C}>nginx.logs.view</code>; Deployments needs at
         least one visible app or <code className={C}>deploy.create</code>; an app appears in lists and receives its
-        progress only with <code className={C}>app.view</code>; deploy log lines need{" "}
-        <code className={C}>deploy.logs</code>; the Action log needs <code className={C}>audit.view</code>; Settings is
-        always there.
+        progress only with <code className={C}>app.view</code>, and deploy log lines need{" "}
+        <code className={C}>deploy.logs</code>; Settings is always there and{" "}
+        <a href="#section-views" className="text-primary hover:underline font-medium">section views</a> decide the
+        rest.
       </p>
 
       <h3 id="permission-keys" className="text-base font-bold mt-8 mb-3 text-foreground">
@@ -720,12 +846,12 @@ export default function TeamsPage() {
             <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
               <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap align-top">Server</td>
               <td className="py-3 px-4 text-xs text-muted leading-relaxed align-top">Roles and server overrides.</td>
-              <td className="py-3 px-4 font-mono text-xs text-muted leading-relaxed align-top">server.view, server.manage, deploy.create, deploy.ci ★, domains.create / edit / toggle / delete ★, nginx.config.view, nginx.config.edit ★, nginx.logs.view, nginx.reload / restart / start / stop / test, ssl.issue / renew / renewAll / delete ★, process.start / stop / restart</td>
+              <td className="py-3 px-4 font-mono text-xs text-muted leading-relaxed align-top">server.view, server.manage, deploy.create, deploy.ci ★, domains.view, domains.create / edit / toggle / delete ★, ssl.view, ssl.issue / renew / renewAll / delete ★, nginx.view, nginx.config.view, nginx.config.edit ★, nginx.logs.view, nginx.reload / restart / start / stop / test, processes.view, process.start / stop / restart, logs.view, notifications.view</td>
             </tr>
             <tr className="hover:bg-primary/[0.03] transition-colors">
               <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap align-top">App</td>
               <td className="py-3 px-4 text-xs text-muted leading-relaxed align-top">Roles, server overrides and app overrides.</td>
-              <td className="py-3 px-4 font-mono text-xs text-muted leading-relaxed align-top">app.view, deploy.run, deploy.rollback, deploy.logs, deploy.manage, deploy.env ★</td>
+              <td className="py-3 px-4 font-mono text-xs text-muted leading-relaxed align-top">app.view, deploy.run, deploy.rollback, deploy.logs, deploy.manage, deploy.admin ★, deploy.env ★</td>
             </tr>
           </tbody>
         </table>
@@ -749,10 +875,16 @@ export default function TeamsPage() {
                 <td className="py-3 px-4 text-xs font-semibold text-foreground whitespace-nowrap align-top">{row.group}</td>
                 <td className="py-3 px-4 align-top">
                   <span className="space-x-1">
+                    {row.view && (
+                      <code className={`${C} ring-1 ring-primary/25`}>{row.view}</code>
+                    )}
                     {row.grants.map((grant) => (
                       <code key={grant} className={C}>{grant}</code>
                     ))}
                   </span>
+                  {row.view && (
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted">{row.viewLabel}</p>
+                  )}
                 </td>
                 <td className="py-3 px-4 text-xs text-muted leading-relaxed align-top">{row.note}</td>
               </tr>
@@ -761,11 +893,13 @@ export default function TeamsPage() {
         </table>
       </div>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        This is the same list the server shows in its own Settings → Hub, plus{" "}
-        <code className={C}>deploy.create</code> for &quot;may create an app&quot;, which exists only in the Hub.
-        Allowing a key here never switches anything on at the server; it only decides which of the server&apos;s
-        allowed actions this person may ask the Hub for. A key the catalog does not contain is refused with{" "}
-        <code className={C}>400 UNKNOWN_PERMISSION</code>, and the Owner-only actions are not keys at all.
+        The boxed key first in each group above is that section&apos;s view switch; the rest of the group does nothing
+        without it. A group with no view key (Team) is team-level and appears in roles only. This is the same list the
+        server shows in its own Settings → Hub, plus <code className={C}>deploy.create</code> for &quot;may create an
+        app&quot; and the view keys, which exist only in the Hub. Allowing a key here never switches anything on at the
+        server; it only decides which of the server&apos;s allowed actions this person may ask the Hub for. A key the
+        catalog does not contain is refused with <code className={C}>400 UNKNOWN_PERMISSION</code>, and the Owner-only
+        actions are not keys at all.
       </p>
 
       <h2 id="private-servers-and-apps" className="text-xl font-bold mt-10 mb-4 text-foreground">
@@ -773,40 +907,51 @@ export default function TeamsPage() {
       </h2>
       <p className="text-sm text-muted leading-relaxed mb-4">
         There is no separate &quot;private&quot; switch. A private server or app is an{" "}
-        <strong className="text-foreground">@everyone override that denies the view key</strong>; opening it for
-        someone is an allow override. Both are written in the same editor as any other override, so there is nothing
-        extra to learn.
+        <strong className="text-foreground">@everyone override that denies its view key</strong>; opening it for
+        someone is an allow override. A single section can be hidden the same way, with its own view key. All of it is
+        written in the same editor as any other override, so there is nothing extra to learn.
       </p>
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
         <li>
           <strong className="text-foreground">Make a server private.</strong> Open the server, choose its{" "}
           <strong className="text-foreground">Permissions</strong> section, pick <code className={C}>@everyone</code>{" "}
-          as the target and deny <code className={C}>server.view</code>. Save. From the next request the server answers{" "}
-          <code className={C}>404</code> for every member who does not get it another way.
+          as the target and deny <code className={C}>server.view</code> (Deny all in the General group). Save. From the
+          next request the server answers <code className={C}>404</code> for every member who does not get it another
+          way.
         </li>
         <li>
-          <strong className="text-foreground">Open it for chosen people.</strong> On the same server write an allow
-          override of <code className={C}>server.view</code> for one role or one member. Everyone else stays at 404;
-          this is the only way in.
+          <strong className="text-foreground">Hide one section instead.</strong> Deny that section&apos;s view key —{" "}
+          <code className={C}>domains.view</code>, <code className={C}>ssl.view</code>,{" "}
+          <code className={C}>nginx.view</code>, <code className={C}>processes.view</code>,{" "}
+          <code className={C}>logs.view</code> or <code className={C}>notifications.view</code> — and only that section
+          closes; the server and the other sections stay as their own view keys say. The rest of that group goes with
+          it: the editor greys those switches out, and they have no effect.
+        </li>
+        <li>
+          <strong className="text-foreground">Open a server or a section for chosen people.</strong> On the same server
+          write an allow override of <code className={C}>server.view</code> for one role or one member, or of the
+          section&apos;s view key for one section. Everyone else stays at 404 for the server, or without that section.
         </li>
         <li>
           <strong className="text-foreground">Make an app private.</strong> Open the app and its{" "}
           <strong className="text-foreground">Permissions</strong> tab, deny <code className={C}>app.view</code> on{" "}
-          <code className={C}>@everyone</code>, then allow it for the roles or members who should see that one app.
+          <code className={C}>@everyone</code> (Deny all in Deployments), then allow it for the roles or members who
+          should see that one app. This hides apps only: the server&apos;s Domains, SSL, Nginx, Processes, Logs and
+          Notifications sections still follow their own view keys.
         </li>
         <li>
           <strong className="text-foreground">An app created through the Hub starts private for actions.</strong> The
           Hub writes an app override on <code className={C}>@everyone</code> denying{" "}
           <code className={C}>deploy.run</code>, <code className={C}>deploy.rollback</code>,{" "}
-          <code className={C}>deploy.logs</code>, <code className={C}>deploy.manage</code> and{" "}
-          <code className={C}>deploy.env</code>, plus an allow override for its creator with the same keys.{" "}
-          <code className={C}>app.view</code> stays, so the app is listed; Admins act through{" "}
-          <code className={C}>administrator</code> and the Owner holds everything.
+          <code className={C}>deploy.logs</code>, <code className={C}>deploy.manage</code>,{" "}
+          <code className={C}>deploy.admin</code> and <code className={C}>deploy.env</code>, plus an allow override for
+          its creator with the same keys. <code className={C}>app.view</code> stays, so the app is listed; Admins act
+          through <code className={C}>administrator</code> and the Owner holds everything.
         </li>
         <li>
           <strong className="text-foreground">Back to what the roles say.</strong> An override whose allow and deny
-          lists are both empty is deleted; remove the @everyone override and the server or app follows the roles
-          again.
+          lists are both empty is deleted; remove the @everyone override (Inherit all) and the server, the section or
+          the app follows the roles again.
         </li>
         <li>
           <strong className="text-foreground">&quot;Chosen servers only&quot; members.</strong> A member can be
@@ -936,16 +1081,17 @@ export default function TeamsPage() {
         Worked example: Frontend devs, deploy on two apps only
       </h2>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        The goal: a small frontend group deploys app A and app B and reads their logs, and can do nothing else anywhere
-        in the team. One role, no keys; no server override; two app overrides.
+        The goal: a small frontend group deploys app A and app B, reads their logs, sees only those two apps, and can do
+        nothing else in the team. One role with no keys, one server override for that role and two app overrides. The
+        server override denies the views Frontend should not have; the app overrides turn the app view and the two
+        deploy keys on, for A and B only.
       </p>
       <ol className="list-decimal pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
         <li>
           <strong className="text-foreground">Create the role.</strong> <strong>Members → Roles → New role</strong>:
           name <strong className="text-foreground">Frontend</strong>, a colour, and{" "}
-          <strong className="text-foreground">no keys</strong>. View-only comes free from @everyone
-          (<code className={C}>server.view</code>, <code className={C}>app.view</code>), so the role on its own grants
-          nothing and can break nothing.
+          <strong className="text-foreground">no keys</strong>. View-only comes free from @everyone, so the role on its
+          own grants nothing and can break nothing.
         </li>
         <li>
           <strong className="text-foreground">Assign it.</strong> On the <strong>Members</strong> tab pick each
@@ -953,32 +1099,45 @@ export default function TeamsPage() {
           view-only: every app is listed, every action is refused.
         </li>
         <li>
-          <strong className="text-foreground">Nothing on the server.</strong> Open the server&apos;s{" "}
-          <strong>Permissions</strong> section and change nothing. With no server override,{" "}
-          <code className={C}>deploy.create</code>, nginx, domains, SSL and processes stay closed to Frontend.
+          <strong className="text-foreground">One server override, for Role: Frontend.</strong> Open the server&apos;s{" "}
+          <strong>Permissions</strong> section, target <strong className="text-foreground">Role: Frontend</strong>, and
+          deny <code className={C}>app.view</code> in Deployments. Server-level <code className={C}>app.view</code> is
+          now off for them, so an app appears only where an app override allows it. If they should also stay out of the
+          server&apos;s other sections, deny <code className={C}>domains.view</code>, <code className={C}>ssl.view</code>,{" "}
+          <code className={C}>nginx.view</code>, <code className={C}>logs.view</code> and{" "}
+          <code className={C}>notifications.view</code> too — each is that section&apos;s view switch, and leaving one on
+          leaves that section visible, read-only. Keep <code className={C}>processes.view</code>: the Processes frame
+          then shows only their apps, which is the other half of being limited to chosen apps (deny it as well to close
+          the section). Keep <code className={C}>server.view</code>, so the server is listed and its Overview opens
+          (without live data). Do not touch <code className={C}>@everyone</code>: this override applies to Frontend
+          only.
         </li>
         <li>
           <strong className="text-foreground">App A.</strong> Open app A → <strong>Permissions</strong> tab → target{" "}
-          <strong className="text-foreground">Role: Frontend</strong> → allow{" "}
+          <strong className="text-foreground">Role: Frontend</strong> → allow <code className={C}>app.view</code>,{" "}
           <code className={C}>deploy.run</code> and <code className={C}>deploy.logs</code>; leave every other key at
           inherit. Save.
         </li>
         <li>
-          <strong className="text-foreground">App B.</strong> The same two allows for Frontend on app B.
+          <strong className="text-foreground">App B.</strong> The same three allows for Frontend on app B.
         </li>
         <li>
-          <strong className="text-foreground">Everything else stays view-only.</strong> App C has no override, so
-          Frontend sees it and can act on nothing. A deny is only needed when something would otherwise be allowed —
-          for example if the Member role is given <code className={C}>deploy.run</code>, deny it for Frontend on app C.
+          <strong className="text-foreground">Everything else stays closed.</strong> App C has no allow for Frontend and
+          the server-level app view is denied, so it is not in their lists at all — no progress, no process entry. If
+          instead they should see every app and act on two only, leave server-level{" "}
+          <code className={C}>app.view</code> on and use the two app allows alone; View as shows every app listed with
+          actions on A and B.
         </li>
         <li>
           <strong className="text-foreground">Check it with View as.</strong> Permissions →{" "}
-          <strong>View as</strong> → one frontend developer, app A: visible, <code className={C}>deploy.run</code> and{" "}
-          <code className={C}>deploy.logs</code> present, rollback and env absent. Then app C: visible, no action. That
-          is exactly what their account gets on the next request.
+          <strong>View as</strong> → one frontend developer: server visible, the sections exactly as the override left
+          them, the Processes frame holding only their apps and the Overview live data hidden. Then app A: visible,{" "}
+          <code className={C}>deploy.run</code> and <code className={C}>deploy.logs</code> present, rollback and env
+          absent. App C: invisible. That is exactly what their account gets on the next request, and any change saved
+          here reaches their open pages at once.
         </li>
       </ol>
-      <Screenshot caption="The worked example: role Frontend with no keys, and its two allow overrides (deploy.run, deploy.logs) on app A and app B." />
+      <Screenshot caption="The worked example: role Frontend with no keys, its server override denying app.view, and allow overrides adding app.view, deploy.run and deploy.logs on app A and app B." />
 
       <h2 id="command-policy" className="text-xl font-bold mt-10 mb-4 text-foreground">
         What each command needs
@@ -1039,8 +1198,9 @@ export default function TeamsPage() {
         </li>
         <li>
           <strong className="text-foreground">Creating an app is server-wide</strong> on purpose (the app does not
-          exist yet), so someone whose <code className={C}>deploy.create</code> comes only from an app override cannot
-          create one. A person who creates an app through the Hub gets a member allow override on it automatically.
+          exist yet), so <code className={C}>deploy.create</code> can only come from a role or a server override, never
+          from a per-app allow. A person who creates an app through the Hub gets a member allow override on it
+          automatically.
         </li>
       </ul>
 
@@ -1113,7 +1273,9 @@ export default function TeamsPage() {
         <li>
           <strong className="text-foreground">Do they hold app.view on that app?</strong> Without it the app is absent
           from lists, from deployment progress and from process entries. It comes from @everyone by default, so a plain
-          Viewer sees every app of a readable server and can act on none.
+          Viewer sees every app of a readable server and can act on none. It decides apps only: the server-wide
+          sections have their own view keys, so hiding an app never hides the server&apos;s overview, domains, nginx or
+          processes.
         </li>
         <li>
           <strong className="text-foreground">Which action keys do they hold?</strong> A key can come from a role or
@@ -1122,12 +1284,13 @@ export default function TeamsPage() {
         </li>
       </ol>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        To give someone one app only, deny <code className={C}>app.view</code> for their role on the apps they should
-        not see (or make those apps private), and allow it on the one they should: that is the worked example above,
-        with a role that carries no keys.
+        To give someone one app only, deny <code className={C}>app.view</code> at server level for their role, then
+        allow <code className={C}>app.view</code> and the actions on that one app. They are then limited to chosen apps:
+        the server is listed, the section views they hold still apply, the Processes frame shows only their apps and the
+        Overview&apos;s live data stays hidden. That is the worked example above, with a role that carries no keys.
       </p>
       <p className="text-sm text-muted leading-relaxed mb-4">
-        What this changes in practice, for a member whose only extra keys are an app override:
+        What this changes in practice, for a member whose extra keys are app overrides:
       </p>
       <table className="w-full text-sm border-collapse mb-4">
         <thead>
@@ -1138,12 +1301,12 @@ export default function TeamsPage() {
         </thead>
         <tbody>
           <tr className="hover:bg-primary/[0.03] transition-colors">
-            <td className="py-3 px-4 text-xs text-muted leading-relaxed">The server, its name and whether it is online; the apps they hold <code className={C}>app.view</code> on.</td>
-            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Servers without <code className={C}>server.view</code>, apps without <code className={C}>app.view</code> — not an empty list, a missing server or app (404).</td>
+            <td className="py-3 px-4 text-xs text-muted leading-relaxed">The server, its name and whether it is online; the sections whose view keys they hold; the apps they hold <code className={C}>app.view</code> on.</td>
+            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Servers without <code className={C}>server.view</code>, sections without their view key, apps without <code className={C}>app.view</code> — not an empty list, a missing server or app (404). Where data is withheld, the page says &quot;Not available with your permissions&quot;.</td>
           </tr>
           <tr className="bg-primary/[0.015] hover:bg-primary/[0.03] transition-colors">
-            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Status and deployment progress for those apps; log lines only with <code className={C}>deploy.logs</code> on that app.</td>
-            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Server-wide telemetry — nginx, domains, service, processes, channels, resources, metrics, configs and nginx logs — without <code className={C}>server.view</code> and its extra keys.</td>
+            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Status and deployment progress for those apps; log lines only with <code className={C}>deploy.logs</code> on that app; nginx configs and logs only with <code className={C}>nginx.config.view</code> / <code className={C}>nginx.logs.view</code>.</td>
+            <td className="py-3 px-4 text-xs text-muted leading-relaxed">Server-wide sections without their own view keys; for someone limited to chosen apps, the other apps, their process entries and the Overview&apos;s live data (service, resources, permissions, metrics).</td>
           </tr>
           <tr className="hover:bg-primary/[0.03] transition-colors">
             <td className="py-3 px-4 text-xs text-muted leading-relaxed">Their own command results, and the progress of a command they started.</td>
@@ -1175,15 +1338,17 @@ export default function TeamsPage() {
           processes.
         </li>
         <li>
-          <strong className="text-foreground">A change applies at once.</strong> Nothing is cached: the next request is
-          authorised from the database, and a browser already watching the server is re-checked and told. A person
-          whose access was removed loses the subscription and sees <code className={C}>accessRevoked</code>.
+          <strong className="text-foreground">A change reaches open pages at once.</strong> Nothing is cached: the next
+          request is authorised from the database. A role, an override or a member&apos;s roles saved anywhere in the
+          team is pushed to every open page, which re-authorises and refetches without a reload. A person whose access
+          was removed loses the subscription and sees <code className={C}>accessRevoked</code>.
         </li>
       </ul>
       <p className="text-sm text-muted leading-relaxed mb-10">
         An Admin holds <code className={C}>administrator</code>, so it gets every key and its app overrides are ignored;
-        the Owner holds everything. Neither is narrowed, which is why a role carrying no keys plus one app override is
-        the way to give someone one app only.
+        the Owner holds everything. Neither is narrowed, which is why a role that carries no keys plus a server override
+        denying <code className={C}>app.view</code> and one allow override per app is the way to give someone chosen
+        apps only.
       </p>
 
       <h2 id="invite-a-person" className="text-xl font-bold mt-10 mb-4 text-foreground">
@@ -1459,11 +1624,11 @@ export default function TeamsPage() {
         On the fleet page the sidebar is a tree: <strong className="text-foreground">Personal</strong>, every team you
         belong to, then <strong className="text-foreground">Shared with me</strong>. A server&apos;s name is a link:
         choosing it opens that server at its overview. The arrow beside the name is a separate control — it opens the
-        server to show only the sections you may open: overview, deployments and settings always; domains, ssl,
-        nginx, notifications and processes for the whole server; logs and the action log only when your keys allow
-        them, and a Permissions section for the Owner and holders of <code className={C}>roles.manage</code>. The list
-        is the server&apos;s own <code className={C}>sections</code> field, so the tree never guesses a rule from a
-        role.
+        server to show only the sections you may open: overview for <code className={C}>server.view</code>, deployments
+        with at least one visible app or <code className={C}>deploy.create</code>, then domains, ssl, nginx, processes,
+        logs, notifications and the action log each only when its own view key is held, settings always, and a
+        Permissions section for the Owner and holders of <code className={C}>roles.manage</code>. The list is the
+        server&apos;s own <code className={C}>sections</code> field, so the tree never guesses a rule from a role.
       </p>
       <ul className="list-disc pl-5 space-y-2 text-sm text-muted leading-relaxed mb-4">
         <li>
@@ -1585,9 +1750,10 @@ export default function TeamsPage() {
         </li>
         <li>
           <strong className="text-foreground">They start visible but not acting.</strong> Once they accept,{" "}
-          <code className={C}>@everyone</code> gives them <code className={C}>server.view</code> and{" "}
-          <code className={C}>app.view</code>: they see all of the team&apos;s servers and apps, and can act on nothing
-          until a role or an override adds a key — which is steps 3 to 5.
+          <code className={C}>@everyone</code> gives them <code className={C}>server.view</code>,{" "}
+          <code className={C}>app.view</code> and the other section view keys: they see all of the team&apos;s servers,
+          apps and sections, can act on nothing (and cannot open Logs), until a role or an override adds a key — which
+          is steps 3 to 5.
         </li>
         <li>Lookups, invitations and shares share a budget of 30 per account per hour, every attempt counted, plus a per-IP limit.</li>
       </ul>
@@ -1608,7 +1774,9 @@ export default function TeamsPage() {
         </li>
         <li>
           Tick the <strong className="text-foreground">keys</strong> it should carry, grouped General, Deployments,
-          Nginx, Domains, SSL, Processes and Team. A dangerous key (★) shows a warning before it can be ticked.
+          Domains, SSL, Nginx, Processes, Logs, Notifications, Action log and Team. The first switch of a group is that
+          section&apos;s view key; the rest of the group stays greyed out until it is on. A dangerous key (★) shows a
+          warning before it can be ticked.
         </li>
         <li>
           Save. The role is placed just below your own highest role — the{" "}
@@ -1678,12 +1846,13 @@ export default function TeamsPage() {
         <li>
           To make the server or the app private, deny <code className={C}>server.view</code> or{" "}
           <code className={C}>app.view</code> on <code className={C}>@everyone</code>, then allow it for the roles or
-          members who should keep it. Clearing both lists deletes the override.
+          members who should keep it; to hide one section, deny its view key the same way. Clearing both lists
+          (Inherit all) deletes the override.
         </li>
       </ol>
       <p className="text-sm text-muted leading-relaxed mb-6">
-        Saving takes effect on the next request and re-checks any browser already watching that server. The roles have
-        not changed; only what they reach on that server or app has.
+        Saving takes effect on the next request and re-checks every open page in the team at once — nobody refreshes.
+        The roles have not changed; only what they reach on that server, section or app has.
       </p>
       {/* SCREENSHOT: the server Permissions editor with a role target, one allow and one deny, and the app Permissions tab */}
       <Screenshot caption="The Permissions editor: a role target with an allow and a deny on the server, and the same editor on one app." />
